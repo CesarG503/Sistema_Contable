@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cuentas T - Sistema de Contabilidad</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+
+<button class="mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
+
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <div class="logo-icon">💧</div>
+      <span>OneDi</span>
+    </div>
+  </div>
+  <div class="sidebar-menu">
+    <div class="menu-section">
+      <div class="menu-title">MENU</div>
+      <a href="/usuarios/home" class="menu-item">
+        <div class="menu-icon">📊</div>
+        <span>Dashboard</span>
+      </a>
+      <a href="/partidas/libro-diario" class="menu-item">
+        <div class="menu-icon">📖</div>
+        <span>Libro Diario</span>
+      </a>
+      <a href="/cuentas/libro-mayor" class="menu-item active">
+        <div class="menu-icon">📑</div>
+        <span>Cuentas T</span>
+      </a>
+      <a href="/cuentas/crear" class="menu-item">
+        <div class="menu-icon">➕</div>
+        <span>Crear Cuenta</span>
+      </a>
+    </div>
+    <div class="menu-section">
+      <div class="menu-title">PREFERENCIAS</div>
+      <a href="#" class="menu-item">
+        <div class="menu-icon">🌙</div>
+        <span>Tema</span>
+      </a>
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="user-profile">
+      <div class="user-avatar">OD</div>
+      <div class="user-info">
+        <div class="user-name">ONE D</div>
+        <div class="user-email">usuario@email.com</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="main-content">
+  <div class="page-header">
+    <div>
+      <h1>Cuentas T</h1>
+      <p>Resumen de movimientos y saldos por cuenta</p>
+    </div>
+  </div>
+
+  <div th:if="${cuentasConSaldos.isEmpty()}" class="empty-state">
+    <p>No hay cuentas registradas</p>
+  </div>
+
+  <div class="cuentas-grid">
+    <div th:each="entry : ${cuentasConSaldos}" class="cuenta-card">
+      <div class="cuenta-header">
+        <h3 th:text="${entry.key.nombre}"></h3>
+        <p th:text="${entry.key.descripcion}"></p>
+        <span class="cuenta-naturaleza"
+              th:classappend="${entry.key.naturaleza == 'D' ? 'naturaleza-D' : 'naturaleza-A'}"
+              th:text="${entry.key.naturaleza == 'D' ? 'Deudora' : 'Acreedora'}"></span>
+      </div>
+      <div class="saldos">
+        <div class="saldo-item saldo-debe">
+          <span>Total Debe</span>
+          <strong th:text="'$' + ${#numbers.formatDecimal(entry.value.debe, 1, 2)}"></strong>
+        </div>
+        <div class="saldo-item saldo-haber">
+          <span>Total Haber</span>
+          <strong th:text="'$' + ${#numbers.formatDecimal(entry.value.haber, 1, 2)}"></strong>
+        </div>
+        <div class="saldo-item saldo-final">
+          <span>Saldo</span>
+          <strong th:text="'$' + ${#numbers.formatDecimal(entry.value.saldo, 1, 2)}"></strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('active');
+  }
+
+  document.addEventListener('click', function(event) {
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.querySelector('.mobile-menu-toggle');
+
+    if (window.innerWidth <= 768 &&
+            !sidebar.contains(event.target) &&
+            !toggle.contains(event.target) &&
+            sidebar.classList.contains('active')) {
+      sidebar.classList.remove('active');
+    }
+  });
+</script>
+
+</body>
+</html>

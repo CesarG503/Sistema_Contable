@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - OneDi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+
+<button class="mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">
+            <div class="logo-icon">💧</div>
+            <span>OneDi</span>
+        </div>
+    </div>
+
+    <div class="sidebar-menu">
+        <div class="menu-section">
+            <div class="menu-title">MENU</div>
+            <a href="/usuarios/home" class="menu-item active">
+                <div class="menu-icon">📊</div>
+                <span>Dashboard</span>
+            </a>
+            <a href="/partidas/libro-diario" class="menu-item">
+                <div class="menu-icon">📖</div>
+                <span>Libro Diario</span>
+            </a>
+            <a href="/cuentas/libro-mayor" class="menu-item">
+                <div class="menu-icon">📑</div>
+                <span>Cuentas T</span>
+            </a>
+            <a href="/cuentas/crear" class="menu-item">
+                <div class="menu-icon">➕</div>
+                <span>Crear Cuenta</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <div class="menu-title">PREFERENCIAS</div>
+            <a href="#" class="menu-item">
+                <div class="menu-icon">🌙</div>
+                <span>Tema</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="sidebar-footer">
+        <div class="user-profile">
+            <div class="user-avatar">OD</div>
+            <div class="user-info">
+                <div class="user-name">ONE D</div>
+                <div class="user-email">usuario@email.com</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="page-header">
+        <h1>Dashboard</h1>
+    </div>
+
+    <div class="summary-cards">
+        <div class="summary-card dark">
+            <div class="card-menu">⋮</div>
+            <div class="card-icon">💳</div>
+            <div class="card-label">Activo</div>
+            <div class="card-amount">$0000.00</div>
+        </div>
+        <div class="summary-card">
+            <div class="card-menu">⋮</div>
+            <div class="card-icon" style="background: #2d2d2d;">💰</div>
+            <div class="card-label">Pasivo</div>
+            <div class="card-amount">$0000.00</div>
+        </div>
+        <div class="summary-card">
+            <div class="card-menu">⋮</div>
+            <div class="card-icon" style="background: #2d2d2d;">💵</div>
+            <div class="card-label">Capital</div>
+            <div class="card-amount">$0000.00</div>
+        </div>
+    </div>
+
+    <div class="table-section">
+        <div class="table-header">Partida doble</div>
+        <table>
+            <thead>
+            <tr>
+                <th># Asiento</th>
+                <th>Fecha</th>
+                <th>Descripción</th>
+                <th>Debe</th>
+                <th>Haber</th>
+                <th>Detalles</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>1</td>
+                <td>12/04/2025</td>
+                <td>Banco<br><span style="margin-left: 20px;">Material y Equipo</span></td>
+                <td>$100</td>
+                <td>$1000</td>
+                <td><button class="btn-details">Ver detalles →</button></td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>--/--/-----</td>
+                <td>-------<br><span style="margin-left: 20px;">-----------</span></td>
+                <td>$000.00</td>
+                <td>$000.00</td>
+                <td><button class="btn-details">Ver detalles →</button></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('active');
+    }
+
+    document.addEventListener('click', function(event) {
+        const sidebar = document.getElementById('sidebar');
+        const toggle = document.querySelector('.mobile-menu-toggle');
+
+        if (window.innerWidth <= 768 &&
+            !sidebar.contains(event.target) &&
+            !toggle.contains(event.target) &&
+            sidebar.classList.contains('active')) {
+            sidebar.classList.remove('active');
+        }
+    });
+</script>
+
+</body>
+</html>

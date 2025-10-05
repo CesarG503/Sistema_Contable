@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Login - Sistema Contable</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ECF0F1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-form {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            width: 400px;
+        }
+        .login-form h2 {
+            margin-bottom: 30px;
+            font-family: 'Montserrat', sans-serif;
+            color: #667eea;
+            font-size: 28px;
+        }
+        .login-form input {
+            margin-bottom: 20px;
+            padding: 12px;
+            width: 100%;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        .login-form input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .login-form button {
+            padding: 12px;
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .login-form button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .register-link {
+            margin-top: 20px;
+            display: block;
+            color: #667eea;
+            text-decoration: none;
+            font-family: 'Open Sans', sans-serif;
+            transition: color 0.3s ease;
+        }
+        .register-link:hover {
+            color: #764ba2;
+        }
+        .error-message {
+            color: #e74c3c;
+            margin-bottom: 15px;
+            font-family: 'Open Sans', sans-serif;
+            background-color: #ffe6e6;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+<div class="login-form">
+    Contabilidad
+    <h2>Sistema Contable</h2>
+    <form th:action="@{/login}" method="post">
+        <input type="text" name="username" placeholder="Nombre de Usuario" required />
+        <input type="password" name="password" placeholder="Contraseña" required />
+        <button type="submit">Iniciar Sesión</button>
+        <div th:if="${param.error}" class="error-message">Usuario o contraseña incorrectos</div>
+        <div th:if="${errorMsg != null}" class="error-message" th:text="${errorMsg}"></div>
+    </form>
+    <a class="register-link" th:href="@{/usuarios/register}">¿No tienes cuenta? Regístrate aquí</a>
+</div>
+</body>
+</html>
