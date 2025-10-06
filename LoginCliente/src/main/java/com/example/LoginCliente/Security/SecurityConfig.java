@@ -20,13 +20,21 @@ public class SecurityConfig {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private CustomAuthFailureHandler failureHandler;
+
+    @Autowired
+    private CustomAuthSuccessHandler successHandler;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers(
-                                "/usuarios/register",
                                 "/usuarios/login",
+                                "/usuarios/register",
+                                "/usuarios/auth",
+                                "/usuarios/login-validate",
                                 "/error",
                                 "/img/**",
                                 "/css/**",
@@ -35,14 +43,19 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-                        .loginPage("/usuarios/login")
-                        .defaultSuccessUrl("/dashboard", true)
-                        .failureUrl("/usuarios/login?error=true")
+                        .loginPage("/usuarios/auth")
+                        .successHandler(successHandler)
+                        .failureHandler(failureHandler)
                         .loginProcessingUrl("/login")
+                        .permitAll()
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/usuarios/login")
+                        .logoutSuccessUrl("/usuarios/auth?panel=login")
+                        .permitAll()
+                )
+                .exceptionHandling(exception -> exception
+                        .accessDeniedPage("/usuarios/dashboard")
                 )
                 .csrf(csrf -> csrf.disable());
         return http.build();
