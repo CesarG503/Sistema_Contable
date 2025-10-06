@@ -10,10 +10,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.logging.Logger;
 
 @Controller
@@ -34,65 +32,111 @@ public class UsuarioController {
         binder.registerCustomEditor(String.class, new StringTrimmerEditor(true));
     }
 
+    @GetMapping("/auth")
+    public String authPage(@RequestParam(value = "panel", defaultValue = "login") String panel,
+                           @RequestParam(value = "loginErr", required = false) String loginErr,
+                           @RequestParam(value = "registered", required = false) String registered,
+                           Model model) {
+
+        model.addAttribute("activePanel", panel);
+
+        if (registered != null) {
+            model.addAttribute("loginMsg", "Registro exitoso. Inicia sesión.");
+        }
+        if (loginErr != null) {
+            // Opción A (genérico para no revelar si el usuario existe):
+            String msg = "Usuario o contraseña incorrectos.";
+            // Opción B (diferenciar):
+            if ("nouser".equals(loginErr)) {
+                msg = "El usuario no existe.";
+            } else if ("bad".equals(loginErr)) {
+                msg = "Usuario o contraseña incorrectos.";
+            }
+            model.addAttribute("loginError", msg);
+        }
+        return "auth";
+    }
+
+
+    // Validación previa al login (igual estilo que registro)
+    @PostMapping("/login-validate")
+    public String loginValidate(@RequestParam("username") String username,
+                                @RequestParam("password") String password,
+                                Model model) {
+        model.addAttribute("activePanel", "login");
+
+        if (username == null || username.trim().isEmpty()) {
+            model.addAttribute("loginError", "El usuario es obligatorio.");
+            return "auth";
+        }
+        if (password == null || password.isEmpty()) {
+            model.addAttribute("loginError", "La contraseña es obligatoria.");
+            return "auth";
+        }
+        if (password.length() < 4) {
+            model.addAttribute("loginError", "La contraseña es muy corta.");
+            return "auth";
+        }
+
+        // Continúa el flujo normal de Spring Security
+        return "forward:/login";
+    }
+
+    @GetMapping("/login")
+    public String legacyLogin() {
+        return "redirect:/usuarios/auth?panel=login";
+    }
+
     @GetMapping("/register")
-    public String showRegistrationForm(Model model) {
-        Usuario usuario = new Usuario();
-        model.addAttribute("usuario", usuario);
-        return "register";
+    public String legacyRegister() {
+        return "redirect:/usuarios/auth?panel=register";
     }
 
     @PostMapping("/register")
     public String registerUsuario(@RequestParam("usuario") String username,
                                   @RequestParam("pwd") String password,
+                                  @RequestParam("password2") String password2,
                                   Model model) {
-        logger.info("Attempting to register user: " + username);
 
-        // Validate input
+        model.addAttribute("activePanel", "register");
+        model.addAttribute("usuario", new Usuario());
+
         if (username == null || username.trim().isEmpty()) {
-            model.addAttribute("errorMsg", "Usuario es obligatorio");
-            model.addAttribute("usuario", new Usuario());
-            return "register";
+            model.addAttribute("registerError", "El usuario es obligatorio.");
+            return "auth";
         }
-
-        if (password == null || password.length() < 8) {
-            model.addAttribute("errorMsg", "Contraseña debe tener al menos 8 caracteres");
-            model.addAttribute("usuario", new Usuario());
-            return "register";
+        if (password == null || password.isEmpty()) {
+            model.addAttribute("registerError", "La contraseña es obligatoria.");
+            return "auth";
         }
-
-        // Check if user already exists
-        Usuario existingUsuario = usuarioService.findByUsuario(username);
-        if (existingUsuario != null) {
-            model.addAttribute("errorMsg", "El usuario ya está registrado");
-            model.addAttribute("usuario", new Usuario());
-            logger.warning("Usuario already registered: " + username);
-            return "register";
+        if (password.length() < 8) {
+            model.addAttribute("registerError", "La contraseña debe tener al menos 8 caracteres.");
+            return "auth";
+        }
+        if (password2 == null || !password.equals(password2)) {
+            model.addAttribute("registerError", "Las contraseñas no coinciden.");
+            return "auth";
+        }
+        Usuario existing = usuarioService.findByUsuario(username.trim());
+        if (existing != null) {
+            model.addAttribute("registerError", "El usuario ya existe.");
+            return "auth";
         }
 
         try {
-            // Create new usuario manually
-            Usuario nuevoUsuario = new Usuario();
-            nuevoUsuario.setUsuario(username.trim());
-            nuevoUsuario.setPwd(password);
-            nuevoUsuario.setPermiso(1); // Default permission
-
-            usuarioService.save(nuevoUsuario);
-            logger.info("Usuario registered successfully: " + username);
-            return "redirect:/usuarios/login";
+            Usuario nuevo = new Usuario();
+            nuevo.setUsuario(username.trim());
+            nuevo.setPwd(password);
+            nuevo.setPermiso(1);
+            usuarioService.save(nuevo);
+            return "redirect:/usuarios/auth?panel=login&registered=1";
         } catch (Exception e) {
-            logger.severe("Error inesperado al registrar usuario: " + e.getMessage());
-            e.printStackTrace();
-            model.addAttribute("errorMsg", "Ocurrió un error inesperado. Intenta nuevamente.");
-            model.addAttribute("usuario", new Usuario());
-            return "register";
+            logger.severe("Error al registrar: " + e.getMessage());
+            model.addAttribute("registerError", "Error inesperado. Intenta nuevamente.");
+            return "auth";
         }
     }
 
-    @GetMapping("/login")
-    public String showLoginForm(Model model) {
-        model.addAttribute("usuario", new Usuario());
-        return "login";
-    }
 
     @GetMapping("/home")
     public String home(Model model) {
