@@ -3,6 +3,7 @@ package com.example.LoginCliente.Controller;
 import com.example.LoginCliente.Models.Cuenta;
 import com.example.LoginCliente.Models.Movimiento;
 import com.example.LoginCliente.Models.Partida;
+import com.example.LoginCliente.Models.PartidaDTO;
 import com.example.LoginCliente.Models.Usuario;
 import com.example.LoginCliente.Service.CuentaService;
 import com.example.LoginCliente.Service.PartidaService;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,11 +43,29 @@ public class PartidaController {
         List<Partida> partidas = partidaService.findAll();
         List<Cuenta> cuentas = cuentaService.findAll();
 
-        // Create a map to hold partidas with their movimientos
-        Map<Partida, List<Movimiento>> partidasConMovimientos = new HashMap<>();
+        Map<PartidaDTO, List<Movimiento>> partidasConMovimientos = new HashMap<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         for (Partida partida : partidas) {
+            String fechaFormateada = "";
+            if (partida.getFecha() != null) {
+                // Si es Timestamp o Date, conviértelo correctamente
+                if (partida.getFecha() instanceof Timestamp) {
+                    fechaFormateada = ((Timestamp) partida.getFecha()).toLocalDateTime().format(formatter);
+                } else if (partida.getFecha() instanceof java.util.Date) {
+                    fechaFormateada = new Timestamp(((java.util.Date) partida.getFecha()).getTime()).toLocalDateTime().format(formatter);
+                } else {
+                    fechaFormateada = partida.getFecha().toString();
+                }
+            }
+            String autorStr = partida.getAutor() != null ? partida.getAutor().toString() : "";
+            PartidaDTO partidaDTO = new PartidaDTO(
+                partida.getId_partida(),
+                partida.getConcepto(),
+                fechaFormateada,
+                autorStr
+            );
             List<Movimiento> movimientos = partidaService.findMovimientosByPartida(partida.getId_partida());
-            partidasConMovimientos.put(partida, movimientos);
+            partidasConMovimientos.put(partidaDTO, movimientos);
         }
 
         model.addAttribute("partidasConMovimientos", partidasConMovimientos);
@@ -90,7 +111,6 @@ public class PartidaController {
                 movimientos.add(movimiento);
             }
 
-            // Validate that debe equals haber
             if (totalDebe.compareTo(totalHaber) != 0) {
                 response.put("error", "El total del Debe debe ser igual al total del Haber");
                 return ResponseEntity.badRequest().body(response);

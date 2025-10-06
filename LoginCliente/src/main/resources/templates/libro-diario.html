@@ -6,6 +6,7 @@
     <title>Libro Diario - Sistema de Contabilidad</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 </head>
 <body>
 
@@ -14,7 +15,7 @@
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <div class="logo">
-            <div class="logo-icon">💧</div>
+            <div class="logo-icon"><i class="fa-solid fa-fire-flame-curved"></i></div>
             <span>OneDi</span>
         </div>
     </div>
@@ -23,15 +24,15 @@
         <div class="menu-section">
             <div class="menu-title">MENU</div>
             <a href="/usuarios/home" class="menu-item">
-                <div class="menu-icon">📊</div>
+                <div class="menu-icon"><i class="fa-solid fa-scale-balanced"></i></div>
                 <span>Dashboard</span>
             </a>
             <a href="/partidas/libro-diario" class="menu-item active">
-                <div class="menu-icon">📖</div>
+                <div class="menu-icon"><i class="fa-solid fa-book"></i></div>
                 <span>Libro Diario</span>
             </a>
             <a href="/cuentas/libro-mayor" class="menu-item">
-                <div class="menu-icon">📑</div>
+                <div class="menu-icon"><i class="fa-solid fa-file"></i></div>
                 <span>Cuentas T</span>
             </a>
             <a href="/cuentas/crear" class="menu-item">
@@ -92,7 +93,7 @@
             <p style="text-align: center; color: #666; padding: 40px;">No hay partidas registradas</p>
         </div>
 
-        <table th:if="${!partidasConMovimientos.isEmpty()}">
+        <table th:if="${not partidasConMovimientos.isEmpty()}">
             <thead>
             <tr>
                 <th># Asiento</th>
@@ -107,10 +108,10 @@
             <th:block th:each="entry : ${partidasConMovimientos}">
                 <tr th:each="mov, iterStat : ${entry.value}">
                     <td th:if="${iterStat.first}" th:rowspan="${entry.value.size()}" th:text="${entry.key.id_partida}"></td>
-                    <td th:if="${iterStat.first}" th:rowspan="${entry.value.size()}" th:text="${#temporals.format(entry.key.fecha, 'dd/MM/yyyy')}"></td>
+                    <td th:if="${iterStat.first}" th:rowspan="${entry.value.size()}" th:text="${entry.key.fechaFormateada}"></td>
                     <td>
                         <div th:if="${iterStat.first}" th:text="${entry.key.concepto}" style="font-weight: 600;"></div>
-                        <div th:text="${cuentas.stream().filter(c -> c.id_cuenta == mov.id_cuenta).findFirst().orElse(new com.example.LoginCliente.Models.Cuenta()).nombre}"></div>
+                        <div th:each="cuenta : ${cuentas}" th:if="${cuenta.id_cuenta == mov.id_cuenta}" th:text="${cuenta.nombre}"></div>
                     </td>
                     <td th:text="${mov.tipo == 'D' ? '$' + mov.monto : ''}"></td>
                     <td th:text="${mov.tipo == 'H' ? '$' + mov.monto : ''}"></td>
@@ -182,24 +183,9 @@
         </form>
     </div>
 </div>
+<script th:src="@{/js/Sidebar.js}"></script>
 
 <script>
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('active');
-    }
-
-    document.addEventListener('click', function(event) {
-        const sidebar = document.getElementById('sidebar');
-        const toggle = document.querySelector('.mobile-menu-toggle');
-
-        if (window.innerWidth <= 768 &&
-            !sidebar.contains(event.target) &&
-            !toggle.contains(event.target) &&
-            sidebar.classList.contains('active')) {
-            sidebar.classList.remove('active');
-        }
-    });
-
     function openModal() {
         document.getElementById('partidaModal').style.display = 'block';
     }
