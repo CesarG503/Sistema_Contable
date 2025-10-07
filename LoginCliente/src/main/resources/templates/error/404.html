@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Error 404</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" th:href="@{/css/error.css}">
+</head>
+<body>
+    <div class="error-container">
+        <div class="logo-container">
+            <div class="flame"></div>
+            <img class="logo" th:src="@{/img/logo.svg}" alt="Logo" />
+        </div>
+        <div class="error-code">404</div>
+        <h1>¡Página no encontrada!</h1>
+        <p th:if="${errorMsg}" th:text="${errorMsg}">Lo sentimos, la página que estás buscando no existe o no está disponible en este momento.</p>
+        <p th:unless="${errorMsg}">Lo sentimos, la página que estás buscando no existe o no está disponible en este momento.</p>
+        <a class="btn" th:href="@{/usuarios/dashboard}">Volver al Dashboard</a>
+    </div>
+</body>
+</html>
+
