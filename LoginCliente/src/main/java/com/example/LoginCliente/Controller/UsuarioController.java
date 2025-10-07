@@ -1,5 +1,6 @@
 package com.example.LoginCliente.Controller;
 
+import com.example.LoginCliente.Models.Permiso;
 import com.example.LoginCliente.Models.Usuario;
 import com.example.LoginCliente.Service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -127,7 +128,7 @@ public class UsuarioController {
             Usuario nuevo = new Usuario();
             nuevo.setUsuario(username.trim());
             nuevo.setPwd(password);
-            nuevo.setPermiso(1);
+            nuevo.setPermiso(Permiso.valueOfValor(1));
             usuarioService.save(nuevo);
             return "redirect:/usuarios/auth?panel=login&registered=1";
         } catch (Exception e) {

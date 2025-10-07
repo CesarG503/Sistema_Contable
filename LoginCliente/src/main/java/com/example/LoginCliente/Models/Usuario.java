@@ -51,12 +51,12 @@ public class Usuario {
         this.pwd = pwd;
     }
 
-    public Integer getPermiso() {
-        return permiso;
+    public Permiso getPermiso() {
+        return Permiso.valueOfValor(permiso);
     }
 
-    public void setPermiso(Integer permiso) {
-        this.permiso = permiso;
+    public void setPermiso( Permiso permiso) {
+        this.permiso =  permiso.valor;
     }
 }
 
