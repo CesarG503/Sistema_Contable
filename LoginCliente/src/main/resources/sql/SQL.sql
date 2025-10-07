@@ -3,7 +3,8 @@ CREATE DATABASE Contabilidad;
 
 CREATE TABLE tbl_usuarios (
     id_usuario SERIAL PRIMARY KEY,
-    usuario TEXT NOT NULL ,
+    usuario TEXT NOT NULL,
+    correo TEXT NOT NULL,
     pwd VARCHAR(255) NOT NULL,
     permiso INTEGER
 );
