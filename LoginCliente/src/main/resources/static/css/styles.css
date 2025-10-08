@@ -346,6 +346,9 @@ tr:hover {
 .btn-remove {
     background: #dc3545;
     padding: 10px 15px;
+    margin: auto;
+    width: 100%;
+    max-width: 150px;
 }
 
 .btn-remove:hover {
