@@ -586,6 +586,92 @@ textarea:focus {
     color: #667eea;
 }
 
+/* Details Modal */
+.detalles-info {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.detalle-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.detalle-row:last-child {
+    border-bottom: none;
+}
+
+.detalle-row strong {
+    color: #555;
+}
+
+.detalle-row span {
+    color: #333;
+    font-weight: 500;
+}
+
+.movimiento-detalle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.movimiento-cuenta {
+    font-weight: 500;
+    color: #333;
+}
+
+.movimiento-montos {
+    display: flex;
+    gap: 30px;
+}
+
+.monto-debe,
+.monto-haber {
+    min-width: 100px;
+    text-align: right;
+    font-weight: 600;
+}
+
+.monto-debe {
+    color: #28a745;
+}
+
+.monto-haber {
+    color: #dc3545;
+}
+
+.movimiento-totales {
+    margin-top: 20px;
+    padding: 20px;
+    background: #667eea;
+    color: white;
+    border-radius: 8px;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+}
+
+.total-row strong {
+    font-size: 16px;
+}
+
+.total-row span {
+    font-size: 18px;
+    font-weight: 700;
+}
+
 /* Empty State */
 .empty-state {
     text-align: center;
@@ -607,7 +693,7 @@ textarea:focus {
     }
 
     .cuentas-grid {
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     }
 }
 
@@ -685,4 +771,45 @@ textarea:focus {
         margin: 20px auto;
         padding: 20px;
     }
+}
+
+/* Updated modal styles for new list format */
+.lista-cuentas {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+}
+
+.cuenta-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 4px solid #667eea;
+}
+
+.cuenta-nombre {
+    font-weight: 500;
+    color: #333;
+    flex: 1;
+}
+
+.cuenta-movimiento {
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.cuenta-movimiento.debe {
+    background: #d4edda;
+    color: #155724;
+}
+
+.cuenta-movimiento.haber {
+    background: #f8d7da;
+    color: #721c24;
 }

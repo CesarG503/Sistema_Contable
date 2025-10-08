@@ -77,14 +77,12 @@
                 <label>Fecha final</label>
                 <input type="date" id="fechaFinal">
             </div>
-            <button class="btn">Filtrar</button>
         </div>
         <div class="filter-row" style="margin-top: 15px;">
             <div class="filter-group">
                 <label>Número de asiento</label>
-                <input type="text" placeholder="Type here..." id="numeroAsiento">
+                <input type="text" placeholder="Busca Aqui..." id="numeroAsiento">
             </div>
-            <button class="btn">Buscar</button>
         </div>
     </div>
 
@@ -116,7 +114,11 @@
                     <td th:text="${mov.tipo == 'D' ? '$' + mov.monto : ''}"></td>
                     <td th:text="${mov.tipo == 'H' ? '$' + mov.monto : ''}"></td>
                     <td th:if="${iterStat.first}" th:rowspan="${entry.value.size()}">
-                        <button class="btn-details">Ver detalles →</button>
+                        <button class="btn-details"
+                                th:attr="data-asiento=${entry.key.idPartida},
+                                        data-fecha=${entry.key.fechaFormateada},
+                                        data-concepto=${entry.key.concepto}"
+                                onclick="openDetailsModal(this)">Ver detalles →</button>
                     </td>
                 </tr>
             </th:block>
@@ -188,9 +190,7 @@
                         <button type="button" class="btn btn-remove" onclick="removeMovimiento(this)">X</button>
                     </div>
 
-
                 </div>
-
 
                 <button type="button" class="btn btn-add" onclick="addMovimiento()">Agregar Movimiento</button>
 
@@ -214,7 +214,35 @@
         </form>
     </div>
 </div>
+
+<div id="detallesModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeDetailsModal()">&times;</span>
+        <h2>Detalles del Asiento</h2>
+
+        <div class="detalles-info">
+            <div class="detalle-row">
+                <strong>Número de Asiento:</strong>
+                <span id="detalleAsiento"></span>
+            </div>
+            <div class="detalle-row">
+                <strong>Fecha:</strong>
+                <span id="detalleFecha"></span>
+            </div>
+            <div class="detalle-row">
+                <strong>Concepto:</strong>
+                <span id="detalleConcepto"></span>
+            </div>
+        </div>
+
+        <h3 style="margin-top: 20px; margin-bottom: 15px;">Movimientos</h3>
+        <div id="detalleMovimientos"></div>
+    </div>
+</div>
+
 <script th:src="@{/js/Sidebar.js}"></script>
+<script th:src="@{/js/Buscador.js}"></script>
 <script th:src="@{/js/Diario.js}"></script>
+<script th:src="@{/js/DetallesModal.js}"></script>
 </body>
 </html>

@@ -55,10 +55,10 @@ public class PartidaController {
             }
             String autorStr = partida.getAutor() != null ? partida.getAutor().toString() : "";
             PartidaDTO partidaDTO = new PartidaDTO(
-                partida.getIdPartida(),
-                partida.getConcepto(),
-                fechaFormateada,
-                autorStr
+                    partida.getIdPartida(),
+                    partida.getConcepto(),
+                    fechaFormateada,
+                    autorStr
             );
             List<Movimiento> movimientos = partidaService.findMovimientosByPartida(partida.getIdPartida());
             partidasConMovimientos.put(partidaDTO, movimientos);
@@ -128,6 +128,39 @@ public class PartidaController {
         } catch (Exception e) {
             response.put("error", "Error al crear la partida: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @GetMapping("/{idPartida}/movimientos")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> getMovimientos(@PathVariable Integer idPartida) {
+        try {
+            List<Movimiento> movimientos = partidaService.findMovimientosByPartida(idPartida);
+            List<Cuenta> cuentas = cuentaService.findAll();
+
+            List<Map<String, Object>> movimientosConNombres = new ArrayList<>();
+
+            for (Movimiento mov : movimientos) {
+                Map<String, Object> movData = new HashMap<>();
+                movData.put("monto", mov.getMonto());
+                movData.put("tipo", mov.getTipo());
+
+                // Find account name
+                String nombreCuenta = "";
+                for (Cuenta cuenta : cuentas) {
+                    if (cuenta.getId_cuenta().equals(mov.getId_cuenta())) {
+                        nombreCuenta = cuenta.getNombre();
+                        break;
+                    }
+                }
+                movData.put("nombreCuenta", nombreCuenta);
+
+                movimientosConNombres.add(movData);
+            }
+
+            return ResponseEntity.ok(movimientosConNombres);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 }
