@@ -20,10 +20,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 @RequestMapping("/partidas")
@@ -43,12 +40,11 @@ public class PartidaController {
         List<Partida> partidas = partidaService.findAll();
         List<Cuenta> cuentas = cuentaService.findAll();
 
-        Map<PartidaDTO, List<Movimiento>> partidasConMovimientos = new HashMap<>();
+        Map<PartidaDTO, List<Movimiento>> partidasConMovimientos = new LinkedHashMap<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         for (Partida partida : partidas) {
             String fechaFormateada = "";
             if (partida.getFecha() != null) {
-                // Si es Timestamp o Date, conviértelo correctamente
                 if (partida.getFecha() instanceof Timestamp) {
                     fechaFormateada = ((Timestamp) partida.getFecha()).toLocalDateTime().format(formatter);
                 } else if (partida.getFecha() instanceof java.util.Date) {
