@@ -1,24 +1,24 @@
 package com.example.LoginCliente.Models;
 
 public class PartidaDTO {
-    private Integer id_partida;
+    private Integer idPartida;
     private String concepto;
     private String fechaFormateada;
     private String autor;
 
-    public PartidaDTO(Integer id_partida, String concepto, String fechaFormateada, String autor) {
-        this.id_partida = id_partida;
+    public PartidaDTO(Integer idPartida, String concepto, String fechaFormateada, String autor) {
+        this.idPartida = idPartida;
         this.concepto = concepto;
         this.fechaFormateada = fechaFormateada;
         this.autor = autor;
     }
 
-    public Integer getId_partida() {
-        return id_partida;
+    public Integer getIdPartida() {
+        return idPartida;
     }
 
-    public void setId_partida(Integer id_partida) {
-        this.id_partida = id_partida;
+    public void setIdPartida(Integer idPartida) {
+        this.idPartida = idPartida;
     }
 
     public String getConcepto() {

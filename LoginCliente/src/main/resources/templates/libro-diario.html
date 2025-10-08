@@ -107,7 +107,7 @@
             <tbody>
             <th:block th:each="entry : ${partidasConMovimientos}">
                 <tr th:each="mov, iterStat : ${entry.value}">
-                    <td th:if="${iterStat.first}" th:rowspan="${entry.value.size()}" th:text="${entry.key.id_partida}"></td>
+                    <td th:if="${iterStat.first}" th:rowspan="${entry.value.size()}" th:text="${entry.key.idPartida}"></td>
                     <td th:if="${iterStat.first}" th:rowspan="${entry.value.size()}" th:text="${entry.key.fechaFormateada}"></td>
                     <td>
                         <div th:if="${iterStat.first}" th:text="${entry.key.concepto}" style="font-weight: 600;"></div>
@@ -131,6 +131,10 @@
         <h2>Nueva Partida Contable</h2>
 
         <form id="partidaForm">
+            <div class="form-group">
+                <label for="fechaPartida">Fecha de la partida:</label>
+                <input type="date" id="fechaPartida" required>
+            </div>
             <div class="form-group">
                 <label for="concepto">Concepto:</label>
                 <textarea id="concepto" rows="3" required></textarea>

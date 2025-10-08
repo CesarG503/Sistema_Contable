@@ -9,7 +9,7 @@ public class Partida {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id_partida;
+    private Integer idPartida;
 
     @Column(nullable = false)
     private Integer autor;
@@ -23,12 +23,12 @@ public class Partida {
     public Partida() {
     }
 
-    public Integer getId_partida() {
-        return id_partida;
+    public Integer getIdPartida() {
+        return idPartida;
     }
 
-    public void setId_partida(Integer id_partida) {
-        this.id_partida = id_partida;
+    public void setIdPartida(Integer idPartida) {
+        this.idPartida = idPartida;
     }
 
     public Integer getAutor() {
@@ -54,5 +54,8 @@ public class Partida {
     public void setFecha(Timestamp fecha) {
         this.fecha = fecha;
     }
-}
 
+    public Integer getId_partida() {
+        return idPartida;
+    }
+}

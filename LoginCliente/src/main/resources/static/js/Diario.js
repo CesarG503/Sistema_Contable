@@ -57,6 +57,7 @@ document.getElementById('partidaForm').addEventListener('submit', async function
     e.preventDefault();
 
     const concepto = document.getElementById('concepto').value;
+    const fechaPartida = document.getElementById('fechaPartida').value;
     const movimientos = [];
 
     document.querySelectorAll('.movimiento-row').forEach(row => {
@@ -75,7 +76,7 @@ document.getElementById('partidaForm').addEventListener('submit', async function
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ concepto, movimientos })
+            body: JSON.stringify({ concepto, fechaPartida, movimientos })
         });
 
         const data = await response.json();

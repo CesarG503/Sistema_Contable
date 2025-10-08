@@ -59,12 +59,12 @@ public class PartidaController {
             }
             String autorStr = partida.getAutor() != null ? partida.getAutor().toString() : "";
             PartidaDTO partidaDTO = new PartidaDTO(
-                partida.getId_partida(),
+                partida.getIdPartida(),
                 partida.getConcepto(),
                 fechaFormateada,
                 autorStr
             );
-            List<Movimiento> movimientos = partidaService.findMovimientosByPartida(partida.getId_partida());
+            List<Movimiento> movimientos = partidaService.findMovimientosByPartida(partida.getIdPartida());
             partidasConMovimientos.put(partidaDTO, movimientos);
         }
 
@@ -87,7 +87,15 @@ public class PartidaController {
 
             Partida partida = new Partida();
             partida.setConcepto((String) datos.get("concepto"));
-            partida.setFecha(new Timestamp(System.currentTimeMillis()));
+            // Obtener la fecha enviada por el usuario
+            String fechaStr = (String) datos.get("fechaPartida");
+            if (fechaStr != null && !fechaStr.isEmpty()) {
+                // Convertir la fecha (formato yyyy-MM-dd) a Timestamp
+                LocalDateTime fecha = LocalDateTime.parse(fechaStr + "T00:00:00");
+                partida.setFecha(Timestamp.valueOf(fecha));
+            } else {
+                partida.setFecha(new Timestamp(System.currentTimeMillis()));
+            }
             partida.setAutor(usuario.getId_usuario());
 
             List<Movimiento> movimientos = new ArrayList<>();
@@ -118,7 +126,7 @@ public class PartidaController {
 
             Partida savedPartida = partidaService.save(partida, movimientos);
             response.put("success", true);
-            response.put("partidaId", savedPartida.getId_partida());
+            response.put("partidaId", savedPartida.getIdPartida());
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {

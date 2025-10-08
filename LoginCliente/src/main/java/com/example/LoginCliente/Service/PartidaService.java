@@ -22,7 +22,7 @@ public class PartidaService {
     private MovimientoRepository movimientoRepository;
 
     public List<Partida> findAll() {
-        return partidaRepository.findAllByOrderByFechaDesc();
+        return partidaRepository.findAllByOrderByIdPartidaAsc();
     }
 
     public Optional<Partida> findById(Integer id) {
@@ -49,4 +49,3 @@ public class PartidaService {
         return movimientoRepository.findByIdPartida(idPartida);
     }
 }
-
