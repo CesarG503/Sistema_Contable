@@ -46,6 +46,8 @@
 # *.iml
 # *.ipr
 
+copilot.data.migration.ask.xml
+
 # CMake
 cmake-build-*/
 

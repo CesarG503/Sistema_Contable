@@ -22,6 +22,10 @@ public class Usuario {
     @Column(nullable = false, unique = true)
     private String usuario;
 
+    @NotBlank(message = "Correo es obligatorio")
+    @Column(nullable = false, unique = true)
+    private  String correo;
+
     @NotBlank(message = "Contraseña es obligatoria")
     @Size(min = 8, message = "Contraseña debe tener al menos 8 caracteres")
     @Column(nullable = false)
