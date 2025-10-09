@@ -3,9 +3,15 @@ package com.example.LoginCliente.Models;
 import jakarta.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import lombok.*;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "tbl_usuarios")
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
 public class Usuario {
 
     @Id
@@ -23,33 +29,6 @@ public class Usuario {
 
     @Column
     private Integer permiso;
-
-    public Usuario() {
-    }
-
-    public Integer getId_usuario() {
-        return id_usuario;
-    }
-
-    public void setId_usuario(Integer id_usuario) {
-        this.id_usuario = id_usuario;
-    }
-
-    public String getUsuario() {
-        return usuario;
-    }
-
-    public void setUsuario(String usuario) {
-        this.usuario = usuario;
-    }
-
-    public String getPwd() {
-        return pwd;
-    }
-
-    public void setPwd(String pwd) {
-        this.pwd = pwd;
-    }
 
     public Permiso getPermiso() {
         return Permiso.valueOfValor(permiso);

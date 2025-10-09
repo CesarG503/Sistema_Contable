@@ -98,7 +98,6 @@ public class UsuarioController {
                                   @RequestParam("pwd") String password,
                                   @RequestParam("password2") String password2,
                                   Model model) {
-
         model.addAttribute("activePanel", "register");
         model.addAttribute("usuario", new Usuario());
 

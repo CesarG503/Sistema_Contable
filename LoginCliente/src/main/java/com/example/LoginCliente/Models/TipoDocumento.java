@@ -1,9 +1,15 @@
 package com.example.LoginCliente.Models;
 
 import jakarta.persistence.*;
+import lombok.*;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "tbl_tipo_documento")
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
 public class TipoDocumento {
 
     @Id
@@ -12,24 +18,5 @@ public class TipoDocumento {
 
     @Column(nullable = false)
     private String nombre;
-
-    public TipoDocumento() {
-    }
-
-    public Integer getId_tipo() {
-        return id_tipo;
-    }
-
-    public void setId_tipo(Integer id_tipo) {
-        this.id_tipo = id_tipo;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
 }
 
