@@ -12,54 +12,7 @@
 
 <button class="mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
 
-<div class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <div class="logo">
-      <div class="logo-icon"><i class="fa-solid fa-fire-flame-curved"></i></div>
-      <span>OneDi</span>
-    </div>
-  </div>
-
-  <div class="sidebar-menu">
-    <div class="menu-section">
-      <div class="menu-title">MENU</div>
-      <a href="/usuarios/home" class="menu-item">
-        <div class="menu-icon"><i class="fa-solid fa-scale-balanced"></i></div>
-        <span>Dashboard</span>
-      </a>
-      <a href="/partidas/libro-diario" class="menu-item">
-        <div class="menu-icon"><i class="fa-solid fa-book"></i></div>
-        <span>Libro Diario</span>
-      </a>
-      <a href="/cuentas/libro-mayor" class="menu-item">
-        <div class="menu-icon"><i class="fa-solid fa-file"></i></div>
-        <span>Cuentas T</span>
-      </a>
-      <a href="/cuentas/crear" class="menu-item active">
-        <div class="menu-icon">➕</div>
-        <span>Crear Cuenta</span>
-      </a>
-    </div>
-
-    <div class="menu-section">
-      <div class="menu-title">PREFERENCIAS</div>
-      <a href="#" class="menu-item">
-        <div class="menu-icon">🌙</div>
-        <span>Tema</span>
-      </a>
-    </div>
-  </div>
-
-  <div class="sidebar-footer">
-    <div class="user-profile">
-      <div class="user-avatar">OD</div>
-      <div class="user-info">
-        <div class="user-name">ONE D</div>
-        <div class="user-email">usuario@email.com</div>
-      </div>
-    </div>
-  </div>
-</div>
+<div th:replace="fragments/sidebar :: sidebar" ></div>
 
 <div class="main-content">
   <div class="page-header">

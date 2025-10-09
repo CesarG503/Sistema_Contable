@@ -32,13 +32,14 @@ public class CuentaController {
         }
 
         model.addAttribute("cuentasConSaldos", cuentasConSaldos);
-
+        model.addAttribute("page", "libro-mayor");
         return "libro-mayor";
     }
 
     @GetMapping("/crear")
     public String mostrarFormularioCrear(Model model) {
         model.addAttribute("cuenta", new Cuenta());
+        model.addAttribute("page", "crear-cuentas");
         return "crear-cuenta";
     }
 

@@ -22,7 +22,7 @@ public class DashboardController {
 
         Usuario usuario = usuarioService.findByUsuario(username);
         model.addAttribute("usuario", usuario);
-
+        model.addAttribute("page", "dashboard");
         return "dashboard";
     }
 }
