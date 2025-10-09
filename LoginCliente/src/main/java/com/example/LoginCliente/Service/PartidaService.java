@@ -34,7 +34,7 @@ public class PartidaService {
         Partida savedPartida = partidaRepository.save(partida);
 
         for (Movimiento movimiento : movimientos) {
-            movimiento.setId_partida(savedPartida.getId_partida());
+            movimiento.setIdPartida(savedPartida.getId_partida());
             movimientoRepository.save(movimiento);
         }
 

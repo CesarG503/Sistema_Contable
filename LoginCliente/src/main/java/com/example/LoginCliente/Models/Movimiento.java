@@ -18,7 +18,7 @@ public class Movimiento {
     private Integer id_movimiento;
 
     @Column(nullable = false, name = "id_partida")
-    private Integer id_partida;
+    private Integer idPartida;
 
     @Column(nullable = false)
     private Integer id_cuenta;
