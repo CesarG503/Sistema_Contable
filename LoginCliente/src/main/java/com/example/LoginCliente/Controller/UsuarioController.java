@@ -95,15 +95,19 @@ public class UsuarioController {
 
     @PostMapping("/register")
     public String registerUsuario(@RequestParam("usuario") String username,
+                                  @RequestParam("correo") String correo,
                                   @RequestParam("pwd") String password,
                                   @RequestParam("password2") String password2,
                                   Model model) {
-
         model.addAttribute("activePanel", "register");
         model.addAttribute("usuario", new Usuario());
 
         if (username == null || username.trim().isEmpty()) {
             model.addAttribute("registerError", "El usuario es obligatorio.");
+            return "auth";
+        }
+        if (correo == null || correo.trim().isEmpty()) {
+            model.addAttribute("registerError", "El correo es obligatorio.");
             return "auth";
         }
         if (password == null || password.isEmpty()) {
@@ -127,6 +131,7 @@ public class UsuarioController {
         try {
             Usuario nuevo = new Usuario();
             nuevo.setUsuario(username.trim());
+            nuevo.setCorreo(correo.trim());
             nuevo.setPwd(password);
             nuevo.setPermiso(Permiso.valueOfValor(1));
             usuarioService.save(nuevo);

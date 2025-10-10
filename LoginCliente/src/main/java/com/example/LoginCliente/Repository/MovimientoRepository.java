@@ -9,7 +9,8 @@ import java.util.List;
 
 @Repository
 public interface MovimientoRepository extends JpaRepository<Movimiento, Integer> {
-    List<Movimiento> findByIdPartida(Integer idPartida);
+    List<Movimiento> findByIdPartida(Integer id_partida);
+
 
     @Query("SELECT m FROM Movimiento m WHERE m.id_cuenta = ?1")
     List<Movimiento> findByIdCuenta(Integer idCuenta);

@@ -1,10 +1,17 @@
 package com.example.LoginCliente.Models;
 
 import jakarta.persistence.*;
+import lombok.*;
+
 import java.sql.Timestamp;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "tbl_partidas")
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class Partida {
 
     @Id

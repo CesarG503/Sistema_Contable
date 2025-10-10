@@ -67,6 +67,7 @@ public class PartidaController {
         model.addAttribute("partidasConMovimientos", partidasConMovimientos);
         model.addAttribute("cuentas", cuentas);
         model.addAttribute("nuevaPartida", new Partida());
+        model.addAttribute("page", "libro-diario");
 
         return "libro-diario";
     }

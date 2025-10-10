@@ -1,5 +1,9 @@
 package com.example.LoginCliente.Models;
 
+import lombok.*;
+
+@Getter
+@Setter
 public class PartidaDTO {
     private Integer idPartida;
     private String concepto;

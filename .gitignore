@@ -11,6 +11,8 @@
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
+.idea/**/copilot.data.migration.ask.xml
+
 
 # AWS User-specific
 .idea/**/aws.xml
@@ -43,6 +45,8 @@
 # .idea/modules
 # *.iml
 # *.ipr
+
+copilot.data.migration.ask.xml
 
 # CMake
 cmake-build-*/

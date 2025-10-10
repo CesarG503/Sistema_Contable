@@ -36,7 +36,6 @@ public class DashboardController {
         String username = authentication.getName();
         Usuario usuario = usuarioService.findByUsuario(username);
         model.addAttribute("usuario", usuario);
-
         // Obtener partidas y cuentas igual que en libro-diario
         List<Partida> partidas = partidaService.findAll();
         List<Cuenta> cuentas = cuentaService.findAll();
@@ -65,6 +64,7 @@ public class DashboardController {
         }
         model.addAttribute("partidasConMovimientos", partidasConMovimientos);
         model.addAttribute("cuentas", cuentas);
+        model.addAttribute("page", "dashboard");
         return "dashboard";
     }
 }
