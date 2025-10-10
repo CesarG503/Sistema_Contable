@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Usuarios - Sistema de Contabilidad</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+
+<button class="mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
+
+<div th:replace="fragments/sidebar :: sidebar"></div>
+
+<div class="main-content">
+    <div class="page-header">
+        <h1>Admin Usuarios</h1>
+    </div>
+
+    <!-- Mostrar usuario de la db -->
+    <div class="table-section">
+        <div class="table-header">Lista de Usuarios</div>
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Correo</th>
+                <th>Rol</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="usuario : ${usuarios}">
+                <td th:text="${usuario.id_usuario}"></td>
+                <td th:text="${usuario.usuario}"></td>
+                <td th:text="${usuario.correo}"></td>
+                <td th:text="${usuario.permiso.texto}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script th:src="@{/js/Sidebar.js}"></script>
+
+</body>
+</html>
