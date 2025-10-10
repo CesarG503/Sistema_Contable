@@ -31,9 +31,9 @@
       <div class="cuenta-header">
         <h3 th:text="${entry.key.nombre}"></h3>
         <p th:text="${entry.key.descripcion}"></p>
-        <span class="cuenta-naturaleza"
-              th:classappend="${entry.key.naturaleza == 'D' ? 'naturaleza-D' : 'naturaleza-A'}"
-              th:text="${entry.key.naturaleza == 'D' ? 'Deudora' : 'Acreedora'}"></span>
+          <span class="cuenta-naturaleza"
+                th:classappend="${entry.key.naturaleza == 'D' ? 'naturaleza-D' : 'naturaleza-A'}"
+                th:text="${entry.key.naturaleza == 'D' ? entry.key.tipo + ': Deudora' : entry.key.tipo + ': Acreedora'}"></span>
       </div>
       <div class="saldos">
         <div class="saldo-item saldo-debe">
