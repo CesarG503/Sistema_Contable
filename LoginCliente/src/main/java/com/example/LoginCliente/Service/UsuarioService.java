@@ -66,9 +66,12 @@ public class UsuarioService implements UserDetailsService {
             throw new IllegalArgumentException("Usuario o contraseña no pueden ser nulos o vacíos");
         }
 
+        // Obtener el rol desde el enum Permiso usando el valor numérico de la BD
+        String rol = "ROLE_" + user.getPermiso().texto;
+
         return org.springframework.security.core.userdetails.User.withUsername(user.getUsuario())
                 .password(user.getPwd())
-                .authorities("USER")
+                .authorities(rol)
                 .build();
     }
 }

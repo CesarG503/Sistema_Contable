@@ -19,7 +19,6 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
             throws IOException, ServletException {
 
         // Redirigir al dashboard después del login exitoso
-        response.sendRedirect(request.getContextPath() + "/usuarios/dashboard");
+        response.sendRedirect(request.getContextPath() + "/dashboard");
     }
 }
-

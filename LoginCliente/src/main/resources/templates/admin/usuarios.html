@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Usuarios - Sistema de Contabilidad</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+
+<button class="mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content">
+    <div class="table-section">
+        <div class="page-header">
+            <h1>Administrar Usuarios</h1>
+            <button class="btn btn-primary" onclick="openModalUsuario()">
+                <i class="fa-solid fa-user-plus"></i> Nuevo Usuario
+            </button>
+        </div>
+
+        <!-- Mensajes de éxito/error -->
+        <div th:if="${param.success}" class="alert alert-success" style="background-color: #4caf50; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; position: relative; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <i class="fa-solid fa-check-circle"></i>
+                <span th:if="${param.success[0] == 'deleted'}">Usuario eliminado exitosamente</span>
+                <span th:if="${param.success[0] == 'true'}">Usuario guardado exitosamente</span>
+            </div>
+            <button onclick="closeAlert(this)" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 0; margin-left: 15px; line-height: 1;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div th:if="${param.error}" class="alert alert-error" style="background-color: #ff4444; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; position: relative; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <i class="fa-solid fa-exclamation-circle"></i>
+                <span th:if="${param.error[0] == 'notfound'}">Usuario no encontrado</span>
+                <span th:if="${param.error[0] == 'save'}">Error al guardar el usuario</span>
+                <span th:if="${param.error[0] == 'delete'}">Error al eliminar el usuario</span>
+                <span th:if="${param.error[0] == 'selfdelete'}">No puedes eliminar tu propio usuario</span>
+            </div>
+            <button onclick="closeAlert(this)" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 0; margin-left: 15px; line-height: 1;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="filter-group">
+            <label>Buscar usuarios</label>
+            <input type="text" id="searchInput" placeholder="Buscar usuario..." onkeyup="filterTable()">
+        </div>
+
+        <table style="margin-top: 23px;">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="user : ${usuarios}">
+                <td th:text="${user.id_usuario}"></td>
+                <td th:text="${user.usuario}"></td>
+                <td th:text="${user.correo}"></td>
+                <td>
+                    <span th:if="${user.permiso.valor == 0}" style="background: #4488ee; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px;">
+                        <i class="fa-solid fa-crown"></i> Administrador
+                    </span>
+                    <span th:if="${user.permiso.valor == 1}" style="background: #2ecc71; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px;">
+                        <i class="fa-solid fa-calculator"></i> Contador
+                    </span>
+                    <span th:if="${user.permiso.valor == 2}" style="background: #f39c12; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px;">
+                        <i class="fa-solid fa-eye"></i> Auditor
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-edit"
+                            th:attr="data-id=${user.id_usuario}, data-usuario=${user.usuario}, data-correo=${user.correo}, data-permiso=${user.permiso.valor}"
+                            onclick="editarUsuarioBtn(this)">
+                        <i class="fa-solid fa-pen-to-square"></i> Editar
+                    </button>
+                    <button class="btn btn-delete"
+                            th:attr="data-id=${user.id_usuario}, data-usuario=${user.usuario}"
+                            onclick="eliminarUsuarioBtn(this)">
+                        <i class="fa-solid fa-trash"></i> Eliminar
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal para Nuevo/Editar Usuario -->
+<div id="usuarioModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModalUsuario()">&times;</span>
+        <h2 id="modalTitle">Nuevo Usuario</h2>
+
+        <form id="usuarioForm" th:action="@{/admin/usuario/guardar}" method="post">
+            <input type="hidden" id="usuarioId" name="id_usuario">
+
+            <div class="form-group">
+                <label for="usuarioNombre">Nombre de usuario:</label>
+                <input type="text" id="usuarioNombre" name="usuario" placeholder="Ingrese el nombre de usuario" required minlength="3">
+            </div>
+
+            <div class="form-group">
+                <label for="usuarioCorreo">Correo electrónico:</label>
+                <input type="email" id="usuarioCorreo" name="correo" placeholder="usuario@ejemplo.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="usuarioPwd">Contraseña:</label>
+                <input type="password" id="usuarioPwd" name="pwd" placeholder="Mínimo 8 caracteres" required minlength="8">
+                <small style="color: #666; font-size: 12px;">La contraseña debe tener al menos 8 caracteres</small>
+            </div>
+
+            <div class="form-group">
+                <label for="usuarioPwd2">Confirmar contraseña:</label>
+                <input type="password" id="usuarioPwd2" name="pwd2" placeholder="Confirme la contraseña" required minlength="8">
+            </div>
+
+            <div class="form-group">
+                <label for="usuarioPermiso">Rol del usuario:</label>
+                <select id="usuarioPermiso" name="permiso" required>
+                    <option value="">Seleccione un rol</option>
+                    <option value="0">Administrador</option>
+                    <option value="1">Contador</option>
+                    <option value="2">Auditor</option>
+                </select>
+            </div>
+
+            <div id="errorMsg" style="color: #ff4444; margin-bottom: 15px; display: none;"></div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-save"></i> Guardar Usuario
+            </button>
+        </form>
+    </div>
+</div>
+
+<script th:src="@{/js/Sidebar.js}"></script>
+<script>
+// Función para abrir el modal de nuevo usuario
+function openModalUsuario() {
+    console.log('Abriendo modal de nuevo usuario');
+    document.getElementById('usuarioModal').style.display = 'block';
+    document.getElementById('modalTitle').textContent = 'Nuevo Usuario';
+    document.getElementById('usuarioForm').reset();
+    document.getElementById('usuarioId').value = '';
+    document.getElementById('errorMsg').style.display = 'none';
+    // Hacer los campos de contraseña obligatorios
+    document.getElementById('usuarioPwd').required = true;
+    document.getElementById('usuarioPwd2').required = true;
+    document.getElementById('usuarioPwd').placeholder = 'Mínimo 8 caracteres';
+    document.getElementById('usuarioPwd2').placeholder = 'Confirme la contraseña';
+}
+
+// Función para cerrar el modal
+function closeModalUsuario() {
+    console.log('Cerrando modal');
+    document.getElementById('usuarioModal').style.display = 'none';
+}
+
+// Función para editar usuario
+function editarUsuario(id, usuarioNombre, correo, permiso) {
+    console.log('Editando usuario:', id, usuarioNombre, correo, permiso);
+    document.getElementById('usuarioModal').style.display = 'block';
+    document.getElementById('modalTitle').textContent = 'Editar Usuario';
+    document.getElementById('usuarioId').value = id;
+    document.getElementById('usuarioNombre').value = usuarioNombre;
+    document.getElementById('usuarioCorreo').value = correo;
+    document.getElementById('usuarioPermiso').value = permiso;
+    // Hacer los campos de contraseña opcionales al editar
+    document.getElementById('usuarioPwd').required = false;
+    document.getElementById('usuarioPwd2').required = false;
+    document.getElementById('usuarioPwd').value = '';
+    document.getElementById('usuarioPwd2').value = '';
+    document.getElementById('usuarioPwd').placeholder = 'Dejar en blanco para no cambiar';
+    document.getElementById('usuarioPwd2').placeholder = 'Dejar en blanco para no cambiar';
+    document.getElementById('errorMsg').style.display = 'none';
+}
+
+// Función para eliminar usuario
+function eliminarUsuario(id, nombre) {
+    console.log('Intentando eliminar usuario:', id, nombre);
+    if (confirm('¿Estás seguro de que deseas eliminar al usuario "' + nombre + '"?')) {
+        window.location.href = '/admin/usuario/eliminar/' + id;
+    }
+}
+
+// Funciones para manejar los botones de editar y eliminar usando data-attributes
+function editarUsuarioBtn(button) {
+    const id = button.getAttribute('data-id');
+    const usuarioNombre = button.getAttribute('data-usuario');
+    const correo = button.getAttribute('data-correo');
+    const permiso = button.getAttribute('data-permiso');
+    editarUsuario(id, usuarioNombre, correo, permiso);
+}
+
+function eliminarUsuarioBtn(button) {
+    const id = button.getAttribute('data-id');
+    const nombre = button.getAttribute('data-usuario');
+    eliminarUsuario(id, nombre);
+}
+
+// Cerrar modal al hacer clic fuera de él
+window.onclick = function(event) {
+    const modal = document.getElementById('usuarioModal');
+    if (event.target == modal) {
+        closeModalUsuario();
+    }
+}
+
+// Validar que las contraseñas coincidan
+document.getElementById('usuarioForm').addEventListener('submit', function(e) {
+    const pwd = document.getElementById('usuarioPwd').value;
+    const pwd2 = document.getElementById('usuarioPwd2').value;
+    const errorMsg = document.getElementById('errorMsg');
+
+    // Solo validar si se está ingresando una contraseña
+    if (pwd || pwd2) {
+        if (pwd !== pwd2) {
+            e.preventDefault();
+            errorMsg.textContent = 'Las contraseñas no coinciden';
+            errorMsg.style.display = 'block';
+            return false;
+        }
+
+        if (pwd.length < 8) {
+            e.preventDefault();
+            errorMsg.textContent = 'La contraseña debe tener al menos 8 caracteres';
+            errorMsg.style.display = 'block';
+            return false;
+        }
+    }
+
+    errorMsg.style.display = 'none';
+    return true;
+});
+
+// Función para filtrar la tabla
+function filterTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toLowerCase();
+    const table = document.querySelector('table tbody');
+    const rows = table.getElementsByTagName('tr');
+
+    for (let i = 0; i < rows.length; i++) {
+        const cells = rows[i].getElementsByTagName('td');
+        let found = false;
+
+        for (let j = 0; j < cells.length; j++) {
+            const cell = cells[j];
+            if (cell) {
+                const txtValue = cell.textContent || cell.innerText;
+                if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        rows[i].style.display = found ? '' : 'none';
+    }
+}
+
+// Función para cerrar alertas
+function closeAlert(button) {
+    const alert = button.closest('.alert');
+    if (alert) {
+        alert.style.opacity = '0';
+        alert.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => {
+            alert.style.display = 'none';
+        }, 300);
+    }
+}
+
+console.log('Script de usuarios cargado correctamente');
+</script>
+
+</body>
+</html>

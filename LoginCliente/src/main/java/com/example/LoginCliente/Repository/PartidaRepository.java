@@ -11,5 +11,5 @@ import java.util.List;
 public interface PartidaRepository extends JpaRepository<Partida, Integer> {
     List<Partida> findByFechaBetween(Timestamp fechaInicio, Timestamp fechaFin);
     List<Partida> findAllByOrderByFechaDesc();
+    List<Partida> findAllByOrderByIdPartidaAsc();
 }
-

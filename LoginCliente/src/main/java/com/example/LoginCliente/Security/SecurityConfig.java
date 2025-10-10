@@ -36,10 +36,12 @@ public class SecurityConfig {
                                 "/usuarios/auth",
                                 "/usuarios/login-validate",
                                 "/error",
+                                "/error/**",
                                 "/img/**",
                                 "/css/**",
                                 "/js/**"
                         ).permitAll()
+                        .requestMatchers("/admin/**").hasRole("Administrador") //administrador
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -52,10 +54,13 @@ public class SecurityConfig {
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/usuarios/auth?panel=login")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .clearAuthentication(true)
                         .permitAll()
                 )
                 .exceptionHandling(exception -> exception
-                        .accessDeniedPage("/usuarios/dashboard")
+                        .accessDeniedPage("/error/403")
                 )
                 .csrf(csrf -> csrf.disable());
         return http.build();

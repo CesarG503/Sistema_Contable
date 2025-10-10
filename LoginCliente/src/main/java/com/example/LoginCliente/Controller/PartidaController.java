@@ -20,10 +20,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 @RequestMapping("/partidas")
@@ -43,12 +40,11 @@ public class PartidaController {
         List<Partida> partidas = partidaService.findAll();
         List<Cuenta> cuentas = cuentaService.findAll();
 
-        Map<PartidaDTO, List<Movimiento>> partidasConMovimientos = new HashMap<>();
+        Map<PartidaDTO, List<Movimiento>> partidasConMovimientos = new LinkedHashMap<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         for (Partida partida : partidas) {
             String fechaFormateada = "";
             if (partida.getFecha() != null) {
-                // Si es Timestamp o Date, conviértelo correctamente
                 if (partida.getFecha() instanceof Timestamp) {
                     fechaFormateada = ((Timestamp) partida.getFecha()).toLocalDateTime().format(formatter);
                 } else if (partida.getFecha() instanceof java.util.Date) {
@@ -59,12 +55,12 @@ public class PartidaController {
             }
             String autorStr = partida.getAutor() != null ? partida.getAutor().toString() : "";
             PartidaDTO partidaDTO = new PartidaDTO(
-                partida.getId_partida(),
-                partida.getConcepto(),
-                fechaFormateada,
-                autorStr
+                    partida.getIdPartida(),
+                    partida.getConcepto(),
+                    fechaFormateada,
+                    autorStr
             );
-            List<Movimiento> movimientos = partidaService.findMovimientosByPartida(partida.getId_partida());
+            List<Movimiento> movimientos = partidaService.findMovimientosByPartida(partida.getIdPartida());
             partidasConMovimientos.put(partidaDTO, movimientos);
         }
 
@@ -88,7 +84,15 @@ public class PartidaController {
 
             Partida partida = new Partida();
             partida.setConcepto((String) datos.get("concepto"));
-            partida.setFecha(new Timestamp(System.currentTimeMillis()));
+            // Obtener la fecha enviada por el usuario
+            String fechaStr = (String) datos.get("fechaPartida");
+            if (fechaStr != null && !fechaStr.isEmpty()) {
+                // Convertir la fecha (formato yyyy-MM-dd) a Timestamp
+                LocalDateTime fecha = LocalDateTime.parse(fechaStr + "T00:00:00");
+                partida.setFecha(Timestamp.valueOf(fecha));
+            } else {
+                partida.setFecha(new Timestamp(System.currentTimeMillis()));
+            }
             partida.setAutor(usuario.getId_usuario());
 
             List<Movimiento> movimientos = new ArrayList<>();
@@ -119,12 +123,45 @@ public class PartidaController {
 
             Partida savedPartida = partidaService.save(partida, movimientos);
             response.put("success", true);
-            response.put("partidaId", savedPartida.getId_partida());
+            response.put("partidaId", savedPartida.getIdPartida());
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("error", "Error al crear la partida: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @GetMapping("/{idPartida}/movimientos")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> getMovimientos(@PathVariable Integer idPartida) {
+        try {
+            List<Movimiento> movimientos = partidaService.findMovimientosByPartida(idPartida);
+            List<Cuenta> cuentas = cuentaService.findAll();
+
+            List<Map<String, Object>> movimientosConNombres = new ArrayList<>();
+
+            for (Movimiento mov : movimientos) {
+                Map<String, Object> movData = new HashMap<>();
+                movData.put("monto", mov.getMonto());
+                movData.put("tipo", mov.getTipo());
+
+                // Find account name
+                String nombreCuenta = "";
+                for (Cuenta cuenta : cuentas) {
+                    if (cuenta.getId_cuenta().equals(mov.getId_cuenta())) {
+                        nombreCuenta = cuenta.getNombre();
+                        break;
+                    }
+                }
+                movData.put("nombreCuenta", nombreCuenta);
+
+                movimientosConNombres.add(movData);
+            }
+
+            return ResponseEntity.ok(movimientosConNombres);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 }
