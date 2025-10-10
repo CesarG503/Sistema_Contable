@@ -25,6 +25,15 @@
                 <div class="menu-icon">➕</div>
                 <span>Crear Cuenta</span>
             </a>
+
+            <!-- Menú solo visible para Administradores -->
+            <div th:if="${#authorization.expression('hasRole(''ROLE_Administrador'')')}">
+                <div class="menu-title">ADMINISTRADOR</div>
+                <a href="/admin/usuario" class="menu-item" th:classappend="${page} == 'admin-usuarios' ? ' active' : ''">
+                    <div class="menu-icon"><i class="fa-solid fa-users-gear"></i></div>
+                    <span>Admin - Usuarios</span>
+                </a>
+            </div>
         </div>
 
         <div class="menu-section">
@@ -38,11 +47,22 @@
 
     <div class="sidebar-footer">
         <div class="user-profile">
-            <div class="user-avatar">OD</div>
+            <div class="user-avatar" th:text="${#strings.substring(session.usuarioNombre ?: 'OD', 0, 2).toUpperCase()}">OD</div>
             <div class="user-info">
-                <div class="user-name">ONE D</div>
-                <div class="user-email">usuario@email.com</div>
+                <div class="user-name" th:text="${session.usuarioNombre ?: 'ONE D'}">ONE D</div>
+                <div class="user-email" th:text="${session.usuarioCorreo ?: 'usuario@email.com'}">usuario@email.com</div>
+                <!-- Mostrar badge de Admin si el usuario es administrador -->
+                <div th:text="${session.usuarioRol ?: 'usuario@email.com'}" style="color: #4488EE; font-size: 12px; font-weight: bold;" >
+                    <span th:if="${session.usuarioRol == 'Administrador'}">Administrador</span>
+                    <span th:if="${session.usuarioRol != 'Administrador'}">Usuario</span>
+                </div>
             </div>
         </div>
+        <form th:action="@{/logout}" method="post" style="margin-top: 10px;">
+            <button type="submit" style="width: 100%; padding: 10px; background-color: #ff4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Cerrar Sesión</span>
+            </button>
+        </form>
     </div>
 </div>
