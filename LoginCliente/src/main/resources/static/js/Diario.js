@@ -53,12 +53,41 @@ function attachCalculateListeners() {
 
 attachCalculateListeners()
 
+document.getElementById("archivoOrigen").addEventListener("change", () =>{
+    const input = document.getElementById('archivoOrigen');
+    const preview = document.getElementById('previewContainer');
+    const file = input.files[0];
+    preview.innerHTML = '';
+
+    if (!file) {
+        preview.innerHTML = '<p>Ningún archivo seleccionado</p>';
+        return;
+    }
+
+    const fileType = file.type;
+
+    if (fileType.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            preview.innerHTML = `<img src="${e.target.result}" alt="Vista previa">`;
+        };
+        reader.readAsDataURL(file);
+    } else if (fileType === 'application/pdf') {
+        // Usar blob URL para abrir PDF con el visor del navegador
+        const fileURL = URL.createObjectURL(file);
+        preview.innerHTML = `<iframe src="${fileURL}" width="100%" height="500" style="border:none;"></iframe>`;
+    } else {
+        preview.innerHTML = `<p>Tipo de archivo no soportado: ${file.name}</p>`;
+    }
+});
+
 document.getElementById("partidaForm").addEventListener("submit", async (e) => {
     e.preventDefault()
 
     const concepto = document.getElementById("concepto").value
     const fechaPartida = document.getElementById("fechaPartida").value
     const movimientos = []
+    const archivoOrigen = document.getElementById("archivoOrigen").files[0];
 
     document.querySelectorAll(".movimiento-row").forEach((row) => {
         const idCuenta = row.querySelector(".cuenta-select").value
@@ -70,13 +99,16 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
         }
     })
 
+    const formData = new FormData();
+        formData.append('concepto', concepto);
+        formData.append('fechaPartida', fechaPartida);
+        formData.append('movimientos', JSON.stringify(movimientos));
+        formData.append('archivoOrigen', archivoOrigen);
+
     try {
         const response = await fetch("/partidas/crear", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ concepto, fechaPartida, movimientos }),
+            body: formData
         })
 
         const data = await response.json()

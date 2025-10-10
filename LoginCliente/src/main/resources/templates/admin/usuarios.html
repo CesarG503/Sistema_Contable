@@ -70,13 +70,13 @@
                 <td th:text="${user.correo}"></td>
                 <td>
                     <span th:if="${user.permiso.valor == 0}" style="background: #4488ee; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px;">
-                        <i class="fa-solid fa-crown"></i> Administrador
+                        <i class="fa-solid fa-crown"></i> <span th:text="${user.permiso}"></span>
                     </span>
                     <span th:if="${user.permiso.valor == 1}" style="background: #2ecc71; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px;">
-                        <i class="fa-solid fa-calculator"></i> Contador
+                        <i class="fa-solid fa-calculator"></i> <span th:text="${user.permiso}"></span>
                     </span>
                     <span th:if="${user.permiso.valor == 2}" style="background: #f39c12; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px;">
-                        <i class="fa-solid fa-eye"></i> Auditor
+                        <i class="fa-solid fa-eye"></i> <span th:text="${user.permiso}"></span>
                     </span>
                 </td>
                 <td>

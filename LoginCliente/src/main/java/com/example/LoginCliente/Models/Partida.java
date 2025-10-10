@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -27,6 +29,8 @@ public class Partida {
     @Column
     private Timestamp fecha;
 
+    @OneToMany(mappedBy = "partida", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DocumentosPartida> partidaDocumentos = new ArrayList<>();
 
 
     public Integer getIdPartida() {
