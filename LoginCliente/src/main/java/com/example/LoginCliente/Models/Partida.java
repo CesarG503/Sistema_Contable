@@ -27,11 +27,10 @@ public class Partida {
     @Column
     private Timestamp fecha;
 
-    public Partida() {
-    }
+
 
     public Integer getIdPartida() {
-        return idPartida;
+        return this.idPartida;
     }
 
     public void setIdPartida(Integer idPartida) {
