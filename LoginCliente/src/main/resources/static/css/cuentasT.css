@@ -1,0 +1,337 @@
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.modal-content-taccount {
+    background: white;
+    border-radius: 16px;
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    position: relative;
+    animation: slideUp 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+
+.modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.05);
+    border: none;
+    color: #666;
+    font-size: 28px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    line-height: 1;
+    padding: 0;
+    z-index: 10;
+}
+
+.modal-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #333;
+    transform: rotate(90deg);
+}
+
+.taccount-container {
+    padding: 30px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.taccount-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.taccount-header h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+/* T-Account Body - Two Column Layout */
+.taccount-body {
+    display: grid;
+    grid-template-columns: 1fr 3px 1fr;
+    gap: 0;
+    min-height: 300px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+}
+
+.taccount-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.taccount-column h3 {
+    background: #f8f9fa;
+    padding: 16px 20px;
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    text-align: center;
+    border-bottom: 1px solid black;
+}
+
+/* Divider between columns */
+.taccount-divider {
+    background: #1a1a1a;
+    width: 1px;
+}
+
+/* Entries Container */
+.taccount-entries {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.taccount-entries:empty::after {
+    content: "Sin movimientos";
+    color: #9ca3af;
+    font-style: italic;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+/* Individual Entry */
+.taccount-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 15px;
+}
+
+.taccount-entry:last-child {
+    border-bottom: none;
+}
+
+.taccount-asiento {
+    font-weight: 600;
+    color: #6b7280;
+    min-width: 30px;
+    font-size: 14px;
+}
+
+.taccount-monto {
+    font-weight: 600;
+    color: #1a1a1a;
+    font-size: 16px;
+}
+
+/* T-Account Totals */
+.taccount-totals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    margin-top: 1rem;
+}
+
+.taccount-totals .saldo-item {
+    box-sizing: border-box;
+    padding: 0.5rem 1rem;
+    background: #f7f7f7;
+    border-radius: 8px;
+    font-size: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    overflow: hidden;
+}
+
+.taccount-totals .saldo-debe,
+.taccount-totals .saldo-haber {
+    flex: 1 1 48%;
+    min-width: 48%;
+
+}
+
+.taccount-totals .saldo-final {
+    flex-basis: 100%;
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.taccount-totals .saldo-item ul {
+    width: 100%;
+    margin: 0.5rem 0 0 0;
+    padding: 0;
+    list-style: none;
+    overflow-x: auto;
+}
+
+.taccount-totals .saldo-item ul li {
+    width: 100%;
+    word-break: break-word;
+    padding: 0.25rem 0;
+    font-size: 0.95rem;
+}
+
+
+@media (max-width: 768px) {
+    .modal-content-taccount {
+        max-width: 95%;
+        margin: 10px;
+        border-radius: 12px;
+    }
+
+    .taccount-container {
+        padding: 20px;
+    }
+
+    .taccount-header h2 {
+        font-size: 22px;
+    }
+
+    .taccount-column h3 {
+        font-size: 16px;
+        padding: 12px 16px;
+    }
+
+    .taccount-entries {
+        padding: 15px;
+    }
+
+    .taccount-entry {
+        font-size: 14px;
+        padding: 10px 0;
+    }
+
+    .taccount-monto {
+        font-size: 15px;
+    }
+
+    .taccount-total strong {
+        font-size: 28px;
+    }
+
+    .taccount-footer {
+        padding: 20px;
+        margin-top: 20px;
+    }
+}
+
+@media (max-width: 600px) {
+    .modal-overlay {
+        padding: 10px;
+    }
+
+    .taccount-body {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 3px auto;
+    }
+
+    .taccount-divider {
+        width: 100%;
+        height: 1px;
+    }
+
+    .taccount-column h3 {
+        font-size: 15px;
+    }
+
+    .taccount-entries {
+        min-height: 150px;
+    }
+
+    .modal-close {
+        width: 36px;
+        height: 36px;
+        font-size: 24px;
+        top: 15px;
+        right: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .taccount-header h2 {
+        font-size: 18px;
+    }
+
+    .taccount-entry {
+        font-size: 13px;
+    }
+
+    .taccount-monto {
+        font-size: 14px;
+    }
+
+    .taccount-total strong {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 482px) {
+    .taccount-totals {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    .taccount-totals .saldo-item,
+    .taccount-totals .saldo-debe,
+    .taccount-totals .saldo-haber,
+    .taccount-totals .saldo-final {
+        width: 100%;
+        min-width: 100%;
+        max-width: 100%;
+        flex-basis: 100%;
+        margin-top: 0 !important;
+    }
+}
+
+#cuentaDescripcion{
+    margin-top: 10px;
+}

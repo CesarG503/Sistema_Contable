@@ -24,5 +24,7 @@ public class Cuenta {
 
     @Column(length = 1)
     private String naturaleza; // 'D' para Deudora, 'A' para Acreedora
+    @Column
+    private String tipo;
 }
 

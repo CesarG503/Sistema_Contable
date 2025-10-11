@@ -55,4 +55,8 @@ public class CuentaService {
 
         return resultado;
     }
+
+    public List<Movimiento> obtenerMovimientosPorCuenta(Integer idCuenta) {
+        return movimientoRepository.findByIdCuenta(idCuenta);
+    }
 }

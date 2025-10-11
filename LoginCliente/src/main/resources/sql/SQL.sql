@@ -28,7 +28,8 @@ CREATE TABLE tbl_cuentas (
     id_cuenta SERIAL PRIMARY KEY,
     nombre TEXT NOT NULL,
     descripcion TEXT,
-    naturaleza CHAR(1)
+    naturaleza CHAR(1),
+    tipo TEXT
 );
 
 CREATE TABLE tbl_documentos_fuente (

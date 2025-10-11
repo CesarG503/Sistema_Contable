@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cuentas T - Sistema de Contabilidad</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" th:href="@{/css/styles.css}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuentas T - Sistema de Contabilidad</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/cuentasT.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 </head>
 <body>
 
@@ -15,46 +16,92 @@
 <div th:replace="fragments/sidebar :: sidebar" ></div>
 
 <div class="main-content">
-  <div class="page-header">
-    <div>
-      <h1>Cuentas T</h1>
-      <p>Resumen de movimientos y saldos por cuenta</p>
+    <div class="page-header">
+        <div>
+            <h1>Cuentas T</h1>
+            <p>Resumen de movimientos y saldos por cuenta</p>
+        </div>
     </div>
-  </div>
 
-  <div th:if="${cuentasConSaldos.isEmpty()}" class="empty-state">
-    <p>No hay cuentas registradas</p>
-  </div>
-
-  <div class="cuentas-grid">
-    <div th:each="entry : ${cuentasConSaldos}" class="cuenta-card">
-      <div class="cuenta-header">
-        <h3 th:text="${entry.key.nombre}"></h3>
-        <p th:text="${entry.key.descripcion}"></p>
-        <span class="cuenta-naturaleza"
-              th:classappend="${entry.key.naturaleza == 'D' ? 'naturaleza-D' : 'naturaleza-A'}"
-              th:text="${entry.key.naturaleza == 'D' ? 'Deudora' : 'Acreedora'}"></span>
-      </div>
-      <div class="saldos">
-        <div class="saldo-item saldo-debe">
-          <span>Total Debe</span>
-          <strong th:text="'$' + ${#numbers.formatDecimal(entry.value.debe, 1, 2)}"></strong>
-        </div>
-        <div class="saldo-item saldo-haber">
-          <span>Total Haber</span>
-          <strong th:text="'$' + ${#numbers.formatDecimal(entry.value.haber, 1, 2)}"></strong>
-        </div>
-        <div class="saldo-item saldo-final">
-          <span>Saldo</span>
-          <strong th:text="'$' + ${#numbers.formatDecimal(entry.value.saldo, 1, 2)}"></strong>
-        </div>
-      </div>
+    <div th:if="${cuentasConSaldos.isEmpty()}" class="empty-state">
+        <p>No hay cuentas registradas</p>
     </div>
-  </div>
+
+    <div class="cuentas-grid">
+
+        <div th:each="entry : ${cuentasConSaldos}" class="cuenta-card"
+             th:onclick="'abrirModalDetalle(' + ${entry.key.id_cuenta} + ')'"
+             style="cursor: pointer;">
+            <div class="cuenta-header">
+                <h3 th:text="${entry.key.nombre}"></h3>
+                <p th:text="${entry.key.descripcion}"></p>
+                <span class="cuenta-naturaleza"
+                      th:classappend="${entry.key.naturaleza == 'D' ? 'naturaleza-D' : 'naturaleza-A'}"
+                      th:text="${entry.key.naturaleza == 'D' ? entry.key.tipo + ': Deudora' : entry.key.tipo + ': Acreedora'}"></span>
+            </div>
+            <div class="saldos">
+                <div class="saldo-item saldo-debe">
+                    <span>Total Debe</span>
+                    <strong th:text="'$' + ${#numbers.formatDecimal(entry.value.debe, 1, 2)}"></strong>
+                </div>
+                <div class="saldo-item saldo-haber">
+                    <span>Total Haber</span>
+                    <strong th:text="'$' + ${#numbers.formatDecimal(entry.value.haber, 1, 2)}"></strong>
+                </div>
+                <div class="saldo-item saldo-final">
+                    <span>Saldo</span>
+                    <strong th:text="'$' + ${#numbers.formatDecimal(entry.value.saldo, 1, 2)}"></strong>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
+<div id="modalDetalleCuenta" class="modal-overlay" onclick="cerrarModal(event)">
+    <div class="modal-content-taccount" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="cerrarModal()">&times;</button>
+
+        <div class="taccount-container">
+            <div class="taccount-header">
+                <h2 id="cuentaNombre"></h2>
+                <p id="cuentaDescripcion"></p>
+                <span class="cuenta-naturaleza" id="cuentaTipoNaturaleza"></span>
+            </div>
+            <div class="taccount-body">
+                <div class="taccount-column taccount-debito">
+                    <h3>Debe</h3>
+                    <div id="debitoList" class="taccount-entries"></div>
+                </div>
+
+                <div class="taccount-divider"></div>
+
+                <div class="taccount-column taccount-credito">
+                    <h3>Haber</h3>
+                    <div id="creditoList" class="taccount-entries"></div>
+                </div>
+            </div>
+
+            <div class="taccount-totals">
+                <div class="saldo-item saldo-debe">
+                    <span>Total Debe</span>
+                    <strong id="modalTotalDebe"></strong>
+                </div>
+                <div class="saldo-item saldo-haber">
+                    <span>Total Haber</span>
+                    <strong id="modalTotalHaber"></strong>
+                </div>
+                <div class="saldo-item saldo-final">
+                    <span>Saldo</span>
+                    <strong id="modalSaldoFinal"></strong>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 <script th:src="@{/js/Sidebar.js}"></script>
 
+<script th:src="@{/js/Libro-Mayor.js}"></script>
 </body>
 </html>
