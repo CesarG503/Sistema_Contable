@@ -1,13 +1,10 @@
 package com.example.LoginCliente.Controller;
 
-import com.example.LoginCliente.Models.Cuenta;
-import com.example.LoginCliente.Models.Movimiento;
-import com.example.LoginCliente.Models.Partida;
-import com.example.LoginCliente.Models.PartidaDTO;
-import com.example.LoginCliente.Models.Usuario;
+import com.example.LoginCliente.Models.*;
 import com.example.LoginCliente.Service.CuentaService;
 import com.example.LoginCliente.Service.PartidaService;
 import com.example.LoginCliente.Service.UsuarioService;
+import com.fasterxml.jackson.core.io.BigDecimalParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -83,9 +80,10 @@ public class PartidaController {
     public ResponseEntity<Map<String, Object>> crearPartida(@RequestParam("concepto") String concepto,
                                                             @RequestParam("fechaPartida") String fechaPartida,
                                                             @RequestParam(value = "movimientos") String movimientosJson,
-                                                            @RequestParam(value = "archivoOrigen", required = true) MultipartFile archivoOrigen) {
+                                                            @RequestParam(value = "archivoOrigen") MultipartFile archivoOrigen,
+                                                            @RequestParam("montoArchivo") String montoArchivo) {
         Map<String, Object> response = new HashMap<>();
-
+        System.out.println("concepto");
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
@@ -131,17 +129,31 @@ public class PartidaController {
             }
 
             //Si se envió un archivo, guardarlo
+            DocumentosFuente documento = new DocumentosFuente();
             if (archivoOrigen != null && !archivoOrigen.isEmpty()) {
                 String uploadsDir = "uploads/";
                 File dir = new File(uploadsDir);
                 if (!dir.exists()) dir.mkdirs();
 
                 String nombreArchivo = archivoOrigen.getOriginalFilename();
-                Path destino = Paths.get(uploadsDir + nombreArchivo);
+                String extension = "";
+                if(nombreArchivo != null && nombreArchivo.contains(".")) {
+                    extension = nombreArchivo.substring(nombreArchivo.lastIndexOf("."));
+                }
+                String nombreGuardado = UUID.randomUUID().toString() + extension;
+                Path destino = Paths.get(uploadsDir + nombreGuardado);
                 Files.write(destino, archivoOrigen.getBytes());
+                documento.setRuta(destino.toString());
+                documento.setFecha_subida(partida.getFecha());
+                documento.setAñadido_por(usuario.getId_usuario());
+                BigDecimal valor = BigDecimalParser.parse(montoArchivo);
+                documento.setValor(valor);
             }
 
-            Partida savedPartida = partidaService.save(partida, movimientos);
+            List<DocumentosFuente> documentosFuentes = new ArrayList<>();
+            documentosFuentes.add(documento);
+
+            Partida savedPartida = partidaService.save(partida, movimientos, documentosFuentes);
             response.put("success", true);
             response.put("partidaId", savedPartida.getIdPartida());
 

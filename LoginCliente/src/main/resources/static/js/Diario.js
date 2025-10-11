@@ -88,6 +88,7 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
     const fechaPartida = document.getElementById("fechaPartida").value
     const movimientos = []
     const archivoOrigen = document.getElementById("archivoOrigen").files[0];
+    const montoArchivo = document.getElementById("montoArchivo").value;
 
     document.querySelectorAll(".movimiento-row").forEach((row) => {
         const idCuenta = row.querySelector(".cuenta-select").value
@@ -104,6 +105,7 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
         formData.append('fechaPartida', fechaPartida);
         formData.append('movimientos', JSON.stringify(movimientos));
         formData.append('archivoOrigen', archivoOrigen);
+        formData.append('montoArchivo', montoArchivo);
 
     try {
         const response = await fetch("/partidas/crear", {
@@ -122,4 +124,4 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
     } catch (error) {
         alert("Error al crear la partida: " + error.message)
     }
-})
+});
