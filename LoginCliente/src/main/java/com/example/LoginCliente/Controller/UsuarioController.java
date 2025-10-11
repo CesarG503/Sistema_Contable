@@ -13,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 @Controller
@@ -102,6 +103,14 @@ public class UsuarioController {
         model.addAttribute("activePanel", "register");
         model.addAttribute("usuario", new Usuario());
 
+
+//        validar si ya hay mas de un usuario registrado
+        List<Usuario> usuarios = usuarioService.findAll();
+        if ( usuarios.size() >= 1) {
+            model.addAttribute("registerError", "El registro está cerrado. Para poder registrarte no debe de haber nadie mas en la dba.");
+            return "auth";
+        }
+
         if (username == null || username.trim().isEmpty()) {
             model.addAttribute("registerError", "El usuario es obligatorio.");
             return "auth";
@@ -128,12 +137,13 @@ public class UsuarioController {
             return "auth";
         }
 
+
         try {
             Usuario nuevo = new Usuario();
             nuevo.setUsuario(username.trim());
             nuevo.setCorreo(correo.trim());
             nuevo.setPwd(password);
-            nuevo.setPermiso(Permiso.valueOfValor(1));
+            nuevo.setPermiso(Permiso.valueOfValor(0)); // Permiso por defecto: admin
             usuarioService.save(nuevo);
             return "redirect:/usuarios/auth?panel=login&registered=1";
         } catch (Exception e) {
