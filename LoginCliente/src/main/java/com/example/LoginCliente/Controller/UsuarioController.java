@@ -104,11 +104,10 @@ public class UsuarioController {
         model.addAttribute("usuario", new Usuario());
 
 
-
 //        validar si ya hay mas de un usuario registrado
         List<Usuario> usuarios = usuarioService.findAll();
         if ( usuarios.size() >= 1) {
-            model.addAttribute("registerError", "El registro está cerrado. Contacta al administrador.");
+            model.addAttribute("registerError", "El registro está cerrado. Para poder registrarte no debe de haber nadie mas en la dba.");
             return "auth";
         }
 

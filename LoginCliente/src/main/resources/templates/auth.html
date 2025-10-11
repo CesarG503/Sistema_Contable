@@ -18,8 +18,8 @@
             <h2>Inicio de sesión</h2>
             <input type="text" name="username" placeholder="Nombre de Usuario" required />
             <input type="password" name="password" placeholder="Ingrese su contraseña" required />
-
-            <button type="submit">Iniciar Sesión</button>
+            <a th:href="" class="type-name-link" style="text-align: left; display: block; width: 100%; margin: 10px 0px 20px">Recuperar contraseña!</a>
+            <button type="submit" >Iniciar Sesión</button>
             <div th:if="${loginError}" >
                 <p class="error-message" th:text="${loginError}"></p>
             </div>
@@ -71,42 +71,6 @@
 
 
 
-<script>
-    const signUpButton = document.getElementById('signUp');
-    const signInButton = document.getElementById('signIn');
-    const mobileSignUpButton = document.getElementById('mobileSignUp');
-    const mobileSignInButton = document.getElementById('mobileSignIn');
-    const container = document.getElementById('container');
-
-    // Para versión desktop
-    if (signUpButton) {
-        signUpButton.addEventListener('click', () => {
-            container.classList.add("right-panel-active");
-        });
-    }
-
-    if (signInButton) {
-        signInButton.addEventListener('click', () => {
-            container.classList.remove("right-panel-active");
-        });
-    }
-
-    // Para versión móvil
-    if (mobileSignUpButton) {
-        mobileSignUpButton.addEventListener('click', () => {
-            container.classList.add("right-panel-active");
-            mobileSignUpButton.classList.add("active");
-            mobileSignInButton.classList.remove("active");
-        });
-    }
-
-    if (mobileSignInButton) {
-        mobileSignInButton.addEventListener('click', () => {
-            container.classList.remove("right-panel-active");
-            mobileSignInButton.classList.add("active");
-            mobileSignUpButton.classList.remove("active");
-        });
-    }
-</script>
+<script th:src="@{/js/auth.js}"></script>
 </body>
 </html>
