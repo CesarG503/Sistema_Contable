@@ -5,10 +5,12 @@ import com.example.LoginCliente.Models.Movimiento;
 import com.example.LoginCliente.Models.Partida;
 import com.example.LoginCliente.Service.CuentaService;
 import com.example.LoginCliente.Service.PartidaService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -27,12 +29,17 @@ public class CuentaController {
     private PartidaService partidaService;
 
     @GetMapping("/libro-mayor")
-    public String libroMayor(Model model) {
-        List<Cuenta> cuentas = cuentaService.findAll();
+    public String libroMayor(Model model, HttpSession session) {
+        Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
+        if (empresaActiva == null) {
+            return "redirect:/empresas/mis-empresas";
+        }
+
+        List<Cuenta> cuentas = cuentaService.findByIdEmpresa(empresaActiva);
 
         Map<Cuenta, Map<String, BigDecimal>> cuentasConSaldos = new HashMap<>();
         for (Cuenta cuenta : cuentas) {
-            Map<String, BigDecimal> saldos = cuentaService.calcularSaldoCuenta(cuenta.getId_cuenta());
+            Map<String, BigDecimal> saldos = cuentaService.calcularSaldoCuenta(cuenta.getIdCuenta());
             cuentasConSaldos.put(cuenta, saldos);
         }
 
@@ -42,14 +49,26 @@ public class CuentaController {
     }
 
     @GetMapping("/crear")
-    public String mostrarFormularioCrear(Model model) {
+    public String mostrarFormularioCrear(Model model, HttpSession session) {
+        Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
+        if (empresaActiva == null) {
+            return "redirect:/empresas/mis-empresas";
+        }
+
         model.addAttribute("cuenta", new Cuenta());
         model.addAttribute("page", "crear-cuentas");
         return "crear-cuenta";
     }
 
     @PostMapping("/crear")
-    public String crearCuenta(@ModelAttribute Cuenta cuenta) {
+    public String crearCuenta(@ModelAttribute Cuenta cuenta, HttpSession session, RedirectAttributes redirectAttributes) {
+        Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
+        if (empresaActiva == null) {
+            redirectAttributes.addFlashAttribute("error", "Debe seleccionar una empresa primero");
+            return "redirect:/empresas/mis-empresas";
+        }
+
+        cuenta.setIdEmpresa(empresaActiva);
         cuentaService.save(cuenta);
         return "redirect:/cuentas/libro-mayor";
     }
@@ -59,7 +78,6 @@ public class CuentaController {
     public Map<String, Object> obtenerDetalleCuenta(@PathVariable Integer id) {
         Map<String, Object> response = new HashMap<>();
 
-
         Cuenta cuenta = cuentaService.findById(id).orElse(null);
         if (cuenta == null) {
             response.put("error", "Cuenta no encontrada");
@@ -67,7 +85,6 @@ public class CuentaController {
         }
 
         List<Movimiento> movimientos = cuentaService.obtenerMovimientosPorCuenta(id);
-
 
         List<Map<String, Object>> movimientosDetalle = new ArrayList<>();
         for (Movimiento mov : movimientos) {

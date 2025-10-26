@@ -28,8 +28,8 @@ public class UsuarioService implements UserDetailsService {
         return usuarioRepository.findAll();
     }
 
-    public Optional<Usuario> findById(Integer id_usuario) {
-        return usuarioRepository.findById(id_usuario);
+    public Optional<Usuario> findById(Integer idUsuario) {
+        return usuarioRepository.findById(idUsuario);
     }
 
     public Usuario save(Usuario usuario) {
@@ -37,8 +37,8 @@ public class UsuarioService implements UserDetailsService {
         return usuarioRepository.save(usuario);
     }
 
-    public void deleteById(Integer id_usuario) {
-        usuarioRepository.deleteById(id_usuario);
+    public void deleteById(Integer idUsuario) {
+        usuarioRepository.deleteById(idUsuario);
     }
 
     public Usuario findByUsuario(String usuario) {
@@ -66,12 +66,11 @@ public class UsuarioService implements UserDetailsService {
             throw new IllegalArgumentException("Usuario o contraseña no pueden ser nulos o vacíos");
         }
 
-        // Obtener el rol desde el enum Permiso usando el valor numérico de la BD
-        String rol = "ROLE_" + user.getPermiso().texto;
-
+        // No asignamos roles/permissions aquí: la autenticación solo verifica existencia y contraseña.
+        // Devolvemos un UserDetails con authorities vacías.
         return org.springframework.security.core.userdetails.User.withUsername(user.getUsuario())
                 .password(user.getPwd())
-                .authorities(rol)
+                .authorities(new String[0])
                 .build();
     }
 }

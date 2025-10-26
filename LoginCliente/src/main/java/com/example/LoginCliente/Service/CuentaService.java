@@ -26,6 +26,10 @@ public class CuentaService {
         return cuentaRepository.findAll();
     }
 
+    public List<Cuenta> findByIdEmpresa(Integer idEmpresa) {
+        return cuentaRepository.findByIdEmpresa(idEmpresa);
+    }
+
     public Optional<Cuenta> findById(Integer id) {
         return cuentaRepository.findById(id);
     }
@@ -43,6 +47,7 @@ public class CuentaService {
         for (Movimiento mov : movimientos) {
             if ("D".equals(mov.getTipo())) {
                 totalDebe = totalDebe.add(mov.getMonto());
+            } else if ("H".equals(mov.getTipo())) {
             } else if ("H".equals(mov.getTipo())) {
                 totalHaber = totalHaber.add(mov.getMonto());
             }

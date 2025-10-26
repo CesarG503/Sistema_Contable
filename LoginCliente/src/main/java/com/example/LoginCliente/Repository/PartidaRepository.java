@@ -12,4 +12,7 @@ public interface PartidaRepository extends JpaRepository<Partida, Integer> {
     List<Partida> findByFechaBetween(Timestamp fechaInicio, Timestamp fechaFin);
     List<Partida> findAllByOrderByFechaDesc();
     List<Partida> findAllByOrderByIdPartidaAsc();
+
+    List<Partida> findByIdEmpresa(Integer idEmpresa);
+    List<Partida> findByIdEmpresaOrderByIdPartidaAsc(Integer idEmpresa);
 }

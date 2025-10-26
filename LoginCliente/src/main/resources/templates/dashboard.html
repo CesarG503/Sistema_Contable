@@ -63,7 +63,7 @@
                     <td th:if="${iterStat.first}" th:rowspan="${entry.value.size()}" th:text="${entry.key.fechaFormateada}"></td>
                     <td>
                         <div th:if="${iterStat.first}" th:text="${entry.key.concepto}" style="font-weight: 600;"></div>
-                        <div th:each="cuenta : ${cuentas}" th:if="${cuenta.id_cuenta == mov.id_cuenta}" th:text="${cuenta.nombre}"></div>
+                        <div th:each="cuenta : ${cuentas}" th:if="${cuenta.idCuenta == mov.idCuenta}" th:text="${cuenta.nombre}"></div>
                     </td>
                     <td th:text="${mov.tipo == 'D' ? '$' + mov.monto : ''}"></td>
                     <td th:text="${mov.tipo == 'H' ? '$' + mov.monto : ''}"></td>

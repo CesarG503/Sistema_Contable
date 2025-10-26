@@ -1,13 +1,16 @@
 package com.example.LoginCliente.Controller;
 
 import com.example.LoginCliente.Models.Usuario;
+import com.example.LoginCliente.Models.UsuarioEmpresa;
 import com.example.LoginCliente.Service.UsuarioService;
 import com.example.LoginCliente.Service.PartidaService;
 import com.example.LoginCliente.Service.CuentaService;
+import com.example.LoginCliente.Service.UsuarioEmpresaService;
 import com.example.LoginCliente.Models.Partida;
 import com.example.LoginCliente.Models.PartidaDTO;
 import com.example.LoginCliente.Models.Cuenta;
 import com.example.LoginCliente.Models.Movimiento;
+import jakarta.servlet.http.HttpSession;
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
@@ -29,18 +32,38 @@ public class DashboardController {
     private PartidaService partidaService;
     @Autowired
     private CuentaService cuentaService;
+    @Autowired
+    private UsuarioEmpresaService usuarioEmpresaService;
 
     @GetMapping("/dashboard")
-    public String dashboard(Model model) {
+    public String dashboard(Model model, HttpSession session) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         Usuario usuario = usuarioService.findByUsuario(username);
         model.addAttribute("usuario", usuario);
-        // Obtener partidas y cuentas igual que en libro-diario
-        List<Partida> partidas = partidaService.findAll();
-        List<Cuenta> cuentas = cuentaService.findAll();
+
+        List<UsuarioEmpresa> usuarioEmpresas = usuarioEmpresaService.findByIdUsuario(usuario.getIdUsuario());
+        model.addAttribute("usuarioEmpresas", usuarioEmpresas);
+
+        Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
+
+        if (empresaActiva == null) {
+            if (!usuarioEmpresas.isEmpty()) {
+                return "redirect:/empresas/mis-empresas";
+            } else {
+                // User has no companies, show empty dashboard
+                model.addAttribute("page", "dashboard");
+                model.addAttribute("noCompanies", true);
+                return "dashboard";
+            }
+        }
+
+        List<Partida> partidas = partidaService.findByIdEmpresa(empresaActiva);
+        List<Cuenta> cuentas = cuentaService.findByIdEmpresa(empresaActiva);
+
         Map<PartidaDTO, List<Movimiento>> partidasConMovimientos = new LinkedHashMap<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
         for (Partida partida : partidas) {
             String fechaFormateada = "";
             if (partida.getFecha() != null) {
@@ -54,16 +77,18 @@ public class DashboardController {
             }
             String autorStr = partida.getAutor() != null ? partida.getAutor().toString() : "";
             PartidaDTO partidaDTO = new PartidaDTO(
-                partida.getIdPartida(),
-                partida.getConcepto(),
-                fechaFormateada,
-                autorStr
+                    partida.getIdPartida(),
+                    partida.getConcepto(),
+                    fechaFormateada,
+                    autorStr
             );
             List<Movimiento> movimientos = partidaService.findMovimientosByPartida(partida.getIdPartida());
             partidasConMovimientos.put(partidaDTO, movimientos);
         }
+
         model.addAttribute("partidasConMovimientos", partidasConMovimientos);
         model.addAttribute("cuentas", cuentas);
+
         model.addAttribute("page", "dashboard");
         return "dashboard";
     }

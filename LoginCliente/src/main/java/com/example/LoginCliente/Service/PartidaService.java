@@ -25,6 +25,10 @@ public class PartidaService {
         return partidaRepository.findAllByOrderByIdPartidaAsc();
     }
 
+    public List<Partida> findByIdEmpresa(Integer idEmpresa) {
+        return partidaRepository.findByIdEmpresaOrderByIdPartidaAsc(idEmpresa);
+    }
+
     public Optional<Partida> findById(Integer id) {
         return partidaRepository.findById(id);
     }
@@ -34,7 +38,9 @@ public class PartidaService {
         Partida savedPartida = partidaRepository.save(partida);
 
         for (Movimiento movimiento : movimientos) {
-            movimiento.setIdPartida(savedPartida.getId_partida());
+            movimiento.setIdPartida(savedPartida.getIdPartida());
+            movimiento.setIdEmpresa(partida.getIdEmpresa());
+            movimiento.setIdUsuarioEmpresa(partida.getIdUsuarioEmpresa());
             movimientoRepository.save(movimiento);
         }
 

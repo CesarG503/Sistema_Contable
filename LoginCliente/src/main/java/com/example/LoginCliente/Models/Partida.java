@@ -16,6 +16,7 @@ public class Partida {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_partida")
     private Integer idPartida;
 
     @Column(nullable = false)
@@ -27,41 +28,9 @@ public class Partida {
     @Column
     private Timestamp fecha;
 
+    @Column(nullable = false, name = "id_empresa")
+    private Integer idEmpresa;
 
-
-    public Integer getIdPartida() {
-        return this.idPartida;
-    }
-
-    public void setIdPartida(Integer idPartida) {
-        this.idPartida = idPartida;
-    }
-
-    public Integer getAutor() {
-        return autor;
-    }
-
-    public void setAutor(Integer autor) {
-        this.autor = autor;
-    }
-
-    public String getConcepto() {
-        return concepto;
-    }
-
-    public void setConcepto(String concepto) {
-        this.concepto = concepto;
-    }
-
-    public Timestamp getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(Timestamp fecha) {
-        this.fecha = fecha;
-    }
-
-    public Integer getId_partida() {
-        return idPartida;
-    }
+    @Column(name = "id_usuario_empresa")
+    private Integer idUsuarioEmpresa;
 }
