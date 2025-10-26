@@ -11,6 +11,7 @@ import com.example.LoginCliente.Models.PartidaDTO;
 import com.example.LoginCliente.Models.Cuenta;
 import com.example.LoginCliente.Models.Movimiento;
 import jakarta.servlet.http.HttpSession;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
@@ -57,6 +58,11 @@ public class DashboardController {
                 return "dashboard";
             }
         }
+
+        Map<String, BigDecimal> ecuacionContable = cuentaService.calcularEcuacionContable(empresaActiva);
+        model.addAttribute("totalActivo", ecuacionContable.get("activo"));
+        model.addAttribute("totalPasivo", ecuacionContable.get("pasivo"));
+        model.addAttribute("totalCapital", ecuacionContable.get("capital"));
 
         List<Partida> partidas = partidaService.findByIdEmpresa(empresaActiva);
         List<Cuenta> cuentas = cuentaService.findByIdEmpresa(empresaActiva);

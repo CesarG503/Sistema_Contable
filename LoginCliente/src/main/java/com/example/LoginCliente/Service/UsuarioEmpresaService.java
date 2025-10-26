@@ -41,4 +41,12 @@ public class UsuarioEmpresaService {
     public List<UsuarioEmpresa> findEmpresasByUsuario(Integer idUsuario) {
         return usuarioEmpresaRepository.findEmpresasByUsuario(idUsuario);
     }
+
+    public List<UsuarioEmpresa> findByIdEmpresa(Integer idEmpresa) {
+        return usuarioEmpresaRepository.findByIdEmpresa(idEmpresa);
+    }
+
+    public void delete(Integer id) {
+        usuarioEmpresaRepository.deleteById(id);
+    }
 }

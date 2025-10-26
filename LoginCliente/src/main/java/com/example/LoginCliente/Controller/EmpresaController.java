@@ -103,6 +103,7 @@ public class EmpresaController {
             session.setAttribute("empresaNombre", usuarioEmpresa.getEmpresa().getNombre());
             session.setAttribute("usuarioEmpresaId", usuarioEmpresa.getIdUsuarioEmpresa());
             session.setAttribute("usuarioRol", usuarioEmpresa.getPermiso().texto);
+            session.setAttribute("usuarioPermiso", usuarioEmpresa.getPermiso().valor);
         }
 
         return "redirect:/dashboard";

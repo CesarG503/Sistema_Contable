@@ -47,6 +47,14 @@
                 <div class="menu-icon"><i class="fa-solid fa-building"></i></div>
                 <span>Mis Empresas</span>
             </a>
+            <!-- Added link to manage company users, only visible for administrators -->
+            <a th:if="${session.usuarioPermiso != null and session.usuarioPermiso == 0}"
+               href="/empresas/usuarios"
+               class="menu-item"
+               th:classappend="${page} == 'gestion-usuarios' ? ' active' : ''">
+                <div class="menu-icon"><i class="fa-solid fa-users-gear"></i></div>
+                <span>Gestionar Usuarios</span>
+            </a>
         </div>
 
         <!-- Menú solo visible para Administradores -->

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - OneDi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .invite-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .invite-form {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .btn-invite {
+            padding: 10px 25px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+        .btn-invite:hover {
+            background: #45a049;
+        }
+        .users-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .users-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .users-table th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .users-table td {
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .badge-admin {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        .badge-contador {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        .badge-auditor {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-action {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        .btn-edit {
+            background: #2196F3;
+            color: white;
+        }
+        .btn-edit:hover {
+            background: #1976D2;
+        }
+        .btn-delete {
+            background: #f44336;
+            color: white;
+        }
+        .btn-delete:hover {
+            background: #d32f2f;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+        }
+        .modal-header {
+            margin-bottom: 20px;
+        }
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
+        }
+        .close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #999;
+        }
+        .close:hover {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+<button class="mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content">
+    <div class="page-header">
+        <h1>Gestión de Usuarios de la Empresa</h1>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <div class="invite-section">
+        <h2 style="margin-bottom: 20px; color: #333;">Invitar Usuario</h2>
+        <form th:action="@{/empresas/usuarios/invitar}" method="post" class="invite-form">
+            <div class="form-group">
+                <label for="usernameInvitado">Nombre de Usuario</label>
+                <input type="text" id="usernameInvitado" name="usernameInvitado" required
+                       placeholder="Ingrese el username del usuario">
+            </div>
+            <div class="form-group">
+                <label for="permiso">Rol</label>
+                <select id="permiso" name="permiso" required>
+                    <option value="0">Administrador</option>
+                    <option value="1" selected>Contador</option>
+                    <option value="2">Auditor</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-invite">
+                <i class="fa-solid fa-user-plus"></i> Invitar
+            </button>
+        </form>
+    </div>
+
+    <div class="users-table">
+        <table>
+            <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Nombre Completo</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Fecha de Afiliación</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="ue : ${usuariosEmpresa}">
+                <td th:text="${ue.usuario.usuario}">username</td>
+                <td th:text="${ue.usuario.usuario}">Nombre</td>
+                <td th:text="${ue.usuario.correo}">email@example.com</td>
+                <td>
+                    <span th:if="${ue.permiso == 0}" class="badge badge-admin">Administrador</span>
+                    <span th:if="${ue.permiso == 1}" class="badge badge-contador">Contador</span>
+                    <span th:if="${ue.permiso == 2}" class="badge badge-auditor">Auditor</span>
+                </td>
+                <td th:text="${#dates.format(ue.fechaAfiliacion, 'dd/MM/yyyy')}">01/01/2024</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-action btn-edit"
+                                th:attr="data-id=${ue.idUsuarioEmpresa}, data-permiso=${ue.permiso}"
+                                onclick="openEditModal(this)">
+                            <i class="fa-solid fa-edit"></i> Cambiar Rol
+                        </button>
+                        <form th:action="@{/empresas/usuarios/{id}/eliminar(id=${ue.idUsuarioEmpresa})}"
+                              method="post" style="display: inline;"
+                              onsubmit="return confirm('¿Está seguro de eliminar este usuario de la empresa?');">
+                            <button type="submit" class="btn-action btn-delete">
+                                <i class="fa-solid fa-trash"></i> Eliminar
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal para cambiar rol -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h2>Cambiar Rol de Usuario</h2>
+        </div>
+        <form id="editForm" method="post">
+            <div class="form-group">
+                <label for="nuevoPermiso">Nuevo Rol</label>
+                <select id="nuevoPermiso" name="nuevoPermiso" required>
+                    <option value="0">Administrador</option>
+                    <option value="1">Contador</option>
+                    <option value="2">Auditor</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-invite" style="width: 100%; margin-top: 20px;">
+                Guardar Cambios
+            </button>
+        </form>
+    </div>
+</div>
+
+<script th:src="@{/js/Sidebar.js}"></script>
+<script>
+    function openEditModal(button) {
+        const idUsuarioEmpresa = button.getAttribute('data-id');
+        const permisoActual = button.getAttribute('data-permiso');
+
+        document.getElementById('editModal').style.display = 'block';
+        document.getElementById('editForm').action = '/empresas/usuarios/' + idUsuarioEmpresa + '/cambiar-rol';
+        document.getElementById('nuevoPermiso').value = permisoActual;
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('editModal');
+        if (event.target == modal) {
+            closeEditModal();
+        }
+    }
+</script>
+
+</body>
+</html>

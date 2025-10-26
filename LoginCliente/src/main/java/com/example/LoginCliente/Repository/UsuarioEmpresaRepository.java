@@ -17,4 +17,6 @@ public interface UsuarioEmpresaRepository extends JpaRepository<UsuarioEmpresa, 
 
     @Query("SELECT ue FROM UsuarioEmpresa ue WHERE ue.idUsuario = :idUsuario")
     List<UsuarioEmpresa> findEmpresasByUsuario(@Param("idUsuario") Integer idUsuario);
+
+    List<UsuarioEmpresa> findByIdEmpresa(Integer idEmpresa);
 }
