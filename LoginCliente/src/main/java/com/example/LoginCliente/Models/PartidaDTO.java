@@ -2,13 +2,15 @@ package com.example.LoginCliente.Models;
 
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class PartidaDTO {
     private Integer idPartida;
     private String concepto;
     private String fechaFormateada;
-    private String[] urlDocumentos;
+    private List<DocumentosFuenteDTO> documentos;
     private String autor;
 
     public PartidaDTO(Integer idPartida, String concepto, String fechaFormateada, String autor) {
@@ -18,11 +20,11 @@ public class PartidaDTO {
         this.autor = autor;
     }
 
-    public PartidaDTO(Integer idPartida, String concepto, String fechaFormateada, String[] urlDocumentos, String autor) {
+    public PartidaDTO(Integer idPartida, String concepto, String fechaFormateada, List<DocumentosFuenteDTO> documentos, String autor) {
         this.idPartida = idPartida;
         this.concepto = concepto;
         this.fechaFormateada = fechaFormateada;
-        this.urlDocumentos = urlDocumentos;
+        this.documentos = documentos;
         this.autor = autor;
     }
 
@@ -58,11 +60,11 @@ public class PartidaDTO {
         this.autor = autor;
     }
 
-    public String[] getUrlDocumentos() {
-        return urlDocumentos;
+    public List<DocumentosFuenteDTO> getDocumentos() {
+        return documentos;
     }
 
-    public void setUrlDocumentos(String[] urlDocumentos) {
-        this.urlDocumentos = urlDocumentos;
+    public void setDocumentos(List<DocumentosFuenteDTO> documentos) {
+        this.documentos = documentos;
     }
 }

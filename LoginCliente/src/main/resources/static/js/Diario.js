@@ -24,6 +24,47 @@ function removeMovimiento(btn) {
     }
 }
 
+function addDocumento(){
+    const archivosOrigen = document.getElementById("archivosOrigen");
+    const nDocumentos = archivosOrigen.children.length + 1;
+    const nuevoDocumento = document.createElement("div");
+
+    nuevoDocumento.style.cssText = "margin: 2rem;";
+    nuevoDocumento.innerHTML = `
+    <p>Documento #${nDocumentos}</p>
+    <div class="form-group">
+        <label for="nombreArchivo${nDocumentos}">Nombre del documento:</label>
+        <input type="text" name="nombreArchivo${nDocumentos}" id="nombreArchivo${nDocumentos}" placeholder="Nombre para el documento ${nDocumentos}..." class="nombre-documento" required>
+    </div>
+    <label for="archivoOrigen${nDocumentos}" class="file-label">Subir archivo</label>
+        <input type="file" name="archivoOrigen${nDocumentos}" id="archivoOrigen${nDocumentos}" accept=".pdf,image/*" class="file-input archivo-origen" required>
+    <div class="preview-container" id="previewContainer${nDocumentos}">
+        <p>Ningún archivo seleccionado</p>
+    </div>
+    <div class="form-group">
+        <label for="montoArchivo${nDocumentos}">Monto del archivo</label>
+        <input type="number" step="0.01" min="0" name="montoArchivo${nDocumentos}" id="montoArchivo${nDocumentos}" class="monto-archivo" placeholder="$0.00" required>
+    </div>`;
+    archivosOrigen.appendChild(nuevoDocumento);
+
+    const inputArchivo = nuevoDocumento.querySelector(`#archivoOrigen${nDocumentos}`);
+    inputArchivo.addEventListener("change", () => {
+        cargarVistaPrevia(nDocumentos);
+    });
+
+    document.getElementById("eliminarUltimoDocumento").removeAttribute("disabled");
+}
+
+function removeDocumento(){
+    const archivosOrigen = document.getElementById("archivosOrigen");
+
+    archivosOrigen.removeChild(archivosOrigen.lastChild);
+    const nDocumentos = archivosOrigen.children.length;
+    if (nDocumentos <= 1) {
+        document.getElementById("eliminarUltimoDocumento").setAttribute("disabled", "");
+    }
+}
+
 function calculateTotals() {
     let totalDebe = 0
     let totalHaber = 0
@@ -53,9 +94,9 @@ function attachCalculateListeners() {
 
 attachCalculateListeners()
 
-document.getElementById("archivoOrigen").addEventListener("change", () =>{
-    const input = document.getElementById('archivoOrigen');
-    const preview = document.getElementById('previewContainer');
+function cargarVistaPrevia(previewId) {
+    const input = document.getElementById('archivoOrigen'+previewId);
+    const preview = document.getElementById('previewContainer'+previewId);
     const file = input.files[0];
     preview.innerHTML = '';
 
@@ -79,6 +120,10 @@ document.getElementById("archivoOrigen").addEventListener("change", () =>{
     } else {
         preview.innerHTML = `<p>Tipo de archivo no soportado: ${file.name}</p>`;
     }
+}
+
+document.getElementById("archivoOrigen").addEventListener("change", () =>{
+    cargarVistaPrevia('');
 });
 
 document.getElementById("partidaForm").addEventListener("submit", async (e) => {
@@ -87,8 +132,32 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
     const concepto = document.getElementById("concepto").value
     const fechaPartida = document.getElementById("fechaPartida").value
     const movimientos = []
-    const archivoOrigen = document.getElementById("archivoOrigen").files[0];
-    const montoArchivo = document.getElementById("montoArchivo").value;
+
+    const nombreDocumentosInputs = document.querySelectorAll(".nombre-documento");
+    const archivosOrigenInputs = document.querySelectorAll(".archivo-origen");
+    const montosArchivoInputs = document.querySelectorAll(".monto-archivo");
+
+    let nombreDocumentosArray = [];
+    let archivosOrigenArray = [];
+    let montosArchivoArray = [];
+
+    nombreDocumentosInputs.forEach((input) => {
+        if (input.value) {
+            nombreDocumentosArray.push(input.value);
+        }
+    });
+
+    archivosOrigenInputs.forEach((input) => {
+        if (input.files[0]) {
+            archivosOrigenArray.push(input.files[0]);
+        }
+    });
+
+    montosArchivoInputs.forEach((input) => {
+        if (input.value) {
+            montosArchivoArray.push(input.value);
+        }
+    });
 
     document.querySelectorAll(".movimiento-row").forEach((row) => {
         const idCuenta = row.querySelector(".cuenta-select").value
@@ -98,14 +167,31 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
         if (idCuenta && monto && tipo) {
             movimientos.push({ idCuenta, monto, tipo })
         }
-    })
+    });
 
     const formData = new FormData();
-        formData.append('concepto', concepto);
-        formData.append('fechaPartida', fechaPartida);
-        formData.append('movimientos', JSON.stringify(movimientos));
-        formData.append('archivoOrigen', archivoOrigen);
-        formData.append('montoArchivo', montoArchivo);
+    formData.append('concepto', concepto);
+    formData.append('fechaPartida', fechaPartida);
+    formData.append('movimientos', JSON.stringify(movimientos));
+    formData.append("nombresArchivos", JSON.stringify(nombreDocumentosArray));
+
+    // Debug: mostrar cuántos archivos se van a enviar
+    console.log("=== DEBUG JS ===");
+    console.log("Archivos a enviar:", archivosOrigenArray.length);
+
+    // Importante: usar el mismo nombre de parámetro para todos los archivos
+    archivosOrigenArray.forEach((archivo, index) => {
+        console.log(`Añadiendo archivo ${index}:`, archivo.name);
+        formData.append('archivosOrigen', archivo);
+    });
+
+    formData.append('montosArchivo', JSON.stringify(montosArchivoArray));
+
+    // Debug: mostrar el contenido del FormData
+    console.log("Contenido del FormData:");
+    for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
+    }
 
     try {
         const response = await fetch("/partidas/crear", {
@@ -122,6 +208,7 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
             alert(data.error || "Error al crear la partida")
         }
     } catch (error) {
+        console.error("Error completo:", error);
         alert("Error al crear la partida: " + error.message)
     }
 });

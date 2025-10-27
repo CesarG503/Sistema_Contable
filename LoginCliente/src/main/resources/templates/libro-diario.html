@@ -70,8 +70,7 @@
                         <button class="btn-details"
                                 th:attr="data-asiento=${entry.key.idPartida},
                                         data-fecha=${entry.key.fechaFormateada},
-                                        data-concepto=${entry.key.concepto},
-                                        data-documento=${entry.key.urlDocumentos[0] != null ? entry.key.urlDocumentos[0] : 'Ninguno'}"
+                                        data-concepto=${entry.key.concepto}"
                                 onclick="openDetailsModal(this)">Ver detalles →</button>
                     </td>
                 </tr>
@@ -165,18 +164,28 @@
             </div>
 
             <div class="form-group">
-                <label for="archivoOrigen">Archivo origen de la partida:</label>
-                <label for="archivoOrigen" class="file-label">Subir archivo</label>
-                <input type="file" name="archivoOrigen" id="archivoOrigen" accept=".pdf,image/*" class="file-input" required>
+                <p>Archivos origen de la partida:</p>
+                <div class="form-group" id="archivosOrigen">
+                    <div style="margin: 2rem;">
+                        <p>Documento #1</p>
+                        <div class="form-group">
+                            <label for="nombreArchivo">Nombre del documento:</label>
+                            <input type="text" name="nombreArchivo" id="nombreArchivo" placeholder="Nombre para el documento..." class="nombre-documento" required>
+                        </div>
+                        <label for="archivoOrigen" class="file-label">Subir archivo</label>
+                        <input type="file" name="archivoOrigen" id="archivoOrigen" accept=".pdf,image/*" class="file-input archivo-origen" required>
 
-                <div class="preview-container" id="previewContainer">
-                    <p>Ningún archivo seleccionado</p>
+                        <div class="preview-container" id="previewContainer">
+                            <p>Ningún archivo seleccionado</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="montoArchivo">Monto del archivo</label>
+                            <input type="number" step="0.01" min="0" name="montoArchivo" id="montoArchivo" class="monto-archivo" placeholder="$0.00" required>
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <div class="form-group">
-                <label for="montoArchivo">Monto del archivo</label>
-                <input type="number" step="0.01" min="0" name="montoArchivo" id="montoArchivo" required>
+                <button type="button" class="btn btn-add" onclick="addDocumento()">Agregar nuevo archivo</button>
+                <button type="button" class="btn btn-delete" onclick="removeDocumento()" id="eliminarUltimoDocumento" disabled>Eliminar ultimo</button>
             </div>
 
             <button type="submit" class="btn btn-primary">Guardar Partida</button>
@@ -203,8 +212,8 @@
                 <span id="detalleConcepto"></span>
             </div>
             <div class="detalle-row">
-                <strong>Documento Fuente:</strong>
-                <span id="detalleDocumento"><a></a></span>
+                <strong>Documentos Fuente:</strong>
+                <ul id="detalleDocumentos" style="list-style: none; overflow: auto;"></ul>
             </div>
         </div>
 
@@ -212,6 +221,12 @@
         <div id="detalleMovimientos"></div>
     </div>
 </div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const documentosPorPartida = JSON.parse(/*[[${documentosPorPartida}]]*/ '{}');
+    /*]]>*/
+</script>
 
 <script th:src="@{/js/Sidebar.js}"></script>
 <script th:src="@{/js/Buscador.js}"></script>

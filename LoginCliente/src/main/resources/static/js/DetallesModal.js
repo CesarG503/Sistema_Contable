@@ -2,15 +2,26 @@ function openDetailsModal(button) {
     const asiento = button.getAttribute("data-asiento")
     const fecha = button.getAttribute("data-fecha")
     const concepto = button.getAttribute("data-concepto")
-    const documento = button.getAttribute("data-documento")
+
+    const documentos = documentosPorPartida[asiento] || [];
+
 
     // Set basic info
     document.getElementById("detalleAsiento").textContent = asiento
     document.getElementById("detalleFecha").textContent = fecha
     document.getElementById("detalleConcepto").textContent = concepto
-    const textDocumentos = document.getElementById("detalleDocumento");
-    textDocumentos.firstElementChild.setAttribute("href",`/${documento}`);
-    textDocumentos.firstElementChild.textContent = documento ? documento.split('/').pop() : 'N/A';
+
+    const listDocumentos = document.getElementById("detalleDocumentos");
+    listDocumentos.innerHTML = "";
+
+    for(let documento in documentos){
+        const liDocumento = document.createElement("li");
+        const aDocumento = document.createElement("a");
+        aDocumento.setAttribute("href",`/${documentos[documento].ruta}`);
+        aDocumento.textContent = documentos[documento].nombre;
+        liDocumento.appendChild(aDocumento);
+        listDocumentos.appendChild(liDocumento);
+    }
 
     // Fetch movements data from server
     fetchMovimientosDetalles(asiento)

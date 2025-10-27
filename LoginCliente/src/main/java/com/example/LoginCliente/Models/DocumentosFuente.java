@@ -20,6 +20,9 @@ public class DocumentosFuente {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id_documento;
 
+    @Column
+    private String nombre;
+
     @Column(nullable = false)
     private Timestamp fecha_subida;
 
@@ -29,8 +32,9 @@ public class DocumentosFuente {
     @Column
     private BigDecimal valor;
 
-    @Column(nullable = false)
-    private Integer añadido_por; //Id del usuario que añadió el documento
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "añadido_por") // columna en la base de datos
+    private Usuario añadidoPor; // Usuario que añadió el documento
 
     @OneToMany(mappedBy = "documento", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DocumentosPartida> partidaDocumentos = new ArrayList<>();
