@@ -112,7 +112,7 @@ public class PartidaController {
                                                             @RequestParam(value = "movimientos") String movimientosJson,
                                                             @RequestParam("nombresArchivos") String nombresArchivosJson,
                                                             @RequestParam(value = "archivosOrigen", required = false) MultipartFile[] archivosOrigen,
-                                                            @RequestParam("montosArchivo") String montosArchivoJson) {
+                                                            @RequestParam("montosArchivo") String montosArchivoJson, HttpSession session) {
         Map<String, Object> response = new HashMap<>();
         try {
             Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
