@@ -63,7 +63,6 @@ public class AdminController {
                                  @RequestParam String usuario,
                                  @RequestParam String correo,
                                  @RequestParam(required = false) String pwd,
-                                 @RequestParam Integer permiso,
                                  Model model) {
         try {
             Usuario usuarioObj;
@@ -107,11 +106,10 @@ public class AdminController {
             }
 
             // Crear nuevo usuario
-            Usuario usuarioObj = new Usuario();
+            usuarioObj = new Usuario();
             usuarioObj.setUsuario(usuario);
             usuarioObj.setCorreo(correo);
             usuarioObj.setPwd(pwd);
-            usuarioObj.setPermiso(Permiso.valueOfValor(permiso));
             usuarioService.save(usuarioObj); // Esto codificará la contraseña
 
             return "redirect:/admin/usuario?success=true";
@@ -147,15 +145,8 @@ public class AdminController {
             if (usuarioExistente.isPresent()) {
                 Usuario usuarioObj = usuarioExistente.get();
 
-                // VALIDACIÓN: NADIE puede editar a un administrador (ni siquiera otro admin)
-                if (usuarioObj.getPermiso().valor == 0) {
-                    logger.warning("Intento de editar administrador. Usuario actual: " + usernameActual);
-                    return "redirect:/admin/usuario?error=nopermission";
-                }
-
                 usuarioObj.setUsuario(usuario);
                 usuarioObj.setCorreo(correo);
-                usuarioObj.setPermiso(Permiso.valueOfValor(permiso));
 
                 // Guardar directamente con el repositorio para no recodificar la contraseña
                 usuarioRepository.save(usuarioObj);
@@ -182,16 +173,6 @@ public class AdminController {
             // Validar que el usuario actual existe
             if (usuarioActual != null && usuarioActual.getIdUsuario().equals(id)) {
                 return "redirect:/admin/usuario?error=selfdelete";
-            }
-
-            // Obtener el usuario que se quiere eliminar
-            Optional<Usuario> usuarioAEliminar = usuarioService.findById(id);
-            if (usuarioAEliminar.isPresent()) {
-                // VALIDACIÓN: NADIE puede eliminar a un administrador (ni siquiera otro admin)
-                if (usuarioAEliminar.get().getPermiso().valor == 0) {
-                    logger.warning("Intento de eliminar administrador. Usuario actual: " + username);
-                    return "redirect:/admin/usuario?error=nopermission";
-                }
             }
 
             usuarioService.deleteById(id);
