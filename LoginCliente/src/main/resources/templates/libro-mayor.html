@@ -30,7 +30,7 @@
     <div class="cuentas-grid">
 
         <div th:each="entry : ${cuentasConSaldos}" class="cuenta-card"
-             th:onclick="'abrirModalDetalle(' + ${entry.key.id_cuenta} + ')'"
+             th:onclick="'abrirModalDetalle(' + ${entry.key.idCuenta} + ')'"
              style="cursor: pointer;">
             <div class="cuenta-header">
                 <h3 th:text="${entry.key.nombre}"></h3>

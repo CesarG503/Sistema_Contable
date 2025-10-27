@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Empresas - OneDi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        .empresas-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .empresas-header h1 {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 32px;
+            font-weight: 600;
+        }
+
+        .btn-nueva-empresa {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn-nueva-empresa:hover {
+            background: #4f46e5;
+        }
+
+        .empresas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .empresa-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .empresa-card:hover {
+            border-color: #6366f1;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+        }
+
+        .empresa-icon {
+            width: 48px;
+            height: 48px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        .empresa-nombre {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empresa-nit {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .empresa-rol {
+            display: inline-block;
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .empty-icon {
+            font-size: 80px;
+            color: #d1d5db;
+            margin-bottom: 20px;
+        }
+
+        .empty-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 12px;
+        }
+
+        .empty-description {
+            color: #6b7280;
+            margin-bottom: 24px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-header h2 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .close {
+            font-size: 28px;
+            font-weight: bold;
+            color: #9ca3af;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #374151;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn-submit:hover {
+            background: #4f46e5;
+        }
+    </style>
+</head>
+<body>
+
+<button class="mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
+
+<div th:replace="fragments/sidebar :: sidebar"></div>
+
+<div class="main-content">
+    <div class="empresas-header">
+        <h1>
+            <i class="fa-solid fa-building"></i>
+            Mis Empresas
+        </h1>
+        <button class="btn-nueva-empresa" onclick="openModal()">
+            <i class="fa-solid fa-plus"></i>
+            Nueva Empresa
+        </button>
+    </div>
+
+    <div th:if="${usuarioEmpresas != null and !usuarioEmpresas.isEmpty()}" class="empresas-grid">
+        <div th:each="ue : ${usuarioEmpresas}" class="empresa-card"
+             th:onclick="'window.location.href=\'/empresas/seleccionar/' + ${ue.idEmpresa} + '\''">
+            <div class="empresa-icon">
+                <i class="fa-solid fa-building"></i>
+            </div>
+            <div class="empresa-nombre" th:text="${ue.empresa.nombre}">Nombre Empresa</div>
+            <div class="empresa-nit" th:text="'NIT: ' + ${ue.empresa.nit}">NIT: 0000-000000-000-0</div>
+            <div class="empresa-nit" th:if="${ue.empresa.telefono}" th:text="'Tel: ' + ${ue.empresa.telefono}">Tel: 0000-0000</div>
+            <span class="empresa-rol" th:text="${ue.permiso.texto}">Administrador</span>
+        </div>
+    </div>
+
+    <div th:if="${usuarioEmpresas == null or usuarioEmpresas.isEmpty()}" class="empty-state">
+        <div class="empty-icon">
+            <i class="fa-solid fa-building"></i>
+        </div>
+        <div class="empty-title">No tienes empresas aún</div>
+        <div class="empty-description">Crea tu primera empresa para comenzar a gestionar tu contabilidad</div>
+        <button class="btn-nueva-empresa" onclick="openModal()">
+            <i class="fa-solid fa-plus"></i>
+            Crear Primera Empresa
+        </button>
+    </div>
+</div>
+
+<!-- Modal para crear empresa -->
+<div id="crearEmpresaModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Nueva Empresa</h2>
+            <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+        <form th:action="@{/empresas/crear}" method="post">
+            <div class="form-group">
+                <label for="nombre">Nombre de la Empresa *</label>
+                <input type="text" id="nombre" name="nombre" required>
+            </div>
+            <div class="form-group">
+                <label for="nit">NIT *</label>
+                <input type="text" id="nit" name="nit" required>
+            </div>
+            <div class="form-group">
+                <label for="telefono">Teléfono</label>
+                <input type="text" id="telefono" name="telefono">
+            </div>
+            <div class="form-group">
+                <label for="direccion">Dirección</label>
+                <input type="text" id="direccion" name="direccion">
+            </div>
+            <div class="form-group">
+                <label for="descripcion">Descripción</label>
+                <textarea id="descripcion" name="descripcion"></textarea>
+            </div>
+            <button type="submit" class="btn-submit">Crear Empresa</button>
+        </form>
+    </div>
+</div>
+
+<script th:src="@{/js/Sidebar.js}"></script>
+<script>
+    function openModal() {
+        document.getElementById('crearEmpresaModal').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('crearEmpresaModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('crearEmpresaModal');
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+</script>
+
+</body>
+</html>

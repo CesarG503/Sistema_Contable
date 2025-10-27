@@ -1,8 +1,8 @@
 package com.example.LoginCliente.Controller;
 
-import com.example.LoginCliente.Models.Permiso;
 import com.example.LoginCliente.Models.Usuario;
 import com.example.LoginCliente.Service.UsuarioService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
 import org.springframework.web.bind.WebDataBinder;
@@ -28,7 +28,7 @@ public class UsuarioController {
     @InitBinder
     public void initBinder(WebDataBinder binder) {
         // Prevent binding of id_usuario to avoid type conversion errors
-        binder.setDisallowedFields("id_usuario");
+        binder.setDisallowedFields("idUsuario");
 
         // Trim strings to remove whitespace
         binder.registerCustomEditor(String.class, new StringTrimmerEditor(true));
@@ -143,7 +143,6 @@ public class UsuarioController {
             nuevo.setUsuario(username.trim());
             nuevo.setCorreo(correo.trim());
             nuevo.setPwd(password);
-            nuevo.setPermiso(Permiso.valueOfValor(0)); // Permiso por defecto: admin
             usuarioService.save(nuevo);
             return "redirect:/usuarios/auth?panel=login&registered=1";
         } catch (Exception e) {
@@ -155,7 +154,14 @@ public class UsuarioController {
 
 
     @GetMapping("/home")
-    public String home(Model model) {
+    public String home(Model model, HttpSession session) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        Usuario usuario = usuarioService.findByUsuario(username);
+
+        session.setAttribute("usuarioNombre", usuario.getUsuario());
+        session.setAttribute("usuarioCorreo", usuario.getCorreo());
+
         return "redirect:/dashboard";
     }
 

@@ -41,7 +41,7 @@ public class SecurityConfig {
                                 "/css/**",
                                 "/js/**"
                         ).permitAll()
-                        .requestMatchers("/admin/**").hasRole("Administrador") //administrador
+                        // Permission checks should be done at the controller level based on UsuarioEmpresa.permiso
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

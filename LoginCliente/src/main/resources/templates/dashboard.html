@@ -19,24 +19,25 @@
         <h1>Dashboard</h1>
     </div>
 
+    <!-- Updated summary cards with dynamic accounting equation values -->
     <div class="summary-cards">
         <div class="summary-card dark">
             <div class="card-menu">⋮</div>
             <div class="card-icon"> <i class="fa-solid fa-credit-card"></i></div>
             <div class="card-label">Activo</div>
-            <div class="card-amount">$0000.00</div>
+            <div class="card-amount" th:text="${totalActivo != null ? '$' + #numbers.formatDecimal(totalActivo, 1, 2) : '$0.00'}">$0.00</div>
         </div>
         <div class="summary-card">
             <div class="card-menu">⋮</div>
             <div class="card-icon dark"><i class="fa-solid fa-sack-dollar"></i></div>
             <div class="card-label">Pasivo</div>
-            <div class="card-amount">$0000.00</div>
+            <div class="card-amount" th:text="${totalPasivo != null ? '$' + #numbers.formatDecimal(totalPasivo, 1, 2) : '$0.00'}">$0.00</div>
         </div>
         <div class="summary-card">
             <div class="card-menu">⋮</div>
             <div class="card-icon dark" ><i class="fa-solid fa-money-bill"></i> </div>
             <div class="card-label">Capital</div>
-            <div class="card-amount">$0000.00</div>
+            <div class="card-amount" th:text="${totalCapital != null ? '$' + #numbers.formatDecimal(totalCapital, 1, 2) : '$0.00'}">$0.00</div>
         </div>
     </div>
 
@@ -63,7 +64,7 @@
                     <td th:if="${iterStat.first}" th:rowspan="${entry.value.size()}" th:text="${entry.key.fechaFormateada}"></td>
                     <td>
                         <div th:if="${iterStat.first}" th:text="${entry.key.concepto}" style="font-weight: 600;"></div>
-                        <div th:each="cuenta : ${cuentas}" th:if="${cuenta.id_cuenta == mov.id_cuenta}" th:text="${cuenta.nombre}"></div>
+                        <div th:each="cuenta : ${cuentas}" th:if="${cuenta.idCuenta == mov.idCuenta}" th:text="${cuenta.nombre}"></div>
                     </td>
                     <td th:text="${mov.tipo == 'D' ? '$' + mov.monto : ''}"></td>
                     <td th:text="${mov.tipo == 'H' ? '$' + mov.monto : ''}"></td>

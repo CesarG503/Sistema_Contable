@@ -34,12 +34,13 @@ public class UserSessionInterceptor implements HandlerInterceptor {
 
                 if (usuario != null) {
                     // Guardar datos del usuario en la sesión
-                    session.setAttribute("usuarioId", usuario.getId_usuario());
+                    session.setAttribute("usuarioId", usuario.getIdUsuario());
                     session.setAttribute("usuarioNombre", usuario.getUsuario());
                     session.setAttribute("usuarioCorreo", usuario.getCorreo());
-                    session.setAttribute("usuarioRol", usuario.getPermiso().texto);
-                    session.setAttribute("usuarioRolValor", usuario.getPermiso().valor);
-                    session.setAttribute("esAdmin", usuario.getPermiso().valor == 0);
+                    //no se guardan permisos ya que se manejan a nivel de empresa
+                    //session.setAttribute("usuarioRol", usuario.getPermiso().texto);
+                    //session.setAttribute("usuarioRolValor", usuario.getPermiso().valor);
+                    //session.setAttribute("esAdmin", usuario.getPermiso().valor == 0);
                 }
             }
         }
@@ -47,4 +48,3 @@ public class UserSessionInterceptor implements HandlerInterceptor {
         return true;
     }
 }
-

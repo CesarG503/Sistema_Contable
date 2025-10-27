@@ -6,7 +6,20 @@
         </div>
     </div>
 
+    <!-- Added active company section -->
     <div class="sidebar-menu">
+        <div class="menu-section" style="background: #f3f4f6; padding: 12px; border-radius: 8px; margin-bottom: 20px;">
+            <div class="menu-title" style="color: #6366f1; font-weight: 600;">EMPRESA ACTIVA</div>
+            <div style="margin-top: 8px; font-size: 14px; color: #374151;">
+                <div th:if="${session.empresaNombre}" th:text="${session.empresaNombre}" style="font-weight: 500;">Sin empresa seleccionada</div>
+                <div th:unless="${session.empresaNombre}" style="font-weight: 500;">Sin empresa seleccionada</div>
+            </div>
+            <a href="/empresas/mis-empresas" style="display: flex; align-items: center; gap: 8px; margin-top: 12px; padding: 8px 12px; background: white; border-radius: 6px; text-decoration: none; color: #6366f1; font-size: 14px; font-weight: 500;">
+                <i class="fa-solid fa-repeat"></i>
+                <span>Cambiar Empresa</span>
+            </a>
+        </div>
+
         <div class="menu-section">
             <div class="menu-title">MENU</div>
             <a href="/usuarios/home" class="menu-item" th:classappend="${page} == 'dashboard' ? ' active' : ''">
@@ -25,15 +38,32 @@
                 <div class="menu-icon">➕</div>
                 <span>Crear Cuenta</span>
             </a>
+        </div>
 
-            <!-- Menú solo visible para Administradores -->
-            <div th:if="${#authorization.expression('hasRole(''ROLE_Administrador'')')}">
-                <div class="menu-title">ADMINISTRADOR</div>
-                <a href="/admin/usuario" class="menu-item" th:classappend="${page} == 'admin-usuarios' ? ' active' : ''">
-                    <div class="menu-icon"><i class="fa-solid fa-users-gear"></i></div>
-                    <span>Admin - Usuarios</span>
-                </a>
-            </div>
+        <!-- Added companies section -->
+        <div class="menu-section">
+            <div class="menu-title">EMPRESAS</div>
+            <a href="/empresas/mis-empresas" class="menu-item" th:classappend="${page} == 'mis-empresas' ? ' active' : ''">
+                <div class="menu-icon"><i class="fa-solid fa-building"></i></div>
+                <span>Mis Empresas</span>
+            </a>
+            <!-- Added link to manage company users, only visible for administrators -->
+            <a th:if="${session.usuarioPermiso != null and session.usuarioPermiso == 0}"
+               href="/empresas/usuarios"
+               class="menu-item"
+               th:classappend="${page} == 'gestion-usuarios' ? ' active' : ''">
+                <div class="menu-icon"><i class="fa-solid fa-users-gear"></i></div>
+                <span>Gestionar Usuarios</span>
+            </a>
+        </div>
+
+        <!-- Menú solo visible para Administradores -->
+        <div th:if="${#authorization.expression('hasRole(''ROLE_Administrador'')')}">
+            <div class="menu-title">ADMINISTRADOR</div>
+            <a href="/admin/usuario" class="menu-item" th:classappend="${page} == 'admin-usuarios' ? ' active' : ''">
+                <div class="menu-icon"><i class="fa-solid fa-users-gear"></i></div>
+                <span>Admin - Usuarios</span>
+            </a>
         </div>
 
         <div class="menu-section">
@@ -51,10 +81,9 @@
             <div class="user-info">
                 <div class="user-name" th:text="${session.usuarioNombre ?: 'ONE D'}">ONE D</div>
                 <div class="user-email" th:text="${session.usuarioCorreo ?: 'usuario@email.com'}">usuario@email.com</div>
-                <!-- Mostrar badge de Admin si el usuario es administrador -->
-                <div th:text="${session.usuarioRol ?: 'usuario@email.com'}" style="color: #4488EE; font-size: 12px; font-weight: bold;" >
-                    <span th:if="${session.usuarioRol == 'Administrador'}">Administrador</span>
-                    <span th:if="${session.usuarioRol != 'Administrador'}">Usuario</span>
+                <!-- Show role from session -->
+                <div th:text="${session.usuarioRol ?: 'Usuario'}" style="color: #4488EE; font-size: 12px; font-weight: bold;">
+                    Usuario
                 </div>
             </div>
         </div>

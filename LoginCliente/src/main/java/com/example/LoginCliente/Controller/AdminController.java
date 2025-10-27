@@ -32,8 +32,7 @@ public class AdminController {
 
     @InitBinder
     public void initBinder(WebDataBinder binder) {
-        // Prevent binding of id_usuario to avoid type conversion errors
-        binder.setDisallowedFields("id_usuario");
+        binder.setDisallowedFields("idUsuario");
 
         // Trim strings to remove whitespace
         binder.registerCustomEditor(String.class, new StringTrimmerEditor(true));
@@ -60,15 +59,46 @@ public class AdminController {
     }
 
     @PostMapping("/usuario/guardar")
-    public String guardarUsuario(@RequestParam String usuario,
-                                  @RequestParam String correo,
-                                  @RequestParam String pwd,
-                                  @RequestParam String pwd2,
-                                  @RequestParam Integer permiso) {
+    public String guardarUsuario(@RequestParam(required = false) Integer idUsuario,
+                                 @RequestParam String usuario,
+                                 @RequestParam String correo,
+                                 @RequestParam(required = false) String pwd,
+                                 @RequestParam Integer permiso,
+                                 Model model) {
         try {
-            // Validar que las contraseñas coincidan
-            if (!pwd.equals(pwd2)) {
-                return "redirect:/admin/usuario?error=pwdmismatch";
+            Usuario usuarioObj;
+
+            if (idUsuario != null && idUsuario > 0) {
+                // Editar usuario existente
+                Optional<Usuario> usuarioExistente = usuarioService.findById(idUsuario);
+                if (usuarioExistente.isPresent()) {
+                    usuarioObj = usuarioExistente.get();
+                    String pwdAnterior = usuarioObj.getPwd(); // Guardar contraseña anterior
+
+                    usuarioObj.setUsuario(usuario);
+                    usuarioObj.setCorreo(correo);
+
+
+                    // Solo actualizar contraseña si se proporcionó una nueva
+                    if (pwd != null && !pwd.isEmpty()) {
+                        usuarioObj.setPwd(pwd);
+                        usuarioService.save(usuarioObj); // Esto codificará la nueva contraseña
+                    } else {
+                        // No cambiar contraseña, guardar directamente sin codificar
+                        usuarioObj.setPwd(pwdAnterior);
+                        usuarioRepository.save(usuarioObj);
+                    }
+                } else {
+                    return "redirect:/admin/usuario?error=notfound";
+                }
+            } else {
+                // Crear nuevo usuario
+                usuarioObj = new Usuario();
+                usuarioObj.setUsuario(usuario);
+                usuarioObj.setCorreo(correo);
+                usuarioObj.setPwd(pwd);
+
+                usuarioService.save(usuarioObj); // Esto codificará la contraseña
             }
 
             // Validar que la contraseña tenga al menos 8 caracteres
@@ -150,7 +180,7 @@ public class AdminController {
             Usuario usuarioActual = usuarioService.findByUsuario(username);
 
             // Validar que el usuario actual existe
-            if (usuarioActual != null && usuarioActual.getId_usuario().equals(id)) {
+            if (usuarioActual != null && usuarioActual.getIdUsuario().equals(id)) {
                 return "redirect:/admin/usuario?error=selfdelete";
             }
 

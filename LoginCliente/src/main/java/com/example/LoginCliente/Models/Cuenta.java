@@ -14,7 +14,8 @@ public class Cuenta {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id_cuenta;
+    @Column(name = "id_cuenta")
+    private Integer idCuenta;
 
     @Column(nullable = false)
     private String nombre;
@@ -24,7 +25,11 @@ public class Cuenta {
 
     @Column(length = 1)
     private String naturaleza; // 'D' para Deudora, 'A' para Acreedora
+
     @Column
     private String tipo;
-}
 
+    @Column(name = "id_empresa")
+    private Integer idEmpresa;
+
+}

@@ -16,7 +16,8 @@ public class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id_usuario;
+    @Column(name = "id_usuario")
+    private Integer idUsuario;
 
     @NotBlank(message = "Usuario es obligatorio")
     @Column(nullable = false, unique = true)
@@ -31,15 +32,4 @@ public class Usuario {
     @Column(nullable = false)
     private String pwd;
 
-    @Column
-    private Integer permiso;
-
-    public Permiso getPermiso() {
-        return Permiso.valueOfValor(permiso);
-    }
-
-    public void setPermiso( Permiso permiso) {
-        this.permiso =  permiso.valor;
-    }
 }
-

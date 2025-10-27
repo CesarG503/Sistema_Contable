@@ -8,6 +8,7 @@ import com.example.LoginCliente.Service.DocumentosPartidaService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.io.BigDecimalParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -44,9 +45,14 @@ public class PartidaController {
     private DocumentosPartidaService documentosPartidaService;
 
     @GetMapping("/libro-diario")
-    public String librodiario(Model model) throws JsonProcessingException {
-        List<Partida> partidas = partidaService.findAll();
-        List<Cuenta> cuentas = cuentaService.findAll();
+    public String librodiario(Model model, HttpSession session) throws JsonProcessingException {
+        Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
+        if (empresaActiva == null) {
+            return "redirect:/empresas/mis-empresas";
+        }
+
+        List<Partida> partidas = partidaService.findByIdEmpresa(empresaActiva);
+        List<Cuenta> cuentas = cuentaService.findByIdEmpresa(empresaActiva);
 
         Map<PartidaDTO, List<Movimiento>> partidasConMovimientos = new LinkedHashMap<>();
         Map<Integer, List<DocumentosFuenteDTO>> documentosPorPartida = new HashMap<>();
@@ -109,6 +115,14 @@ public class PartidaController {
                                                             @RequestParam("montosArchivo") String montosArchivoJson) {
         Map<String, Object> response = new HashMap<>();
         try {
+            Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
+            Integer usuarioEmpresaId = (Integer) session.getAttribute("usuarioEmpresaId");
+
+            if (empresaActiva == null || usuarioEmpresaId == null) {
+                response.put("error", "Debe seleccionar una empresa primero");
+                return ResponseEntity.badRequest().body(response);
+            }
+
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             Usuario usuario = usuarioService.findByUsuario(username);
@@ -123,7 +137,9 @@ public class PartidaController {
             } else {
                 partida.setFecha(new Timestamp(System.currentTimeMillis()));
             }
-            partida.setAutor(usuario.getId_usuario());
+            partida.setAutor(usuario.getIdUsuario());
+            partida.setIdEmpresa(empresaActiva);
+            partida.setIdUsuarioEmpresa(usuarioEmpresaId);
 
             List<Movimiento> movimientos = new ArrayList<>();
             var mapper = new ObjectMapper();
@@ -134,9 +150,11 @@ public class PartidaController {
 
             for (Map<String, Object> movData : movimientosData) {
                 Movimiento movimiento = new Movimiento();
-                movimiento.setId_cuenta(Integer.parseInt(movData.get("idCuenta").toString()));
+                movimiento.setIdCuenta(Integer.parseInt(movData.get("idCuenta").toString()));
                 movimiento.setMonto(new BigDecimal(movData.get("monto").toString()));
                 movimiento.setTipo((String) movData.get("tipo"));
+                movimiento.setIdEmpresa(empresaActiva);
+                movimiento.setIdUsuarioEmpresa(usuarioEmpresaId);
 
                 if ("D".equals(movimiento.getTipo())) {
                     totalDebe = totalDebe.add(movimiento.getMonto());
@@ -201,10 +219,15 @@ public class PartidaController {
 
     @GetMapping("/{idPartida}/movimientos")
     @ResponseBody
-    public ResponseEntity<List<Map<String, Object>>> getMovimientos(@PathVariable Integer idPartida) {
+    public ResponseEntity<List<Map<String, Object>>> getMovimientos(@PathVariable Integer idPartida, HttpSession session) {
         try {
+            Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
+            if (empresaActiva == null) {
+                return ResponseEntity.badRequest().build();
+            }
+
             List<Movimiento> movimientos = partidaService.findMovimientosByPartida(idPartida);
-            List<Cuenta> cuentas = cuentaService.findAll();
+            List<Cuenta> cuentas = cuentaService.findByIdEmpresa(empresaActiva);
 
             List<Map<String, Object>> movimientosConNombres = new ArrayList<>();
 
@@ -216,7 +239,7 @@ public class PartidaController {
                 // Find account name
                 String nombreCuenta = "";
                 for (Cuenta cuenta : cuentas) {
-                    if (cuenta.getId_cuenta().equals(mov.getId_cuenta())) {
+                    if (cuenta.getIdCuenta().equals(mov.getIdCuenta())) {
                         nombreCuenta = cuenta.getNombre();
                         break;
                     }
