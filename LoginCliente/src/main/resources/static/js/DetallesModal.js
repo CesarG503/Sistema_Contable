@@ -2,11 +2,15 @@ function openDetailsModal(button) {
     const asiento = button.getAttribute("data-asiento")
     const fecha = button.getAttribute("data-fecha")
     const concepto = button.getAttribute("data-concepto")
+    const documento = button.getAttribute("data-documento")
 
     // Set basic info
     document.getElementById("detalleAsiento").textContent = asiento
     document.getElementById("detalleFecha").textContent = fecha
     document.getElementById("detalleConcepto").textContent = concepto
+    const textDocumentos = document.getElementById("detalleDocumento");
+    textDocumentos.firstElementChild.setAttribute("href",`/${documento}`);
+    textDocumentos.firstElementChild.textContent = documento ? documento.split('/').pop() : 'N/A';
 
     // Fetch movements data from server
     fetchMovimientosDetalles(asiento)

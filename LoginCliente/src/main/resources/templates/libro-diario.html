@@ -70,7 +70,8 @@
                         <button class="btn-details"
                                 th:attr="data-asiento=${entry.key.idPartida},
                                         data-fecha=${entry.key.fechaFormateada},
-                                        data-concepto=${entry.key.concepto}"
+                                        data-concepto=${entry.key.concepto},
+                                        data-documento=${entry.key.urlDocumentos[0] != null ? entry.key.urlDocumentos[0] : 'Ninguno'}"
                                 onclick="openDetailsModal(this)">Ver detalles →</button>
                     </td>
                 </tr>
@@ -200,6 +201,10 @@
             <div class="detalle-row">
                 <strong>Concepto:</strong>
                 <span id="detalleConcepto"></span>
+            </div>
+            <div class="detalle-row">
+                <strong>Documento Fuente:</strong>
+                <span id="detalleDocumento"><a></a></span>
             </div>
         </div>
 

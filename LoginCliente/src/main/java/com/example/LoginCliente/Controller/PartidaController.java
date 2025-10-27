@@ -4,6 +4,8 @@ import com.example.LoginCliente.Models.*;
 import com.example.LoginCliente.Service.CuentaService;
 import com.example.LoginCliente.Service.PartidaService;
 import com.example.LoginCliente.Service.UsuarioService;
+import com.example.LoginCliente.Service.DocumentosPartidaService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.io.BigDecimalParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,12 +40,16 @@ public class PartidaController {
     @Autowired
     private UsuarioService usuarioService;
 
+    @Autowired
+    private DocumentosPartidaService documentosPartidaService;
+
     @GetMapping("/libro-diario")
-    public String librodiario(Model model) {
+    public String librodiario(Model model) throws JsonProcessingException {
         List<Partida> partidas = partidaService.findAll();
         List<Cuenta> cuentas = cuentaService.findAll();
 
         Map<PartidaDTO, List<Movimiento>> partidasConMovimientos = new LinkedHashMap<>();
+        Map<Integer, List<DocumentosFuenteDTO>> documentosPorPartida = new HashMap<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         for (Partida partida : partidas) {
             String fechaFormateada = "";
@@ -57,6 +63,19 @@ public class PartidaController {
                 }
             }
             String autorStr = partida.getAutor() != null ? partida.getAutor().toString() : "";
+            List<DocumentosFuente> documentos = documentosPartidaService.findDocumentosByPartidaId(partida.getIdPartida());
+            List<DocumentosFuenteDTO> documentosDTO = new ArrayList<>();
+            documentos.forEach(documento -> {
+                documentosDTO.add(
+                        new DocumentosFuenteDTO(
+                                documento.getId_documento(),
+                                documento.getNombre(),
+                                documento.getRuta(),
+                                documento.getFecha_subida().toString(),
+                                documento.getValor(),
+                                documento.getAñadidoPor().getUsuario()
+                        ));
+            });
             PartidaDTO partidaDTO = new PartidaDTO(
                     partida.getIdPartida(),
                     partida.getConcepto(),
@@ -65,9 +84,14 @@ public class PartidaController {
             );
             List<Movimiento> movimientos = partidaService.findMovimientosByPartida(partida.getIdPartida());
             partidasConMovimientos.put(partidaDTO, movimientos);
+            documentosPorPartida.put(partida.getIdPartida(), documentosDTO);
         }
 
+        ObjectMapper mapper = new ObjectMapper();
+        String documentosJson = mapper.writeValueAsString(documentosPorPartida);
+
         model.addAttribute("partidasConMovimientos", partidasConMovimientos);
+        model.addAttribute("documentosPorPartida", documentosJson);
         model.addAttribute("cuentas", cuentas);
         model.addAttribute("nuevaPartida", new Partida());
         model.addAttribute("page", "libro-diario");
@@ -80,10 +104,10 @@ public class PartidaController {
     public ResponseEntity<Map<String, Object>> crearPartida(@RequestParam("concepto") String concepto,
                                                             @RequestParam("fechaPartida") String fechaPartida,
                                                             @RequestParam(value = "movimientos") String movimientosJson,
-                                                            @RequestParam(value = "archivoOrigen") MultipartFile archivoOrigen,
-                                                            @RequestParam("montoArchivo") String montoArchivo) {
+                                                            @RequestParam("nombresArchivos") String nombresArchivosJson,
+                                                            @RequestParam(value = "archivosOrigen", required = false) MultipartFile[] archivosOrigen,
+                                                            @RequestParam("montosArchivo") String montosArchivoJson) {
         Map<String, Object> response = new HashMap<>();
-        System.out.println("concepto");
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
@@ -128,30 +152,41 @@ public class PartidaController {
                 return ResponseEntity.badRequest().body(response);
             }
 
-            //Si se envió un archivo, guardarlo
-            DocumentosFuente documento = new DocumentosFuente();
-            if (archivoOrigen != null && !archivoOrigen.isEmpty()) {
-                String uploadsDir = "uploads/";
-                File dir = new File(uploadsDir);
-                if (!dir.exists()) dir.mkdirs();
-
-                String nombreArchivo = archivoOrigen.getOriginalFilename();
-                String extension = "";
-                if(nombreArchivo != null && nombreArchivo.contains(".")) {
-                    extension = nombreArchivo.substring(nombreArchivo.lastIndexOf("."));
-                }
-                String nombreGuardado = UUID.randomUUID().toString() + extension;
-                Path destino = Paths.get(uploadsDir + nombreGuardado);
-                Files.write(destino, archivoOrigen.getBytes());
-                documento.setRuta(destino.toString());
-                documento.setFecha_subida(partida.getFecha());
-                documento.setAñadido_por(usuario.getId_usuario());
-                BigDecimal valor = BigDecimalParser.parse(montoArchivo);
-                documento.setValor(valor);
-            }
-
+            String[] nombresArchivos = mapper.readValue(nombresArchivosJson, String[].class);
+            String[] montosArchivo = mapper.readValue(montosArchivoJson, String[].class);
             List<DocumentosFuente> documentosFuentes = new ArrayList<>();
-            documentosFuentes.add(documento);
+            if (archivosOrigen != null) {
+                for (int i = 0; i < archivosOrigen.length; i++) {
+                    String nombreDbArchivo = nombresArchivos[i];
+                    MultipartFile archivoOrigen = archivosOrigen[i];
+                    String montoArchivo = montosArchivo[i];
+                    System.out.println("Nombre para DB: " + nombreDbArchivo);
+
+                    DocumentosFuente documento = new DocumentosFuente();
+                    if (archivoOrigen != null && !archivoOrigen.isEmpty()) {
+                        String uploadsDir = "uploads/";
+                        File dir = new File(uploadsDir);
+                        if (!dir.exists()) dir.mkdirs();
+
+                        String nombreArchivo = archivoOrigen.getOriginalFilename();
+                        String extension = "";
+                        if (nombreArchivo != null && nombreArchivo.contains(".")) {
+                            extension = nombreArchivo.substring(nombreArchivo.lastIndexOf("."));
+                        }
+                        String nombreGuardado = UUID.randomUUID().toString() + extension;
+                        Path destino = Paths.get(uploadsDir + nombreGuardado);
+                        Files.write(destino, archivoOrigen.getBytes());
+                        documento.setNombre(nombreDbArchivo);
+                        documento.setRuta(destino.toString());
+                        documento.setFecha_subida(partida.getFecha());
+                        documento.setAñadidoPor(usuario);
+                        BigDecimal valor = BigDecimalParser.parse(montoArchivo);
+                        documento.setValor(valor);
+
+                        documentosFuentes.add(documento);
+                    }
+                }
+            }
 
             Partida savedPartida = partidaService.save(partida, movimientos, documentosFuentes);
             response.put("success", true);
