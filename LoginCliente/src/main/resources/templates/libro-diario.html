@@ -88,7 +88,9 @@
         <form id="partidaForm">
             <div class="form-group">
                 <label for="fechaPartida">Fecha de la partida:</label>
-                <input type="date" id="fechaPartida" required>
+                <input type="date" id="fechaPartida"
+                       th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}"
+                       required>
             </div>
             <div class="form-group">
                 <label for="concepto">Concepto:</label>

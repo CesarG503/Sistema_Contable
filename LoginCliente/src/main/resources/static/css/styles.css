@@ -453,7 +453,7 @@ textarea:focus {
 /* Cuentas Grid */
 .cuentas-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
     gap: 20px;
 }
 
@@ -517,6 +517,9 @@ textarea:focus {
     padding: 15px;
     background: #f8f9fa;
     border-radius: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .saldo-item span {
@@ -754,7 +757,7 @@ textarea:focus {
     }
 
     .cuentas-grid {
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     }
 }
 

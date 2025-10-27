@@ -222,6 +222,19 @@
             Nueva Empresa
         </button>
     </div>
+    <div class="menu-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 14px 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25); border-left: 4px solid #4f46e5;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="background: rgba(255, 255, 255, 0.2); padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-building" style="color: white; font-size: 11px;"></i>
+                <span style="color: white; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Empresa Activa</span>
+            </div>
+
+            <div style="flex: 1; background: rgba(255, 255, 255, 0.95); padding: 8px 14px; border-radius: 8px; backdrop-filter: blur(10px);">
+                <div th:if="${session.empresaNombre}" th:text="${session.empresaNombre}" style="font-weight: 600; color: #1f2937; font-size: 14px;">Juan</div>
+                <div th:unless="${session.empresaNombre}" style="font-weight: 500; color: #6b7280; font-size: 14px; font-style: italic;">Sin empresa seleccionada</div>
+            </div>
+        </div>
+    </div>
 
     <div th:if="${usuarioEmpresas != null and !usuarioEmpresas.isEmpty()}" class="empresas-grid">
         <div th:each="ue : ${usuarioEmpresas}" class="empresa-card"

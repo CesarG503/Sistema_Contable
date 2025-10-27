@@ -50,6 +50,7 @@ public class DashboardController {
 
         if (empresaActiva == null) {
             if (!usuarioEmpresas.isEmpty()) {
+                model.addAttribute("ErrorMessage", "Por favor, selecciona una empresa para continuar.");
                 return "redirect:/empresas/mis-empresas";
             } else {
                 // User has no companies, show empty dashboard
