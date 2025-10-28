@@ -202,13 +202,27 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
         const data = await response.json()
 
         if (response.ok) {
-            alert("Partida creada exitosamente")
+            closeModal()  // Cierra la modal antes de la alerta
+            await alerta("Partida creada exitosamente")
             location.reload()
         } else {
-            alert(data.error || "Error al crear la partida")
+            closeModal()
+            await alerta("Error al crear la partida: " + error.message, 'error')
         }
     } catch (error) {
-        console.error("Error completo:", error);
-        alert("Error al crear la partida: " + error.message)
+        closeModal()
+        await alerta("Error al crear la partida: " + error.message, 'error')
     }
 });
+
+
+async function alerta(message, type = 'info', title = 'OneDi system') {
+    return await Swal.fire({
+        icon: type,
+        title: title,
+        text: message,
+        confirmButtonText: 'Aceptar'
+    });
+}
+
+
