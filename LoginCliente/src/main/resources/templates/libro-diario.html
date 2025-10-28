@@ -104,10 +104,11 @@
                     <div class="movimiento-row">
                         <div class="form-group">
                             <label>Cuenta:</label>
-                            <select class="cuenta-select" required>
+                            <input list="cuentas" type="text" name="cuentas" class="cuenta-select" required>
+                            <datalist id="cuentas" class="cuentas-list">
                                 <option value="">Seleccione una cuenta</option>
-                                <option th:each="cuenta : ${cuentas}" th:value="${cuenta.idCuenta}" th:text="${cuenta.nombre}"></option>
-                            </select>
+                                <option th:each="cuenta : ${cuentas}" th:value="${cuenta.nombre}" th:data-id="${cuenta.idCuenta}"></option>
+                            </datalist>
                         </div>
                         <div class="form-group">
                             <label>Monto:</label>
@@ -126,10 +127,11 @@
                     <div class="movimiento-row">
                         <div class="form-group">
                             <label>Cuenta:</label>
-                            <select class="cuenta-select" required>
+                            <input list="cuentas1" type="text" name="cuentas1" class="cuenta-select" required>
+                            <datalist class="cuenta-select" id="cuentas1">
                                 <option value="">Seleccione una cuenta</option>
-                                <option th:each="cuenta : ${cuentas}" th:value="${cuenta.idCuenta}" th:text="${cuenta.nombre}"></option>
-                            </select>
+                                <option th:each="cuenta : ${cuentas}" th:value="${cuenta.nombre}" th:data-id="${cuenta.idCuenta}"></option>
+                            </datalist>
                         </div>
                         <div class="form-group">
                             <label>Monto:</label>

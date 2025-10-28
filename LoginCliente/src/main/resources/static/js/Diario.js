@@ -11,6 +11,9 @@ function addMovimiento() {
     const container = document.getElementById("movimientos")
     const firstRow = container.querySelector(".movimiento-row")
     const newRow = firstRow.cloneNode(true)
+    const rowCount = container.querySelectorAll(".movimiento-row").length + 1;
+    newRow.querySelector(".cuenta-select").id = "cuentas" + rowCount;
+    newRow.querySelector("datalist").id = "cuentas"+ rowCount;
     newRow.querySelectorAll("input, select").forEach((input) => (input.value = ""))
     container.appendChild(newRow)
     attachCalculateListeners()
@@ -160,7 +163,14 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
     });
 
     document.querySelectorAll(".movimiento-row").forEach((row) => {
-        const idCuenta = row.querySelector(".cuenta-select").value
+        const listId = row.querySelector(".cuenta-select").getAttribute("list");
+        const dataList = document.getElementById(listId);
+        const cuentaInput = row.querySelector(".cuenta-select");
+        const selectedOption = Array.from(dataList.options).find(
+            option => option.value === cuentaInput.value
+        );
+        const idCuenta = selectedOption.dataset.id;
+
         const monto = row.querySelector(".monto-input").value
         const tipo = row.querySelector(".tipo-select").value
 
@@ -224,5 +234,3 @@ async function alerta(message, type = 'info', title = 'OneDi system') {
         confirmButtonText: 'Aceptar'
     });
 }
-
-
