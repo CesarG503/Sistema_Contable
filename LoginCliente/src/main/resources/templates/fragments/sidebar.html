@@ -43,6 +43,11 @@
                 <div class="menu-icon">➕</div>
                 <span>Crear Cuenta</span>
             </a>
+            <!-- Added button to load accounts from CSV -->
+            <a href="/cuentas/cargar-cuentas" class="menu-item" th:classappend="${page} == 'cargar-cuentas' ? ' active' : ''">
+                <div class="menu-icon"><i class="fa-solid fa-file-csv"></i></div>
+                <span>Cargar Cuentas CSV</span>
+            </a>
         </div>
 
         <!-- Added companies section -->
@@ -70,7 +75,7 @@
                 <span>Admin - Usuarios</span>
             </a>
         </div>
-
+<!--
         <div class="menu-section">
             <div class="menu-title">PREFERENCIAS</div>
             <a href="#" class="menu-item">
@@ -78,6 +83,7 @@
                 <span>Tema</span>
             </a>
         </div>
+-->
     </div>
 
     <div class="sidebar-footer">

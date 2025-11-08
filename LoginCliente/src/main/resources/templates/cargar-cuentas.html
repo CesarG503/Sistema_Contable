@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargar Cuentas - OneDi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        .upload-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .upload-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .upload-header h1 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .upload-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .upload-zone {
+            border: 2px dashed #4488ee;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            background: #f8f9fc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-zone:hover {
+            background: #eef3fc;
+            border-color: #3366cc;
+        }
+
+        .upload-zone.drag-over {
+            background: #e8f0ff;
+            border-color: #2244aa;
+        }
+
+        .upload-zone i {
+            font-size: 48px;
+            color: #4488ee;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .upload-zone p {
+            color: #333;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .upload-zone .hint {
+            color: #999;
+            font-size: 12px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-info {
+            background: #f0f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+            border-left: 4px solid #4488ee;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .file-size {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .modo-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .modo-option {
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .modo-option:hover {
+            border-color: #4488ee;
+            background: #f8f9fc;
+        }
+
+        .modo-option input[type="radio"] {
+            display: none;
+        }
+
+        .modo-option input[type="radio"]:checked + .modo-content {
+            color: #4488ee;
+        }
+
+        .modo-option input[type="radio"]:checked ~ .modo-content {
+            color: #4488ee;
+        }
+
+        .modo-option.selected {
+            border-color: #4488ee;
+            background: #eef3fc;
+        }
+
+        .modo-content {
+            transition: color 0.3s ease;
+        }
+
+        .modo-content i {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .modo-content .title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .modo-content .desc {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #4488ee;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #3366cc;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(68, 136, 238, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f0f0f0;
+            border-top-color: #4488ee;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+            border-left: 4px solid;
+        }
+
+        .message.success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            border-color: #f5222d;
+            color: #721c24;
+            display: block;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #0066cc;
+        }
+
+        .info-box i {
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<button class="mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
+
+<div th:replace="fragments/sidebar :: sidebar"></div>
+
+<div class="main-content">
+    <div class="page-header">
+        <h1>Cargar Cuentas desde CSV</h1>
+    </div>
+
+    <div class="upload-container">
+        <div class="upload-header">
+            <h1>Importar Cuentas</h1>
+            <p>Carga tus cuentas usando un archivo CSV</p>
+        </div>
+
+        <div class="info-box">
+            <i class="fa-solid fa-circle-info"></i>
+            El archivo debe tener almenos la siguiente informacion: nombre, tipo, descripcion de las cuentas.
+        </div>
+
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <p>Arrastra tu archivo CSV aquí o haz clic para seleccionar</p>
+            <p class="hint">Formato: .csv (máximo 5MB)</p>
+        </div>
+
+        <input type="file" id="fileInput" accept=".csv" />
+
+        <div class="file-info" id="fileInfo">
+            <div class="file-name" id="fileName"></div>
+            <div class="file-size" id="fileSize"></div>
+        </div>
+
+        <div class="modo-selector">
+            <label class="modo-option selected">
+                <input type="radio" name="modo" value="cargar" checked>
+                <div class="modo-content">
+                    <i class="fa-solid fa-rotate"></i>
+                    <div class="title">Cargar Cuentas</div>
+                    <div class="desc">Reemplaza todas las cuentas existentes</div>
+                </div>
+            </label>
+
+            <label class="modo-option">
+                <input type="radio" name="modo" value="anadir">
+                <div class="modo-content">
+                    <i class="fa-solid fa-plus"></i>
+                    <div class="title">Añadir Cuentas</div>
+                    <div class="desc">Solo agrega cuentas nuevas</div>
+                </div>
+            </label>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Procesando archivo...</p>
+        </div>
+
+        <div class="action-buttons">
+            <button type="button" class="btn btn-primary" id="btnCargar" disabled>
+                <i class="fa-solid fa-upload"></i>
+                Cargar Cuentas
+            </button>
+            <a href="/cuentas/libro-mayor" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left"></i>
+                Volver
+            </a>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/Sidebar.js}"></script>
+<script>
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const btnCargar = document.getElementById('btnCargar');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const message = document.getElementById('message');
+    const loading = document.getElementById('loading');
+    let selectedFile = null;
+
+    // Drag and drop
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('drag-over');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('drag-over');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('drag-over');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            manejarArchivoSeleccionado(files[0]);
+        }
+    });
+
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            manejarArchivoSeleccionado(e.target.files[0]);
+        }
+    });
+
+    function manejarArchivoSeleccionado(file) {
+        if (!file.name.endsWith('.csv')) {
+            mostrarMensaje('error', 'El archivo debe ser un CSV');
+            return;
+        }
+
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            mostrarMensaje('error', 'El archivo no debe exceder 5MB');
+            return;
+        }
+
+        selectedFile = file;
+        fileName.textContent = '📄 ' + file.name;
+        fileSize.textContent = (file.size / 1024).toFixed(2) + ' KB';
+        fileInfo.classList.add('show');
+        btnCargar.disabled = false;
+        message.classList.remove('success', 'error');
+        message.textContent = '';
+    }
+
+    // Modo selector
+    document.querySelectorAll('.modo-option').forEach(option => {
+        option.querySelector('input[type="radio"]').addEventListener('change', () => {
+            document.querySelectorAll('.modo-option').forEach(o => o.classList.remove('selected'));
+            option.classList.add('selected');
+        });
+    });
+
+    // Cargar cuentas
+    btnCargar.addEventListener('click', async () => {
+        if (!selectedFile) {
+            mostrarMensaje('error', 'Selecciona un archivo primero');
+            return;
+        }
+
+        const modo = document.querySelector('input[name="modo"]:checked').value;
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('modo', modo);
+
+        loading.style.display = 'block';
+        btnCargar.disabled = true;
+
+        try {
+            const response = await fetch('/cuentas/procesar-csv', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                mostrarMensaje('success', data.message);
+                setTimeout(() => {
+                    window.location.href = '/cuentas/libro-mayor';
+                }, 2000);
+            } else {
+                mostrarMensaje('error', data.message);
+                btnCargar.disabled = false;
+            }
+        } catch (error) {
+            mostrarMensaje('error', 'Error al procesar: ' + error.message);
+            btnCargar.disabled = false;
+        } finally {
+            loading.style.display = 'none';
+        }
+    });
+
+    function mostrarMensaje(tipo, texto) {
+        message.classList.remove('success', 'error');
+        message.classList.add(tipo);
+        message.textContent = texto;
+    }
+</script>
+
+</body>
+</html>

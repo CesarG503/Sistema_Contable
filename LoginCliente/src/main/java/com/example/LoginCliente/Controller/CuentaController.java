@@ -106,4 +106,57 @@ public class CuentaController {
 
         return response;
     }
+
+    @GetMapping("/cargar-cuentas")
+    public String mostrarFormularioCargarCuentas(Model model, HttpSession session) {
+        Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
+        if (empresaActiva == null) {
+            return "redirect:/empresas/mis-empresas";
+        }
+
+        model.addAttribute("page", "cargar-cuentas");
+        return "cargar-cuentas";
+    }
+
+    @PostMapping("/procesar-csv")
+    @ResponseBody
+    public Map<String, Object> procesarCSV(
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+            @RequestParam("modo") String modo,
+            HttpSession session) {
+
+        Map<String, Object> response = new HashMap<>();
+        Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
+
+        if (empresaActiva == null) {
+            response.put("success", false);
+            response.put("message", "Debe seleccionar una empresa primero");
+            return response;
+        }
+
+        try {
+            List<Cuenta> cuentasDelCSV = cuentaService.parsearCSV(file.getInputStream());
+
+            if ("cargar".equals(modo)) {
+                // Borrar todas las cuentas de la empresa y cargar las nuevas
+                cuentaService.borrarCuentasEmpresa(empresaActiva);
+                int guardadas = cuentaService.guardarCuentasCSV(cuentasDelCSV, empresaActiva);
+                response.put("success", true);
+                response.put("message", "Se cargaron " + guardadas + " cuentas correctamente");
+                response.put("cantidad", guardadas);
+            } else if ("anadir".equals(modo)) {
+                // Agregar solo las cuentas que no existen
+                int agregadas = cuentaService.agregarCuentasCSV(cuentasDelCSV, empresaActiva);
+                response.put("success", true);
+                response.put("message", "Se agregaron " + agregadas + " cuentas. " +
+                        (cuentasDelCSV.size() - agregadas) + " cuentas ya existían");
+                response.put("cantidad", agregadas);
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Error al procesar el archivo: " + e.getMessage());
+        }
+
+        return response;
+    }
 }

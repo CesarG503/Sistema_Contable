@@ -188,7 +188,7 @@
 
     <div class="invite-section">
         <h2 style="margin-bottom: 20px; color: #333;">Invitar Usuario</h2>
-        <form th:action="@{/empresas/usuarios/invitar}" method="post" class="invite-form">
+        <form th:action="@{/empresas/usuarios/invitar}" method="post" class="invite-form" style="align-items: center;">
             <div class="form-group">
                 <label for="usernameInvitado">Nombre de Usuario</label>
                 <input type="text" id="usernameInvitado" name="usernameInvitado" required
@@ -202,7 +202,7 @@
                     <option value="2">Auditor</option>
                 </select>
             </div>
-            <button type="submit" class="btn-invite">
+            <button type="submit" class="btn-invite justify-center">
                 <i class="fa-solid fa-user-plus"></i> Invitar
             </button>
         </form>

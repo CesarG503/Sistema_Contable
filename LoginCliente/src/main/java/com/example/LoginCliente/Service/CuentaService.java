@@ -8,10 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 @Service
 public class CuentaService {
@@ -136,5 +140,70 @@ public class CuentaService {
         }
 
         return BigDecimal.ZERO;
+    }
+
+    public List<Cuenta> parsearCSV(java.io.InputStream inputStream) throws Exception {
+        List<Cuenta> cuentas = new ArrayList<>();
+
+        try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(inputStream))) {
+            String linea;
+            boolean primeraLinea = true;
+
+            while ((linea = br.readLine()) != null) {
+                // Saltar la cabecera
+                if (primeraLinea) {
+                    primeraLinea = false;
+                    continue;
+                }
+
+                if (linea.trim().isEmpty()) continue;
+
+                String[] campos = linea.split(",");
+                if (campos.length < 3) continue;
+
+                Cuenta cuenta = new Cuenta();
+                cuenta.setNombre(campos[1].trim());
+                cuenta.setTipo(campos[2].trim());
+                cuenta.setDescripcion(campos.length > 7 ? campos[7].trim() : "");
+
+                cuentas.add(cuenta);
+            }
+        }
+
+        return cuentas;
+    }
+
+    public int guardarCuentasCSV(List<Cuenta> cuentas, Integer idEmpresa) {
+        int contador = 0;
+        for (Cuenta cuenta : cuentas) {
+            cuenta.setIdEmpresa(idEmpresa);
+            cuentaRepository.save(cuenta);
+            contador++;
+        }
+        return contador;
+    }
+
+    public int agregarCuentasCSV(List<Cuenta> cuentas, Integer idEmpresa) {
+        List<Cuenta> cuentasExistentes = findByIdEmpresa(idEmpresa);
+        java.util.Set<String> nombresExistentes = new HashSet<>();
+
+        for (Cuenta c : cuentasExistentes) {
+            nombresExistentes.add(c.getNombre().toLowerCase());
+        }
+
+        int contador = 0;
+        for (Cuenta cuenta : cuentas) {
+            if (!nombresExistentes.contains(cuenta.getNombre().toLowerCase())) {
+                cuenta.setIdEmpresa(idEmpresa);
+                cuentaRepository.save(cuenta);
+                contador++;
+            }
+        }
+        return contador;
+    }
+
+    public void borrarCuentasEmpresa(Integer idEmpresa) {
+        List<Cuenta> cuentas = findByIdEmpresa(idEmpresa);
+        cuentaRepository.deleteAll(cuentas);
     }
 }

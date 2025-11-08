@@ -23,14 +23,38 @@
         </div>
     </div>
 
+    <!-- Added search and filter section -->
+    <div class="filter-section">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label for="searchCuentas">
+                    <i class="fas fa-search"></i> Buscar cuenta
+                </label>
+                <input type="text" id="searchCuentas" placeholder="Escribe el nombre de la cuenta...">
+            </div>
+            <div class="filter-group">
+                <label for="filterTipo">Filtrar por tipo</label>
+                <select id="filterTipo">
+                    <option value="">Todos los tipos</option>
+                    <!-- Options will be populated dynamically -->
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="resetFilters()">Limpiar filtros</button>
+        </div>
+        <div style="margin-top: 10px; font-size: 14px; color: #666;">
+            Mostrando <span id="cuentasCount">0</span> cuenta(s)
+        </div>
+    </div>
+
     <div th:if="${cuentasConSaldos.isEmpty()}" class="empty-state">
         <p>No hay cuentas registradas</p>
     </div>
 
-    <div class="cuentas-grid">
-
+    <div class="cuentas-grid" id="cuentasGrid">
+        <!-- Added data attributes for filtering -->
         <div th:each="entry : ${cuentasConSaldos}" class="cuenta-card"
              th:onclick="'abrirModalDetalle(' + ${entry.key.idCuenta} + ')'"
+             th:attr="data-nombre=${entry.key.nombre}, data-tipo=${entry.key.tipo}, data-naturaleza=${entry.key.naturaleza}"
              style="cursor: pointer;">
             <div class="cuenta-header">
                 <h3 th:text="${entry.key.nombre}"></h3>
