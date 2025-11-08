@@ -149,7 +149,7 @@ function abrirModalDetalle(idCuenta) {
                 `$ ${totalCredito.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
             const saldoFinal = data.cuenta.naturaleza === "D" ? totalDebito - totalCredito : totalCredito - totalDebito
             document.getElementById("modalSaldoFinal").textContent =
-                `$ ${saldoFinal.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                `$ ${Math.abs(saldoFinal).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
             document.getElementById("modalDetalleCuenta").style.display = "flex"
         })
