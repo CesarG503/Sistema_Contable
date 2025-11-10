@@ -35,6 +35,8 @@ public class SecurityConfig {
                                 "/usuarios/register",
                                 "/usuarios/auth",
                                 "/usuarios/login-validate",
+                                "/usuarios/recuperar",
+                                "/usuarios/recuperar-cuenta",
                                 "/error",
                                 "/error/**",
                                 "/img/**",

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Contraseña - OneDi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+
+</head>
+<body>
+<h1 class="main-title">
+    <img th:src="@{/img/logo.svg}" style="height: 40px; vertical-align: middle; margin-right: 10px;">ONEDI
+</h1>
+<div class="container" id="container">
+    <div class="form-container sign-in-container">
+        <form th:action="@{/usuarios/recuperar}" method="post">
+            <h2 style="margin-block:15px ">Recuperar Contraseña</h2>
+            <input type="email" name="email" placeholder="Ingresa tu correo electrónico" required />
+            <a th:href="@{/usuarios/login}" class="type-name-link" style="text-align: left; display: block; width: 100%; margin: 10px 0px 20px">Volver al login!</a>
+            <button type="submit" >Enviar</button>
+            <div th:if="${loginError}" >
+                <p class="error-message" th:text="${loginError}"></p>
+            </div>
+        </form>
+    </div>
+    <div class="overlay-container">
+        <div class="overlay">
+            <div class="overlay-panel overlay-right">
+                <h1>¿Olvidaste tu contraseña?</h1>
+                <p>No te preocupes, ingresa tu correo electrónico y te enviaremos un enlace para restablecerla</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<script th:src="@{/js/auth.js}"></script>
+</body>
+</html>

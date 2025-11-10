@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>OneDi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            color: #333;
+            text-align: center;
+        }
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-block;
+            margin: 20px 0;
+        }
+        .footer {
+            color: #666;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Recuperar Contraseña</h2>
+    <div class="container">
+        <h1 class="header">Recuperación de Contraseña</h1>
+        <p>Hola <span th:text="${nombre}">Usuario</span>,</p>
+        <p>Recibimos una solicitud para restablecer tu contraseña. Haz clic en el botón de abajo para continuar:</p>
+        <div style="text-align: center;">
+            <a th:href="${enlace}" class="button">Restablecer Contraseña</a>
+        </div>
+        <p>Si no solicitaste este cambio, puedes ignorar este correo.</p>
+        <p>Este enlace expirará en 24 horas.</p>
+        <div class="footer">
+            <p>Este es un correo automático, por favor no responder.</p>
+            <p>OneDi</p>
+        </div>
+    </div>
+</body>
+</html>

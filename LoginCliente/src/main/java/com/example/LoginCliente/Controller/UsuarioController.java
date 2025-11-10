@@ -3,6 +3,7 @@ package com.example.LoginCliente.Controller;
 import com.example.LoginCliente.Models.Usuario;
 import com.example.LoginCliente.Service.UsuarioService;
 import jakarta.servlet.http.HttpSession;
+import jdk.jfr.Name;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
 import org.springframework.web.bind.WebDataBinder;
@@ -130,7 +131,6 @@ public class UsuarioController {
             return "auth";
         }
 
-
         try {
             Usuario nuevo = new Usuario();
             nuevo.setUsuario(username.trim());
@@ -144,7 +144,6 @@ public class UsuarioController {
             return "auth";
         }
     }
-
 
     @GetMapping("/home")
     public String home(Model model, HttpSession session) {
@@ -167,5 +166,17 @@ public class UsuarioController {
         model.addAttribute("usuario", usuario);
 
         return "dashboard";
+    }
+
+    @GetMapping("/recuperar-cuenta")
+    public String recuperarCuenta(Model model) {
+        return "redirect:/recuperar";
+    }
+
+    @GetMapping("/recuperar")
+    public String recuperar(Model model) {
+
+
+        return "auth/recuperar";
     }
 }
