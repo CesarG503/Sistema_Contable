@@ -59,7 +59,7 @@ public class CuentaService {
         Map<String, BigDecimal> resultado = new HashMap<>();
         resultado.put("debe", totalDebe);
         resultado.put("haber", totalHaber);
-        resultado.put("saldo", totalDebe.subtract(totalHaber));
+        resultado.put("saldo", totalDebe.subtract(totalHaber).abs());
 
         return resultado;
     }

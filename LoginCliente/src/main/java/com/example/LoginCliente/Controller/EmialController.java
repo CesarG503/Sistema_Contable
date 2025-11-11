@@ -17,4 +17,19 @@ public class EmialController {
         emailService.sendEmail("js3729395@gmail.com", "System OneDi", "Prueba de envio de correo");
     return new ResponseEntity("Correo enviado con exito", HttpStatus.OK);
     }
+
+    @GetMapping("/email/sendTem")
+    public ResponseEntity<?> sendEmailT() {
+        emailService.sendEmailHtml("js3729395@gmail.com", "System OneDi", "auth/email-pwd.html");
+        return new ResponseEntity("Correo enviado con exito", HttpStatus.OK);
+    }
 }
+
+
+
+
+
+
+
+
+
