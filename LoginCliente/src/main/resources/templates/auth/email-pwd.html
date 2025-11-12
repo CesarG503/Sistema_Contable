@@ -25,14 +25,75 @@
             text-align: center;
         }
         .button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 15px 30px;
-            text-decoration: none;
-            border-radius: 5px;
+            /* Display y alineación */
             display: inline-block;
-            margin: 20px 0;
+            text-align: center;
+            vertical-align: middle;
+
+            /* Estilo visual */
+            border-radius: 20px;
+            border: 1px solid #4488EE;
+            background: #4488EE;
+            color: #fff;
+
+            /* Tipografía */
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-decoration: none; /* Importante para <a> */
+            line-height: 1.5;
+
+            /* Espaciado */
+            padding: 12px 45px;
+
+            /* Interacción */
+            cursor: pointer;
+            user-select: none;
+
+            /* Transiciones */
+            transition: background .25s ease,
+            box-shadow .25s ease,
+            transform .08s ease-in,
+            color .25s ease;
         }
+
+        .button:hover {
+            background: #5a9af2;
+            box-shadow: 0 4px 14px rgba(68,136,238,.35);
+            color: #fff; /* Asegura que el color se mantenga blanco */
+            text-decoration: none; /* Evita subrayado en hover para <a> */
+        }
+
+        .button:active {
+            transform: scale(.95);
+        }
+
+        .button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(68,136,238,.5);
+        }
+
+        .button:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Variante ghost */
+        .button.ghost {
+            background: transparent;
+            color: #4488EE;
+            border-color: #4488EE;
+        }
+
+        .button.ghost:hover {
+            background: rgba(68,136,238,.12);
+            color: #5a9af2;
+        }
+
+
         .footer {
             color: #666;
             font-size: 12px;
@@ -45,10 +106,9 @@
     <h2>Recuperar Contraseña</h2>
     <div class="container">
         <h1 class="header">Recuperación de Contraseña</h1>
-        <p>Hola <span th:text="${nombre}">Usuario</span>,</p>
         <p>Recibimos una solicitud para restablecer tu contraseña. Haz clic en el botón de abajo para continuar:</p>
         <div style="text-align: center;">
-            <a th:href="${enlace}" class="button">Restablecer Contraseña</a>
+            <a th:href="${enlace}" class="button ghost">Restablecer Contraseña</a>
         </div>
         <p>Si no solicitaste este cambio, puedes ignorar este correo.</p>
         <p>Este enlace expirará en 24 horas.</p>

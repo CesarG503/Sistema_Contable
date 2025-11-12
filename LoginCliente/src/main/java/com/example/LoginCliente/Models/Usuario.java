@@ -5,6 +5,8 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Entity
@@ -31,5 +33,12 @@ public class Usuario {
     @Size(min = 8, message = "Contraseña debe tener al menos 8 caracteres")
     @Column(nullable = false)
     private String pwd;
+
+    // Campos para recuperación de contraseña
+    @Column(name = "token_recuperacion")
+    private String tokenRecuperacion;
+
+    @Column(name = "token_expiracion")
+    private LocalDateTime tokenExpiracion;
 
 }

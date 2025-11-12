@@ -100,12 +100,27 @@
                 <strong>Concepto:</strong>
                 <span id="detalleConcepto"></span>
             </div>
+            <div class="detalle-row">
+                <strong>Documentos Fuente:</strong>
+                <ul id="detalleDocumentos" style="list-style: none; overflow: auto;"></ul>
+            </div>
+        </div>
+
+        <div style="margin: 20px 0">
+            <a class="btn btn-remove">Eliminar</a>
+            <a class="btn btn-edit">Editar</a>
         </div>
 
         <h3 style="margin-top: 20px; margin-bottom: 15px;">Movimientos</h3>
         <div id="detalleMovimientos"></div>
     </div>
 </div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const documentosPorPartida = JSON.parse(/*[[${documentosPorPartida}]]*/ '{}');
+    /*]]>*/
+</script>
 
 <script th:src="@{/js/Sidebar.js}"></script>
 <script th:src="@{/js/DetallesModal.js}"></script>
