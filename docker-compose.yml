@@ -5,11 +5,11 @@ services:
     working_dir: /app
     command: mvn spring-boot:run
     environment:
-      - SPRING_DATASOURCE_URL=${DB_URL}
-      - SPRING_DATASOURCE_USERNAME=${DB_USER}
-      - SPRING_DATASOURCE_PASSWORD=${DB_PWD}
-      - SPRING_MAIL_USERNAME=${EMAIL_USER}
-      - SPRING_MAIL_PASSWORD=${EMAIL_PWD}
+      - DB_URL=${DB_URL}
+      - DB_USER=${DB_USER}
+      - DB_PWD=${DB_PWD}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PWD=${EMAIL_PWD}
     volumes:
       - ./LoginCliente:/app
     ports:
