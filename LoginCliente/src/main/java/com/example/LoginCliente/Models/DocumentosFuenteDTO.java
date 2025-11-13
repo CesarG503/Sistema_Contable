@@ -14,6 +14,5 @@ public class DocumentosFuenteDTO {
     private String nombre;
     private String ruta;
     private String fechaSubida;
-    private BigDecimal valor;
     private String añadidoPor;
 }
