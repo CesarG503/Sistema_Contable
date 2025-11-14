@@ -347,7 +347,13 @@ tr:hover {
     background: #dc3545;
     color: #dee2e6;
 }
-
+.btn-r{
+    background: #dc3545;
+    padding: 10px 15px;
+    margin: auto;
+    width: 100%;
+    max-width: 150px;
+}
 .btn-remove:hover {
     background: #c82333;
 }

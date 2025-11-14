@@ -43,7 +43,10 @@
                 <div class="menu-icon">➕</div>
                 <span>Crear Cuenta</span>
             </a>
-            <!-- Added button to load accounts from CSV -->
+            <a href="/cuentas/libro-mayor" class="menu-item" th:classappend="${page} == 'libro-mayor' ? ' active' : ''">
+                <div class="menu-icon"><i class="fa-solid fa-file-export"></i></div>
+                <span>Generar Reportes </span>
+            </a>
             <a href="/cuentas/cargar-cuentas" class="menu-item" th:classappend="${page} == 'cargar-cuentas' ? ' active' : ''">
                 <div class="menu-icon"><i class="fa-solid fa-file-csv"></i></div>
                 <span>Cargar Cuentas CSV</span>
