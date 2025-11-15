@@ -79,7 +79,6 @@ public class PartidaController {
                                 documento.getNombre(),
                                 documento.getRuta(),
                                 documento.getFecha_subida().toString(),
-                                documento.getValor(),
                                 documento.getAñadidoPor().getUsuario()
                         ));
             });
@@ -113,7 +112,7 @@ public class PartidaController {
                                                             @RequestParam(value = "movimientos") String movimientosJson,
                                                             @RequestParam("nombresArchivos") String nombresArchivosJson,
                                                             @RequestParam(value = "archivosOrigen", required = false) MultipartFile[] archivosOrigen,
-                                                            @RequestParam("montosArchivo") String montosArchivoJson, HttpSession session) {
+                                                            HttpSession session) {
         Map<String, Object> response = new HashMap<>();
         try {
             Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
@@ -172,13 +171,11 @@ public class PartidaController {
             }
 
             String[] nombresArchivos = mapper.readValue(nombresArchivosJson, String[].class);
-            String[] montosArchivo = mapper.readValue(montosArchivoJson, String[].class);
             List<DocumentosFuente> documentosFuentes = new ArrayList<>();
             if (archivosOrigen != null) {
                 for (int i = 0; i < archivosOrigen.length; i++) {
                     String nombreDbArchivo = nombresArchivos[i];
                     MultipartFile archivoOrigen = archivosOrigen[i];
-                    String montoArchivo = montosArchivo[i];
                     System.out.println("Nombre para DB: " + nombreDbArchivo);
 
                     DocumentosFuente documento = new DocumentosFuente();
@@ -199,8 +196,6 @@ public class PartidaController {
                         documento.setRuta(destino.toString());
                         documento.setFecha_subida(partida.getFecha());
                         documento.setAñadidoPor(usuario);
-                        BigDecimal valor = BigDecimalParser.parse(montoArchivo);
-                        documento.setValor(valor);
 
                         documentosFuentes.add(documento);
                     }

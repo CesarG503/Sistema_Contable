@@ -29,9 +29,6 @@ public class DocumentosFuente {
     @Column(nullable = false)
     private String ruta;
 
-    @Column
-    private BigDecimal valor;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "añadido_por") // columna en la base de datos
     private Usuario añadidoPor; // Usuario que añadió el documento
