@@ -216,11 +216,9 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
             await alerta("Partida creada exitosamente")
             location.reload()
         } else {
-            closeModal()
             await alerta("Error al crear la partida: " + error.message, 'error')
         }
     } catch (error) {
-        closeModal()
         await alerta("Error al crear la partida: " + error.message, 'error')
     }
 });
@@ -231,6 +229,9 @@ async function alerta(message, type = 'info', title = 'OneDi system') {
         icon: type,
         title: title,
         text: message,
-        confirmButtonText: 'Aceptar'
+        confirmButtonText: 'Aceptar',
+        customClass: {
+            container: 'swal-high-zindex'
+        }
     });
 }

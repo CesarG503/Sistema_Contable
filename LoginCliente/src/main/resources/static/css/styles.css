@@ -911,3 +911,11 @@ textarea:focus {
     background: #f8d7da;
     color: #721c24;
 }
+
+.swal-high-zindex {
+    z-index: 10000 !important;
+}
+
+.swal2-container {
+    z-index: 10000 !important;
+}
