@@ -107,6 +107,31 @@ public class CuentaController {
         return response;
     }
 
+    /**
+     * Obtener todas las cuentas de la empresa activa en formato JSON
+     */
+    @GetMapping("/todas")
+    @ResponseBody
+    public List<Map<String, Object>> obtenerTodasLasCuentas(HttpSession session) {
+        Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
+        List<Map<String, Object>> cuentasData = new ArrayList<>();
+
+        if (empresaActiva == null) {
+            return cuentasData;
+        }
+
+        List<Cuenta> cuentas = cuentaService.findByIdEmpresa(empresaActiva);
+        for (Cuenta cuenta : cuentas) {
+            Map<String, Object> cuentaData = new HashMap<>();
+            cuentaData.put("idCuenta", cuenta.getIdCuenta());
+            cuentaData.put("nombre", cuenta.getNombre());
+            cuentaData.put("tipo", cuenta.getTipo());
+            cuentasData.add(cuentaData);
+        }
+
+        return cuentasData;
+    }
+
     @GetMapping("/cargar-cuentas")
     public String mostrarFormularioCargarCuentas(Model model, HttpSession session) {
         Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");

@@ -34,7 +34,11 @@
                             onclick="openDetailsModal(this)">Ver detalles →</button>
                 </td >
                 <td th:if="${iterStat.first}" th:rowspan="${entry.value.size()}">
-                    <a class="btn btn-edit"><i class="fa-solid fa-pen-to-square"></i></a>
+                    <button class="btn btn-edit"
+                            th:attr="data-partida-id=${entry.key.idPartida}"
+                            onclick="openEditModal(this)">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
                     <form th:action="@{/partidas/eliminar/{id}(id=${entry.key.idPartida})}"
                           method="post"
                           style="display: inline;"
