@@ -72,4 +72,8 @@ public class PartidaService {
     public List<Movimiento> findMovimientosByPartida(Integer idPartida) {
         return movimientoRepository.findByIdPartida(idPartida);
     }
+
+    public List<Partida> findByIdEmpresaAndDateRange(Integer idEmpresa, java.sql.Timestamp fechaInicio, java.sql.Timestamp fechaFin) {
+        return partidaRepository.findByIdEmpresaAndFechaBetween(idEmpresa, fechaInicio, fechaFin);
+    }
 }

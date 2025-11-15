@@ -13,4 +13,7 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Integer>
 
     @Query("SELECT m FROM Movimiento m WHERE m.idCuenta = ?1")
     List<Movimiento> findByIdCuenta(Integer idCuenta);
+
+    @Query("SELECT m FROM Movimiento m JOIN Partida p ON m.idPartida = p.idPartida WHERE m.idCuenta = ?1 AND p.fecha BETWEEN ?2 AND ?3")
+    List<Movimiento> findByIdCuentaAndDateRange(Integer idCuenta, java.sql.Timestamp fechaInicio, java.sql.Timestamp fechaFin);
 }

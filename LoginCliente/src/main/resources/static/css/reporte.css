@@ -1,0 +1,519 @@
+.report-container {
+    padding: 30px;
+}
+
+.filter-section {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.filter-row {
+    display: flex;
+    gap: 20px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filter-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+    font-size: 14px;
+}
+
+.filter-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.btn-filter {
+    background-color: #333;
+    color: white;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s;
+}
+
+.btn-filter:hover {
+    background-color: #555;
+}
+
+.tabs-section {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.tabs-header {
+    display: flex;
+    border-bottom: 2px solid #eee;
+    background: #f8f9fa;
+    flex-wrap: wrap;
+}
+
+.tab-button {
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    color: #666;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+
+.tab-button.active {
+    color: #333;
+    border-bottom-color: #4488ee;
+    background: white;
+}
+
+.tab-button:hover {
+    background: #f0f0f0;
+}
+
+.tabs-content {
+    padding: 30px;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+.export-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: flex-end;
+}
+
+.btn-export {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.3s;
+}
+
+.btn-export-pdf {
+    background-color: #333;
+    color: white;
+}
+
+.btn-export-pdf:hover {
+    background-color: #555;
+}
+
+.btn-export-excel {
+    background-color: #27ae60;
+    color: white;
+}
+
+.btn-export-excel:hover {
+    background-color: #229954;
+}
+
+.loading {
+    display: none;
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.loading.show {
+    display: block;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.report-table th {
+    background-color: #f0f0f0;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #ddd;
+    font-size: 13px;
+}
+
+.report-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+}
+
+.report-table tr:hover {
+    background-color: #f9f9f9;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.account-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.account-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 15px;
+}
+
+.account-title h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.account-title p {
+    margin: 5px 0 0 0;
+    color: #666;
+    font-size: 12px;
+}
+
+.account-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.summary-item {
+    background: #f9f9f9;
+    padding: 12px;
+    border-radius: 6px;
+}
+
+.summary-label {
+    font-size: 12px;
+    color: #666;
+    font-weight: 600;
+}
+
+.summary-value {
+    font-size: 16px;
+    color: #333;
+    font-weight: 700;
+    margin-top: 5px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+}
+
+.balance-section {
+    margin-bottom: 30px;
+}
+
+.balance-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.balance-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.balance-column {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #4488ee;
+}
+
+.balance-column h4 {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    color: #333;
+    font-weight: 600;
+}
+
+.balance-total {
+    font-size: 18px;
+    font-weight: 700;
+    color: #4488ee;
+    text-align: right;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px solid #ddd;
+}
+
+/* Added modal styles for export dialog */
+.modal-exportacion {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideIn 0.3s ease-out;
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translate(-50%, -60%);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, -50%);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #333;
+    font-weight: 700;
+}
+
+.modal-cerrar {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.modal-cerrar:hover {
+    background: #f5f5f5;
+    color: #333;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-subtitle {
+    margin: 0 0 20px 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.checkboxes-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #f9f9f9;
+}
+
+.checkbox-item:hover {
+    background: #f0f0f0;
+    border-color: #4488ee;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    margin-right: 12px;
+    cursor: pointer;
+    accent-color: #4488ee;
+}
+
+.checkbox-label {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+    cursor: pointer;
+    flex: 1;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 20px 24px;
+    border-top: 1px solid #eee;
+    background: #f9f9f9;
+}
+
+.btn-modal {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.btn-cancelar {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.btn-cancelar:hover {
+    background: #ddd;
+}
+
+.btn-exportar {
+    background: #4488ee;
+    color: white;
+}
+
+.btn-exportar:hover {
+    background: #3366cc;
+}
+
+/* Add styles for account details table in Libro Mayor */
+.account-details {
+    margin-top: 15px;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 15px;
+}
+
+.details-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.details-table thead {
+    background: #f5f5f5;
+    border-bottom: 2px solid #ddd;
+}
+
+.details-table th,
+.details-table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.details-table th {
+    font-weight: 600;
+    color: #333;
+}
+
+.details-table tbody tr:hover {
+    background: #f9f9f9;
+}
+
+@media (max-width: 768px) {
+    .filter-row {
+        flex-direction: column;
+    }
+
+    .filter-group {
+        min-width: 100%;
+    }
+
+    .tabs-header {
+        overflow-x: auto;
+    }
+
+    .tab-button {
+        padding: 10px 15px;
+        font-size: 12px;
+    }
+
+    .balance-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .account-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .export-buttons {
+        flex-direction: column;
+    }
+
+    .btn-export {
+        width: 100%;
+    }
+
+    .modal-exportacion {
+        width: 95%;
+        max-width: 100%;
+    }
+}

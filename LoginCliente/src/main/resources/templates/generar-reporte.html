@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar Reporte - Sistema de Contabilidad</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/reporte.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+
+<button class="mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
+
+<div th:replace="fragments/sidebar :: sidebar"></div>
+
+<div class="main-content">
+    <div class="page-header">
+        <h1>Generar Reporte</h1>
+    </div>
+
+    <div class="report-container">
+        <!-- Filtros de Fecha -->
+        <div class="filter-section">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="fechaInicio">Fecha inicial</label>
+                    <input type="date" id="fechaInicio">
+                </div>
+                <div class="filter-group">
+                    <label for="fechaFin">Fecha final</label>
+                    <input type="date" id="fechaFin">
+                </div>
+                <button class="btn-filter" onclick="generarReporte()">Filtrar</button>
+            </div>
+        </div>
+
+        <!-- Tabs y Botones de Exportación -->
+        <div class="tabs-section">
+            <div class="export-buttons" style="padding: 15px 30px; background: white; display: flex; justify-content: flex-end; gap: 10px;">
+                <!-- Updated export buttons to open modal instead of direct export -->
+                <button class="btn-export btn-export-pdf" onclick="abrirModalExportacion('pdf')">
+                    <i class="fas fa-file-pdf"></i> Exportar PDF
+                </button>
+                <button class="btn-export btn-export-excel" onclick="abrirModalExportacion('excel')">
+                    <i class="fas fa-file-excel"></i> Exportar Excel
+                </button>
+            </div>
+
+            <div class="tabs-header">
+                <button class="tab-button active" onclick="cambiarTab('all', event)" data-tab="all">Todo</button>
+                <button class="tab-button" onclick="cambiarTab('partida-doble', event)" data-tab="partida-doble">Partida doble</button>
+                <button class="tab-button" onclick="cambiarTab('libro-mayor', event)" data-tab="libro-mayor">Libro mayor</button>
+                <button class="tab-button" onclick="cambiarTab('balance-comprobacion', event)" data-tab="balance-comprobacion">Balance de comprobación</button>
+                <button class="tab-button" onclick="cambiarTab('balance-general', event)" data-tab="balance-general">Balance general</button>
+            </div>
+
+            <div class="tabs-content">
+                <div class="loading" id="loading">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 10px;"></i>
+                    <p>Generando reporte...</p>
+                </div>
+
+                <!-- Tab: Todo -->
+                <div class="tab-pane active" id="tab-all">
+                    <div class="empty-state">Selecciona un rango de fechas y haz clic en Filtrar para generar el reporte</div>
+                </div>
+
+                <!-- Tab: Partida Doble (Libro Diario) -->
+                <div class="tab-pane" id="tab-partida-doble">
+                    <h3 style="margin-top: 0;">Libro Diario</h3>
+                    <div class="table-responsive">
+                        <table class="report-table" id="tabla-partida-doble">
+                            <thead>
+                            <tr>
+                                <th># Asiento</th>
+                                <th>Fecha</th>
+                                <th>Descripción</th>
+                                <th>Debe</th>
+                                <th>Haber</th>
+                            </tr>
+                            </thead>
+                            <tbody id="tbody-partida-doble">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab: Libro Mayor (Cuentas T) -->
+                <div class="tab-pane" id="tab-libro-mayor">
+                    <h3 style="margin-top: 0;">Libro Mayor - Cuentas T</h3>
+                    <div id="cuentas-t-container">
+                    </div>
+                </div>
+
+                <!-- Tab: Balance de Comprobación -->
+                <div class="tab-pane" id="tab-balance-comprobacion">
+                    <h3 style="margin-top: 0;">Balance de Comprobación</h3>
+                    <div class="table-responsive">
+                        <table class="report-table" id="tabla-balance-comprobacion">
+                            <thead>
+                            <tr>
+                                <th>Cuenta</th>
+                                <th>Tipo</th>
+                                <th class="text-right">Debe</th>
+                                <th class="text-right">Haber</th>
+                            </tr>
+                            </thead>
+                            <tbody id="tbody-balance-comprobacion">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab: Balance General -->
+                <div class="tab-pane" id="tab-balance-general">
+                    <h3 style="margin-top: 0;">Balance General</h3>
+                    <div id="balance-general-container">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for selecting report sections -->
+<div id="modalExportacion" class="modal-exportacion">
+    <div class="modal-contenido">
+        <div class="modal-header">
+            <h2>Seleccionar Secciones del Reporte</h2>
+            <button class="modal-cerrar" onclick="cerrarModalExportacion()">✕</button>
+        </div>
+
+        <div class="modal-body">
+            <p class="modal-subtitle">Elige qué secciones deseas incluir en el reporte:</p>
+
+            <div class="checkboxes-container">
+                <label class="checkbox-item">
+                    <input type="checkbox" id="check-partida-doble" name="secciones" value="partida-doble" checked>
+                    <span class="checkbox-label">Partida Doble (Libro Diario)</span>
+                </label>
+
+                <label class="checkbox-item">
+                    <input type="checkbox" id="check-libro-mayor" name="secciones" value="libro-mayor" checked>
+                    <span class="checkbox-label">Libro Mayor (Cuentas T)</span>
+                </label>
+
+                <label class="checkbox-item">
+                    <input type="checkbox" id="check-balance-comprobacion" name="secciones" value="balance-comprobacion" checked>
+                    <span class="checkbox-label">Balance de Comprobación</span>
+                </label>
+
+                <label class="checkbox-item">
+                    <input type="checkbox" id="check-balance-general" name="secciones" value="balance-general" checked>
+                    <span class="checkbox-label">Balance General</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn-modal btn-cancelar" onclick="cerrarModalExportacion()">Cancelar</button>
+            <button class="btn-modal btn-exportar" id="btnExportarConfirmar" onclick="confirmarExportacion()">Exportar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal overlay -->
+<div id="modalOverlay" class="modal-overlay" onclick="cerrarModalExportacion()"></div>
+
+<script th:src="@{/js/Sidebar.js}"></script>
+<!-- Replaced html2pdf with jsPDF and autoTable for better performance -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+
+<!-- Add SweetAlert2 library -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/reporte.js}"></script>
+</body>
+</html>

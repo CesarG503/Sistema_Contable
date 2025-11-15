@@ -68,6 +68,10 @@ public class CuentaService {
         return movimientoRepository.findByIdCuenta(idCuenta);
     }
 
+    public List<Movimiento> obtenerMovimientosPorCuentaYFechas(Integer idCuenta, java.sql.Timestamp fechaInicio, java.sql.Timestamp fechaFin) {
+        return movimientoRepository.findByIdCuentaAndDateRange(idCuenta, fechaInicio, fechaFin);
+    }
+
     public Map<String, BigDecimal> calcularEcuacionContable(Integer idEmpresa) {
         List<Cuenta> cuentas = findByIdEmpresa(idEmpresa);
 
@@ -117,6 +121,40 @@ public class CuentaService {
         return resultado;
     }
 
+    public Map<String, BigDecimal> calcularEcuacionContableParaPeriodo(Integer idEmpresa, java.sql.Timestamp fechaInicio, java.sql.Timestamp fechaFin) {
+        List<Cuenta> cuentas = findByIdEmpresa(idEmpresa);
+
+        BigDecimal totalActivo = BigDecimal.ZERO;
+        BigDecimal totalPasivo = BigDecimal.ZERO;
+        BigDecimal totalCapital = BigDecimal.ZERO;
+
+        for (Cuenta cuenta : cuentas) {
+            BigDecimal saldoCuenta = calcularSaldoSegunNaturezaYFechas(cuenta, fechaInicio, fechaFin);
+
+            String tipo = cuenta.getTipo();
+            if (tipo == null) continue;
+
+            switch (tipo.toUpperCase()) {
+                case "ACTIVO":
+                    totalActivo = totalActivo.add(saldoCuenta);
+                    break;
+                case "PASIVO":
+                    totalPasivo = totalPasivo.add(saldoCuenta);
+                    break;
+                case "CAPITAL":
+                    totalCapital = totalCapital.add(saldoCuenta);
+                    break;
+            }
+        }
+
+        Map<String, BigDecimal> resultado = new HashMap<>();
+        resultado.put("activo", totalActivo);
+        resultado.put("pasivo", totalPasivo);
+        resultado.put("capital", totalCapital);
+
+        return resultado;
+    }
+
     private BigDecimal calcularSaldoSegunNaturaleza(Cuenta cuenta) {
         List<Movimiento> movimientos = movimientoRepository.findByIdCuenta(cuenta.getIdCuenta());
 
@@ -133,6 +171,29 @@ public class CuentaService {
 
         // Si la naturaleza es Deudora (D): Saldo = Debe - Haber
         // Si la naturaleza es Acreedora (A): Saldo = Haber - Debe
+        if ("D".equals(cuenta.getNaturaleza())) {
+            return totalDebe.subtract(totalHaber);
+        } else if ("A".equals(cuenta.getNaturaleza())) {
+            return totalHaber.subtract(totalDebe);
+        }
+
+        return BigDecimal.ZERO;
+    }
+
+    private BigDecimal calcularSaldoSegunNaturezaYFechas(Cuenta cuenta, java.sql.Timestamp fechaInicio, java.sql.Timestamp fechaFin) {
+        List<Movimiento> movimientos = movimientoRepository.findByIdCuentaAndDateRange(cuenta.getIdCuenta(), fechaInicio, fechaFin);
+
+        BigDecimal totalDebe = BigDecimal.ZERO;
+        BigDecimal totalHaber = BigDecimal.ZERO;
+
+        for (Movimiento mov : movimientos) {
+            if ("D".equals(mov.getTipo())) {
+                totalDebe = totalDebe.add(mov.getMonto());
+            } else if ("H".equals(mov.getTipo())) {
+                totalHaber = totalHaber.add(mov.getMonto());
+            }
+        }
+
         if ("D".equals(cuenta.getNaturaleza())) {
             return totalDebe.subtract(totalHaber);
         } else if ("A".equals(cuenta.getNaturaleza())) {
