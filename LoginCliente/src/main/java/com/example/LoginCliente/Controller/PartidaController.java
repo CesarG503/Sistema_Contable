@@ -299,7 +299,7 @@ public class PartidaController {
                 docData.put("id", doc.getId_documento());
                 docData.put("nombre", doc.getNombre());
                 docData.put("ruta", doc.getRuta());
-                docData.put("valor", doc.getValor());
+//                docData.put("valor", doc.getValor());
                 documentosData.add(docData);
             }
             response.put("documentos", documentosData);
@@ -424,7 +424,6 @@ public class PartidaController {
                         documento.setNombre(nombresArchivos.get(i));
                         documento.setRuta("uploads/" + nuevoNombre);
                         documento.setFecha_subida(new Timestamp(System.currentTimeMillis()));
-                        documento.setValor(montosArchivo.get(i));
                         documento.setAñadidoPor(usuario);
 
                         nuevosDocumentos.add(documento);

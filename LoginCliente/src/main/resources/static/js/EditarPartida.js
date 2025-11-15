@@ -157,8 +157,7 @@ function loadEditDocumentos(documentos) {
         docDiv.style.cssText = 'border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;';
         docDiv.innerHTML = `
             <div>
-                <strong>${doc.nombre}</strong>
-                <p style="margin: 5px 0; color: #666;">Monto: $${doc.valor}</p>
+                <p>name: <strong>${doc.nombre}</strong></p>
                 <a href="/${doc.ruta}" target="_blank" class="btn btn-sm">Ver documento</a>
             </div>
             <button type="button" 
@@ -207,16 +206,7 @@ function addEditDocumento() {
         <div class="preview-container" id="editPreviewContainer${nDocumentos}">
             <p>Ningún archivo seleccionado</p>
         </div>
-        <div class="form-group">
-            <label for="editMontoArchivo${nDocumentos}">Monto del archivo</label>
-            <input type="number" 
-                   step="0.01" 
-                   min="0" 
-                   id="editMontoArchivo${nDocumentos}" 
-                   class="edit-monto-archivo" 
-                   placeholder="$0.00" 
-                   required>
-        </div>
+
     `;
     container.appendChild(nuevoDocumento);
 
