@@ -72,4 +72,13 @@ public class PartidaService {
     public List<Movimiento> findMovimientosByPartida(Integer idPartida) {
         return movimientoRepository.findByIdPartida(idPartida);
     }
+
+    //    Eliminar partida
+    @Transactional
+    public void deleteById(Integer id) {
+        Partida partida = partidaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Partida no encontrada"));
+        movimientoRepository.deleteByIdPartida(partida.getIdPartida());
+        partidaRepository.delete(partida);
+    }
 }

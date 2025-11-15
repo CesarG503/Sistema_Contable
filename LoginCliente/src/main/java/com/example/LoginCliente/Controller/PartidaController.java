@@ -17,6 +17,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -254,4 +255,24 @@ public class PartidaController {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    @PostMapping("/eliminar/{id}")
+    public String eliminarPartida(@PathVariable Integer id,
+                                  @RequestHeader(value = "Referer", required = false) String referer,
+                                  RedirectAttributes redirectAttributes) {
+        try {
+            partidaService.deleteById(id);
+            redirectAttributes.addFlashAttribute("success", "Partida eliminada exitosamente");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error al eliminar: " + e.getMessage());
+        }
+
+        // Si hay referer, redirige ahí, sino a una página por defecto
+        if (referer != null && !referer.isEmpty()) {
+            return "redirect:" + referer;
+        }
+        // Sino encuentra la referencia, redirige al dashboard o a otra página predeterminada
+        return "redirect:/dashboard";
+    }
+
 }
