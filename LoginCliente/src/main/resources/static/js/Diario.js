@@ -5,6 +5,13 @@ function openModal() {
 function closeModal() {
     document.getElementById("partidaModal").style.display = "none"
     document.getElementById("partidaForm").reset()
+    //Eliminar documentos seleccionados
+    const archivosOrigen = document.getElementById("archivosOrigen");
+    const nDocumentos = archivosOrigen.children.length;
+    while(nDocumentos > 0) {
+        archivosOrigen.removeChild(archivosOrigen.lastChild);
+    }
+    //resetVistaPrevia();
 }
 
 function addMovimiento() {
@@ -39,7 +46,7 @@ function addDocumento(){
         <label for="nombreArchivo${nDocumentos}">Nombre del documento:</label>
         <input type="text" name="nombreArchivo${nDocumentos}" id="nombreArchivo${nDocumentos}" placeholder="Nombre para el documento ${nDocumentos}..." class="nombre-documento" required>
     </div>
-    <label for="archivoOrigen${nDocumentos}" class="file-label">Subir archivo</label>
+    <label for="archivoOrigen${nDocumentos}" id="labelArchivo${nDocumentos}" class="btn btn-primary file-label"><i class="fa fa-file"></i> Subir</label>
         <input type="file" name="archivoOrigen${nDocumentos}" id="archivoOrigen${nDocumentos}" accept=".pdf,image/*" class="file-input archivo-origen" required>
     <div class="preview-container" id="previewContainer${nDocumentos}">
         <p>Ningún archivo seleccionado</p>
@@ -59,7 +66,7 @@ function removeDocumento(){
 
     archivosOrigen.removeChild(archivosOrigen.lastChild);
     const nDocumentos = archivosOrigen.children.length;
-    if (nDocumentos <= 1) {
+    if (nDocumentos < 1) {
         document.getElementById("eliminarUltimoDocumento").setAttribute("disabled", "");
     }
 }
@@ -119,6 +126,27 @@ function cargarVistaPrevia(previewId) {
     } else {
         preview.innerHTML = `<p>Tipo de archivo no soportado: ${file.name}</p>`;
     }
+
+    const label = document.getElementById('labelArchivo'+previewId);
+    label.classList.remove('btn-primary');
+    label.classList.add('btn','btn-secondary');
+    label.innerHTML = `<i class="fa fa-file-invoice"></i> ${file.name}`;
+
+    const nombreArchivo = document.getElementById('nombreArchivo'+previewId);
+    nombreArchivo.value = file.name.replace(/\.[^/.]+$/, "");
+}
+
+function resetVistaPrevia() {
+    const previews = document.querySelectorAll(".preview-container");
+    previews.forEach(preview => {
+        preview.innerHTML = '<p>Ningún archivo seleccionado</p>';
+    });
+    const labels = document.querySelectorAll('.file-label');
+    labels.forEach(label => {
+       label.classList.remove('btn-secondary');
+       label.classList.add('btn-primary');
+       label.innerHTML = `<i class="fa fa-file"></i> Subir`;
+    });
 }
 
 document.getElementById("archivoOrigen").addEventListener("change", () =>{

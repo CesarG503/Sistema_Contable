@@ -759,17 +759,10 @@ textarea:focus {
 
 .file-label {
     display: inline-block;
-    padding: 10px 20px;
-    background-color: #667eea;
-    color: white;
-    border-radius: 6px;
-    cursor: pointer;
-    font-family: sans-serif;
-    transition: background-color 0.3s;
-}
-
-.file-label:hover {
-    background-color: #8b9ae1;
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .preview-container {

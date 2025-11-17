@@ -18,6 +18,7 @@ function openDetailsModal(button) {
         const liDocumento = document.createElement("li");
         const aDocumento = document.createElement("a");
         aDocumento.setAttribute("href",`/${documentos[documento].ruta}`);
+        aDocumento.setAttribute("target","_blank");
         aDocumento.textContent = documentos[documento].nombre;
         liDocumento.appendChild(aDocumento);
         listDocumentos.appendChild(liDocumento);
