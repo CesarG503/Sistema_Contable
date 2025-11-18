@@ -23,6 +23,17 @@
         </div>
     </div>
 
+    <!-- Mensaje de éxito -->
+    <div th:if="${success}">
+        <div th:replace="fragments/alerta :: alerta(${success}, 'success')"></div>
+    </div>
+
+    <!-- Mensaje de error -->
+    <div th:if="${error}">
+        <div th:replace="fragments/alerta :: alerta(${error}, 'danger')"></div>
+    </div>
+
+
     <!-- Added search and filter section -->
     <div class="filter-section">
         <div class="filter-row">
@@ -57,11 +68,24 @@
              th:attr="data-nombre=${entry.key.nombre}, data-tipo=${entry.key.tipo}, data-naturaleza=${entry.key.naturaleza}"
              style="cursor: pointer;">
             <div class="cuenta-header">
-                <h3 th:text="${entry.key.nombre}"></h3>
-                <p th:text="${entry.key.descripcion}"></p>
-                <span class="cuenta-naturaleza"
-                      th:classappend="${entry.key.naturaleza == 'D' ? 'naturaleza-D' : 'naturaleza-A'}"
-                      th:text="${entry.key.naturaleza == 'D' ? entry.key.tipo + ': Deudora' : entry.key.tipo + ': Acreedora'}"></span>
+                <div class="cuenta-info">
+                    <h3 th:text="${entry.key.nombre}"></h3>
+                    <p th:text="${entry.key.descripcion}"></p>
+                    <span class="cuenta-naturaleza"
+                          th:classappend="${entry.key.naturaleza == 'D' ? 'naturaleza-D' : 'naturaleza-A'}"
+                          th:text="${entry.key.naturaleza == 'D' ? entry.key.tipo + ': Deudora' : entry.key.tipo + ': Acreedora'}"></span>
+                </div>
+                <div class="cuenta-actions">
+                    <button class="btn btn-edit" onclick="event.stopPropagation();">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <form method="post" style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar esta cuenta?');"
+                          onclick="event.stopPropagation();" th:action="@{/cuentas/eliminar/{id}(id=${entry.key.idCuenta})}">
+                        <button type="submit" class="btn btn-delete">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
             </div>
             <div class="saldos">
                 <div class="saldo-item saldo-debe">

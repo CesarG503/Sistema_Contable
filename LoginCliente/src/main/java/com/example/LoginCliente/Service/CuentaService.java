@@ -6,6 +6,7 @@ import com.example.LoginCliente.Repository.CuentaRepository;
 import com.example.LoginCliente.Repository.MovimientoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -205,5 +206,30 @@ public class CuentaService {
     public void borrarCuentasEmpresa(Integer idEmpresa) {
         List<Cuenta> cuentas = findByIdEmpresa(idEmpresa);
         cuentaRepository.deleteAll(cuentas);
+    }
+    @Transactional
+    public Map<String, Object> deleteById(Integer id) {
+        Map<String, Object> resultado = new HashMap<>();
+
+        if (!cuentaRepository.existsById(id)) {
+            resultado.put("success", false);
+            resultado.put("message", "La cuenta no existe");
+            return resultado;
+        }
+
+        List<Movimiento> movimientos = movimientoRepository.findByIdCuenta(id);
+
+        if (!movimientos.isEmpty()) {
+            resultado.put("success", false);
+            resultado.put("message", "No se puede eliminar la cuenta porque tiene " +
+                    movimientos.size() + " movimiento(s) asociado(s)");
+            resultado.put("cantidadMovimientos", movimientos.size());
+            return resultado;
+        }
+
+        cuentaRepository.deleteById(id);
+        resultado.put("success", true);
+        resultado.put("message", "Cuenta eliminada exitosamente");
+        return resultado;
     }
 }

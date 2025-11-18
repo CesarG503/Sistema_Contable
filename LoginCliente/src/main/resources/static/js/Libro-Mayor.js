@@ -164,3 +164,12 @@ function cerrarModal(event) {
         document.getElementById("modalDetalleCuenta").style.display = "none"
     }
 }
+
+function cerrarAlerta(button) {
+    const alert = button.closest('.alert');
+    alert.style.animation = 'slideOut 0.3s ease';
+
+    setTimeout(() => {
+        alert.style.display = 'none';
+    }, 300);
+}

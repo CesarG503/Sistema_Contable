@@ -184,4 +184,17 @@ public class CuentaController {
 
         return response;
     }
+    @PostMapping("/eliminar/{id}")
+    public String eliminarCuenta(@PathVariable Integer id,
+                                 RedirectAttributes redirectAttributes) {
+        Map<String, Object> resultado = cuentaService.deleteById(id);
+
+        if ((Boolean) resultado.get("success")) {
+            redirectAttributes.addFlashAttribute("success", resultado.get("message"));
+        } else {
+            redirectAttributes.addFlashAttribute("error", resultado.get("message"));
+        }
+
+        return "redirect:/cuentas/libro-mayor";
+    }
 }
