@@ -140,7 +140,6 @@ public class ReportController {
                             documento.getNombre(),
                             documento.getRuta(),
                             documento.getFecha_subida() != null ? documento.getFecha_subida().toString() : "",
-                            documento.getValor(),
                             authorUsuario
                     ));
                 });

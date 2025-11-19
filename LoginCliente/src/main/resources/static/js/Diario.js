@@ -150,10 +150,6 @@ function resetVistaPrevia() {
     });
 }
 
-document.getElementById("archivoOrigen").addEventListener("change", () =>{
-    cargarVistaPrevia('');
-});
-
 document.getElementById("partidaForm").addEventListener("submit", async (e) => {
     e.preventDefault()
 
@@ -178,12 +174,6 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
     archivosOrigenInputs.forEach((input) => {
         if (input.files[0]) {
             archivosOrigenArray.push(input.files[0]);
-        }
-    });
-
-    montosArchivoInputs.forEach((input) => {
-        if (input.value) {
-            montosArchivoArray.push(input.value);
         }
     });
 

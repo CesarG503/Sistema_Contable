@@ -85,7 +85,6 @@ public class PartidaController {
                                 documento.getNombre(),
                                 documento.getRuta(),
                                 fechaSubida,
-                                documento.getValor(),
                                 authorUsuario
                         ));
             });
@@ -217,7 +216,6 @@ public class PartidaController {
                         documento.setRuta(destino.toString());
                         documento.setFecha_subida(partida.getFecha());
                         documento.setAnadidoPor(usuario);
-                        documento.setValor(BigDecimal.ZERO);
 
                         documentosFuentes.add(documento);
                     }
@@ -448,7 +446,6 @@ public class PartidaController {
                         documento.setRuta("uploads/" + nuevoNombre);
                         documento.setFecha_subida(new Timestamp(System.currentTimeMillis()));
                         documento.setAnadidoPor(usuario);
-                        documento.setValor(BigDecimal.ZERO);
 
                         nuevosDocumentos.add(documento);
                     }

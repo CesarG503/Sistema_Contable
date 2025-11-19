@@ -29,9 +29,6 @@ public class DocumentosFuente {
     @Column(nullable = false)
     private String ruta;
 
-    @Column(nullable = false, precision = 19, scale = 2)
-    private BigDecimal valor; // campo agregado
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "anadido_por") // columna en la base de datos (sin caracteres no-ASCII)
     private Usuario anadidoPor; // Usuario que añadió el documento (renombrado)
@@ -70,14 +67,6 @@ public class DocumentosFuente {
 
     public void setFecha_subida(Timestamp fecha_subida) {
         this.fecha_subida = fecha_subida;
-    }
-
-    public BigDecimal getValor() {
-        return valor;
-    }
-
-    public void setValor(BigDecimal valor) {
-        this.valor = valor;
     }
 
     public Usuario getAnadidoPor() {

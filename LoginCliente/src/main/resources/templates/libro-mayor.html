@@ -67,8 +67,8 @@
              th:onclick="'abrirModalDetalle(' + ${entry.key.idCuenta} + ')'"
              th:attr="data-nombre=${entry.key.nombre}, data-tipo=${entry.key.tipo}, data-naturaleza=${entry.key.naturaleza}"
              style="cursor: pointer;"
-             th:classappend="${#numbers.formatDecimal(entry.value.saldo, 1, 2)} < 0 ? 'necesita-ajuste' : ''">
-            <div class="cuenta-header">
+             th:classappend="${entry.value != null and entry.value.saldo < 0 ? 'necesita-ajuste' : ''}">
+        <div class="cuenta-header">
                 <div class="cuenta-info">
                     <h3 th:text="${entry.key.nombre}"></h3>
                     <p th:text="${entry.key.descripcion}"></p>
@@ -102,7 +102,7 @@
                     <strong th:text="'$' + ${#numbers.formatDecimal(entry.value.saldo, 1, 2)}"></strong>
                 </div>
             </div>
-            <p th:if="${#numbers.formatDecimal(entry.value.saldo, 1, 2)} < 0" class="mensaje-ajuste-texto">
+            <p th:if="${entry.value.saldo < 0}" class="mensaje-ajuste-texto">
                 <i class="fa-solid fa-triangle-exclamation"></i>
                 <span>Esta cuenta necesita ajustes contables</span>
             </p>

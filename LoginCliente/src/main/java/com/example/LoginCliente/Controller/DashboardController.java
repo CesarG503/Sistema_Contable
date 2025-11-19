@@ -95,7 +95,6 @@ public class DashboardController {
                         documento.getNombre(),
                         documento.getRuta(),
                         fechaSubida,
-                        documento.getValor(),
                         authorUsuario
                     ));
             });
