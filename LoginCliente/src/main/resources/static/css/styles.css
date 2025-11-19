@@ -968,6 +968,16 @@ textarea:focus {
     z-index: 10000 !important;
 }
 
+.swal-wide {
+    width: 600px !important;
+    max-width: 90vw !important;
+}
+
+.swal-wide .swal2-html-container {
+    font-size: 16px;
+    line-height: 1.6;
+}
+
 /* Alerta base */
 .alert {
     position: relative;

@@ -44,6 +44,10 @@ public class CuentaService {
     }
 
     public Map<String, BigDecimal> calcularSaldoCuenta(Integer idCuenta) {
+        // Obtener la cuenta para conocer su naturaleza
+        Cuenta cuenta = cuentaRepository.findById(idCuenta)
+                .orElseThrow(() -> new RuntimeException("Cuenta no encontrada"));
+
         List<Movimiento> movimientos = movimientoRepository.findByIdCuenta(idCuenta);
 
         BigDecimal totalDebe = BigDecimal.ZERO;
@@ -57,10 +61,18 @@ public class CuentaService {
             }
         }
 
+        // Calcular saldo según la naturaleza de la cuenta
+        BigDecimal saldo;
+        if ("D".equals(cuenta.getNaturaleza())) {
+            saldo = totalDebe.subtract(totalHaber);
+        } else {
+            saldo = totalHaber.subtract(totalDebe);
+        }
+
         Map<String, BigDecimal> resultado = new HashMap<>();
         resultado.put("debe", totalDebe);
         resultado.put("haber", totalHaber);
-        resultado.put("saldo", totalDebe.subtract(totalHaber).abs());
+        resultado.put("saldo", saldo);
 
         return resultado;
     }

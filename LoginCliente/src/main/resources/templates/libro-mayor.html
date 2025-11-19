@@ -76,9 +76,9 @@
                           th:text="${entry.key.naturaleza == 'D' ? entry.key.tipo + ': Deudora' : entry.key.tipo + ': Acreedora'}"></span>
                 </div>
                 <div class="cuenta-actions">
-                    <button class="btn btn-edit" onclick="event.stopPropagation();">
+                    <a th:href="@{/cuentas/editar/{id}(id=${entry.key.idCuenta})}" class="btn btn-edit" onclick="event.stopPropagation();">
                         <i class="fa-solid fa-pen-to-square"></i>
-                    </button>
+                    </a>
                     <form method="post" style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar esta cuenta?');"
                           onclick="event.stopPropagation();" th:action="@{/cuentas/eliminar/{id}(id=${entry.key.idCuenta})}">
                         <button type="submit" class="btn btn-delete">
