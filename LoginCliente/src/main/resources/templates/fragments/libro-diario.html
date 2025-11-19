@@ -32,10 +32,21 @@
                                             data-fecha=${entry.key.fechaFormateada},
                                             data-concepto=${entry.key.concepto}"
                             onclick="openDetailsModal(this)">Ver detalles →</button>
-                </td>
-                <td>
-                    <a class="btn btn-edit"><i class="fa-solid fa-pen-to-square"></i></a>
-                    <a class="btn btn-delete"><i class="fa-solid fa-trash"></i></a>
+                </td >
+                <td th:if="${iterStat.first}" th:rowspan="${entry.value.size()}">
+                    <button class="btn btn-edit"
+                            th:attr="data-partida-id=${entry.key.idPartida}"
+                            onclick="openEditModal(this)">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <form th:action="@{/partidas/eliminar/{id}(id=${entry.key.idPartida})}"
+                          method="post"
+                          style="display: inline;"
+                          onsubmit="return confirm('¿Estás seguro de eliminar esta partida?');">
+                        <button type="submit" class="btn btn-delete">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </form>
                 </td>
             </tr>
         </th:block>

@@ -76,4 +76,47 @@ public class PartidaService {
     public List<Partida> findByIdEmpresaAndDateRange(Integer idEmpresa, java.sql.Timestamp fechaInicio, java.sql.Timestamp fechaFin) {
         return partidaRepository.findByIdEmpresaAndFechaBetween(idEmpresa, fechaInicio, fechaFin);
     }
+
+    //    Eliminar partida
+    @Transactional
+    public void deleteById(Integer id) {
+        Partida partida = partidaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Partida no encontrada"));
+        movimientoRepository.deleteByIdPartida(partida.getIdPartida());
+        partidaRepository.delete(partida);
+    }
+
+    /**
+     * Actualizar una partida existente con sus movimientos y documentos
+     */
+    @Transactional
+    public Partida update(Partida partida, List<Movimiento> movimientos, List<DocumentosFuente> nuevosDocumentos) {
+        // Actualizar datos básicos de la partida
+        Partida updatedPartida = partidaRepository.save(partida);
+
+        // Eliminar movimientos antiguos
+        movimientoRepository.deleteByIdPartida(partida.getIdPartida());
+
+        // Guardar nuevos movimientos
+        for (Movimiento movimiento : movimientos) {
+            movimiento.setIdPartida(updatedPartida.getIdPartida());
+            movimiento.setIdEmpresa(partida.getIdEmpresa());
+            movimiento.setIdUsuarioEmpresa(partida.getIdUsuarioEmpresa());
+            movimientoRepository.save(movimiento);
+        }
+
+        // Guardar nuevos documentos si existen
+        if (nuevosDocumentos != null && !nuevosDocumentos.isEmpty()) {
+            documentosFuenteRepository.saveAll(nuevosDocumentos);
+
+            for (DocumentosFuente documento : nuevosDocumentos) {
+                DocumentosPartida documentosPartida = new DocumentosPartida();
+                documentosPartida.setDocumento(documento);
+                documentosPartida.setPartida(updatedPartida);
+                documentosPartidaRepository.save(documentosPartida);
+            }
+        }
+
+        return updatedPartida;
+    }
 }

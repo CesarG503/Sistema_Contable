@@ -43,10 +43,6 @@ function addDocumento(){
         <input type="file" name="archivoOrigen${nDocumentos}" id="archivoOrigen${nDocumentos}" accept=".pdf,image/*" class="file-input archivo-origen" required>
     <div class="preview-container" id="previewContainer${nDocumentos}">
         <p>Ningún archivo seleccionado</p>
-    </div>
-    <div class="form-group">
-        <label for="montoArchivo${nDocumentos}">Monto del archivo</label>
-        <input type="number" step="0.01" min="0" name="montoArchivo${nDocumentos}" id="montoArchivo${nDocumentos}" class="monto-archivo" placeholder="$0.00" required>
     </div>`;
     archivosOrigen.appendChild(nuevoDocumento);
 
@@ -186,22 +182,20 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
     formData.append("nombresArchivos", JSON.stringify(nombreDocumentosArray));
 
     // Debug: mostrar cuántos archivos se van a enviar
-    console.log("=== DEBUG JS ===");
-    console.log("Archivos a enviar:", archivosOrigenArray.length);
+    /*console.log("=== DEBUG JS ===");
+    console.log("Archivos a enviar:", archivosOrigenArray.length);*/
 
     // Importante: usar el mismo nombre de parámetro para todos los archivos
     archivosOrigenArray.forEach((archivo, index) => {
-        console.log(`Añadiendo archivo ${index}:`, archivo.name);
+        //console.log(`Añadiendo archivo ${index}:`, archivo.name);
         formData.append('archivosOrigen', archivo);
     });
 
-    formData.append('montosArchivo', JSON.stringify(montosArchivoArray));
-
     // Debug: mostrar el contenido del FormData
-    console.log("Contenido del FormData:");
+    /*console.log("Contenido del FormData:");
     for (let pair of formData.entries()) {
         console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
-    }
+    }*/
 
     try {
         const response = await fetch("/partidas/crear", {
@@ -209,18 +203,16 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
             body: formData
         })
 
-        const data = await response.json()
+        const data = await response.json();
 
         if (response.ok) {
             closeModal()  // Cierra la modal antes de la alerta
             await alerta("Partida creada exitosamente")
             location.reload()
         } else {
-            closeModal()
             await alerta("Error al crear la partida: " + error.message, 'error')
         }
     } catch (error) {
-        closeModal()
         await alerta("Error al crear la partida: " + error.message, 'error')
     }
 });
@@ -231,6 +223,9 @@ async function alerta(message, type = 'info', title = 'OneDi system') {
         icon: type,
         title: title,
         text: message,
-        confirmButtonText: 'Aceptar'
+        confirmButtonText: 'Aceptar',
+        customClass: {
+            container: 'swal-high-zindex'
+        }
     });
 }

@@ -134,13 +134,14 @@ public class ReportController {
                 List<DocumentosFuente> documentos = documentosPartidaService.findDocumentosByPartidaId(partida.getIdPartida());
                 List<DocumentosFuenteDTO> documentosDTO = new ArrayList<>();
                 documentos.forEach(documento -> {
+                    String authorUsuario = documento.getAnadidoPor() != null ? documento.getAnadidoPor().getUsuario() : "";
                     documentosDTO.add(new DocumentosFuenteDTO(
                             documento.getId_documento(),
                             documento.getNombre(),
                             documento.getRuta(),
-                            documento.getFecha_subida().toString(),
+                            documento.getFecha_subida() != null ? documento.getFecha_subida().toString() : "",
                             documento.getValor(),
-                            documento.getAñadidoPor().getUsuario()
+                            authorUsuario
                     ));
                 });
                 documentosPorPartida.put(partida.getIdPartida(), documentosDTO);

@@ -87,14 +87,16 @@ public class DashboardController {
             List<DocumentosFuente> documentos = documentosPartidaService.findDocumentosByPartidaId(partida.getIdPartida());
             List<DocumentosFuenteDTO> documentosDTO = new ArrayList<>();
             documentos.forEach(documento -> {
+                String authorUsuario = documento.getAnadidoPor() != null ? documento.getAnadidoPor().getUsuario() : "";
+                String fechaSubida = documento.getFecha_subida() != null ? documento.getFecha_subida().toString() : "";
                 documentosDTO.add(
                     new DocumentosFuenteDTO(
                         documento.getId_documento(),
                         documento.getNombre(),
                         documento.getRuta(),
-                        documento.getFecha_subida().toString(),
+                        fechaSubida,
                         documento.getValor(),
-                        documento.getAñadidoPor().getUsuario()
+                        authorUsuario
                     ));
             });
 

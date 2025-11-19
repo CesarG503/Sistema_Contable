@@ -145,10 +145,6 @@
                         <div class="preview-container" id="previewContainer">
                             <p>Ningún archivo seleccionado</p>
                         </div>
-                        <div class="form-group">
-                            <label for="montoArchivo">Monto del archivo</label>
-                            <input type="number" step="0.01" min="0" name="montoArchivo" id="montoArchivo" class="monto-archivo" placeholder="$0.00" required>
-                        </div>
                     </div>
                 </div>
                 <button type="button" class="btn btn-add" onclick="addDocumento()">Agregar nuevo archivo</button>
@@ -189,6 +185,68 @@
     </div>
 </div>
 
+<!-- Modal de Edición -->
+<div id="editarPartidaModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditModal()">&times;</span>
+        <h2>Editar Partida Contable</h2>
+
+        <form id="editarPartidaForm">
+            <input type="hidden" id="editPartidaId">
+
+            <div class="form-group">
+                <label for="editFechaPartida">Fecha de la partida:</label>
+                <input type="date" id="editFechaPartida" required>
+            </div>
+
+            <div class="form-group">
+                <label for="editConcepto">Concepto:</label>
+                <textarea id="editConcepto" rows="3" required></textarea>
+            </div>
+
+            <div class="movimientos-container">
+                <h3>Movimientos</h3>
+                <div id="editMovimientos">
+                    <!-- Los movimientos se cargarán dinámicamente -->
+                </div>
+
+                <button type="button" class="btn btn-add" onclick="addEditMovimiento()">Agregar Movimiento</button>
+
+                <div class="totales">
+                    <div class="total-item">
+                        <span>Total Debe:</span>
+                        <strong id="editTotalDebe">$0.00</strong>
+                    </div>
+                    <div class="total-item">
+                        <span>Total Haber:</span>
+                        <strong id="editTotalHaber">$0.00</strong>
+                    </div>
+                    <div class="total-item">
+                        <span>Diferencia:</span>
+                        <strong id="editDiferencia">$0.00</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <h3>Documentos Existentes</h3>
+                <div id="editDocumentosExistentes"></div>
+            </div>
+
+            <div class="form-group">
+                <p>Agregar nuevos archivos:</p>
+                <div class="form-group" id="editArchivosOrigen">
+                    <!-- Los campos de nuevos documentos se agregarán aquí -->
+                </div>
+                <button type="button" class="btn btn-add" onclick="addEditDocumento()">Agregar nuevo archivo</button>
+                <button type="button" class="btn btn-delete" onclick="removeEditDocumento()" id="eliminarUltimoEditDocumento" disabled>Eliminar último</button>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Actualizar Partida</button>
+        </form>
+    </div>
+</div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -202,5 +260,6 @@
 <script th:src="@{/js/Buscador.js}"></script>
 <script th:src="@{/js/Diario.js}"></script>
 <script th:src="@{/js/DetallesModal.js}"></script>
+<script th:src="@{/js/EditarPartida.js}"></script>
 </body>
 </html>

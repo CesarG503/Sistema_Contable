@@ -1,6 +1,5 @@
 package com.example.LoginCliente.Models;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,12 +7,21 @@ import java.math.BigDecimal;
 
 @Getter
 @Setter
-@AllArgsConstructor
 public class DocumentosFuenteDTO {
     private Integer id;
     private String nombre;
     private String ruta;
     private String fechaSubida;
-    private BigDecimal valor;
-    private String añadidoPor;
+    private BigDecimal valor; // campo agregado
+    private String anadidoPor; // renamed to avoid non-ASCII
+
+    // Constructor explícito para evitar depender únicamente de Lombok y asegurar firma
+    public DocumentosFuenteDTO(Integer id, String nombre, String ruta, String fechaSubida, BigDecimal valor, String anadidoPor) {
+        this.id = id;
+        this.nombre = nombre;
+        this.ruta = ruta;
+        this.fechaSubida = fechaSubida;
+        this.valor = valor;
+        this.anadidoPor = anadidoPor;
+    }
 }

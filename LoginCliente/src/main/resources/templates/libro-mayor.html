@@ -23,6 +23,17 @@
         </div>
     </div>
 
+    <!-- Mensaje de éxito -->
+    <div th:if="${success}">
+        <div th:replace="fragments/alerta :: alerta(${success}, 'success')"></div>
+    </div>
+
+    <!-- Mensaje de error -->
+    <div th:if="${error}">
+        <div th:replace="fragments/alerta :: alerta(${error}, 'danger')"></div>
+    </div>
+
+
     <!-- Added search and filter section -->
     <div class="filter-section">
         <div class="filter-row">
@@ -55,13 +66,27 @@
         <div th:each="entry : ${cuentasConSaldos}" class="cuenta-card"
              th:onclick="'abrirModalDetalle(' + ${entry.key.idCuenta} + ')'"
              th:attr="data-nombre=${entry.key.nombre}, data-tipo=${entry.key.tipo}, data-naturaleza=${entry.key.naturaleza}"
-             style="cursor: pointer;">
+             style="cursor: pointer;"
+             th:classappend="${#numbers.formatDecimal(entry.value.saldo, 1, 2)} < 0 ? 'necesita-ajuste' : ''">
             <div class="cuenta-header">
-                <h3 th:text="${entry.key.nombre}"></h3>
-                <p th:text="${entry.key.descripcion}"></p>
-                <span class="cuenta-naturaleza"
-                      th:classappend="${entry.key.naturaleza == 'D' ? 'naturaleza-D' : 'naturaleza-A'}"
-                      th:text="${entry.key.naturaleza == 'D' ? entry.key.tipo + ': Deudora' : entry.key.tipo + ': Acreedora'}"></span>
+                <div class="cuenta-info">
+                    <h3 th:text="${entry.key.nombre}"></h3>
+                    <p th:text="${entry.key.descripcion}"></p>
+                    <span class="cuenta-naturaleza"
+                          th:classappend="${entry.key.naturaleza == 'D' ? 'naturaleza-D' : 'naturaleza-A'}"
+                          th:text="${entry.key.naturaleza == 'D' ? entry.key.tipo + ': Deudora' : entry.key.tipo + ': Acreedora'}"></span>
+                </div>
+                <div class="cuenta-actions">
+                    <a th:href="@{/cuentas/editar/{id}(id=${entry.key.idCuenta})}" class="btn btn-edit" onclick="event.stopPropagation();">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </a>
+                    <form method="post" style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar esta cuenta?');"
+                          onclick="event.stopPropagation();" th:action="@{/cuentas/eliminar/{id}(id=${entry.key.idCuenta})}">
+                        <button type="submit" class="btn btn-delete">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
             </div>
             <div class="saldos">
                 <div class="saldo-item saldo-debe">
@@ -77,6 +102,10 @@
                     <strong th:text="'$' + ${#numbers.formatDecimal(entry.value.saldo, 1, 2)}"></strong>
                 </div>
             </div>
+            <p th:if="${#numbers.formatDecimal(entry.value.saldo, 1, 2)} < 0" class="mensaje-ajuste-texto">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>Esta cuenta necesita ajustes contables</span>
+            </p>
         </div>
     </div>
 </div>
