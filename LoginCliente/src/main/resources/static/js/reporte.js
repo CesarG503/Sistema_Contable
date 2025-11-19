@@ -1,4 +1,4 @@
-let reporteData = null;
+var reporteData = null;
 let tipoExportacionActual = null;
 
 function cambiarTab(tabName, evt) {
@@ -122,32 +122,34 @@ function renderizarLibroDiario(data) {
     tbody.innerHTML = '';
 
     if (!data.libroDiario || data.libroDiario.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">No hay partidas en este período</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">No hay partidas en este período</td></tr>';
         return;
     }
 
     data.libroDiario.forEach(partida => {
-        const fila = document.createElement('tr');
-        fila.innerHTML = `
-                <td>${partida.idPartida}</td>
-                <td>${partida.fecha}</td>
-                <td>${partida.concepto || '---'}</td>
-                <td class="text-right">$${partida.totalDebe.toFixed(2)}</td>
-                <td class="text-right">$${partida.totalHaber.toFixed(2)}</td>
-            `;
-        tbody.appendChild(fila);
+        partida.movimientos.forEach((mov, index) => {
+            const fila = document.createElement('tr');
 
-        // Agregar fila para movimientos detallados
-        partida.movimientos.forEach(mov => {
-            const filaDetalle = document.createElement('tr');
-            filaDetalle.style.backgroundColor = '#f9f9f9';
-            filaDetalle.innerHTML = `
-                    <td colspan="2"></td>
-                    <td style="color: #666; font-style: italic;">↳ ${mov.nombreCuenta}</td>
-                    <td class="text-right">${mov.tipo === 'D' ? '$' + mov.monto.toFixed(2) : '---'}</td>
-                    <td class="text-right">${mov.tipo === 'H' ? '$' + mov.monto.toFixed(2) : '---'}</td>
+            // Primera fila muestra el número de asiento, fecha y descripción
+            if (index === 0) {
+                fila.innerHTML = `
+                    <td rowspan="${partida.movimientos.length}">${partida.idPartida}</td>
+                    <td rowspan="${partida.movimientos.length}">${partida.fecha}</td>
+                    <td><strong>${mov.nombreCuenta}</strong></td>
+                    <td rowspan="${partida.movimientos.length}" style="font-style: italic; color: #555;">${partida.concepto || '---'}</td>
+                    <td class="text-right">${mov.tipo === 'D' ? '$' + mov.monto.toFixed(2) : ''}</td>
+                    <td class="text-right">${mov.tipo === 'H' ? '$' + mov.monto.toFixed(2) : ''}</td>
                 `;
-            tbody.appendChild(filaDetalle);
+            } else {
+                // Filas siguientes solo muestran la cuenta y montos
+                fila.innerHTML = `
+                    <td><strong>${mov.nombreCuenta}</strong></td>
+                    <td class="text-right">${mov.tipo === 'D' ? '$' + mov.monto.toFixed(2) : ''}</td>
+                    <td class="text-right">${mov.tipo === 'H' ? '$' + mov.monto.toFixed(2) : ''}</td>
+                `;
+            }
+
+            tbody.appendChild(fila);
         });
     });
 }
@@ -162,18 +164,13 @@ function renderizarLibroMayor(data) {
     }
 
     Object.values(data.libroMayor).forEach((cuenta, index) => {
-        let detallesHTML = '';
-        if (cuenta.detalles && cuenta.detalles.length > 0) {
-            detallesHTML = '<div class="account-details"><table class="details-table"><thead><tr><th>Asiento</th><th>Tipo</th><th>Monto</th></tr></thead><tbody>';
-            cuenta.detalles.forEach(detalle => {
-                const tipoLabel = detalle.tipo === 'D' ? 'Debe' : 'Haber';
-                const tipoColor = detalle.tipo === 'D' ? '#d32f2f' : '#388e3c';
-                detallesHTML += `<tr><td>${detalle.idPartida}</td><td style="color: ${tipoColor}; font-weight: 600;">${tipoLabel}</td><td>$${detalle.monto.toFixed(2)}</td></tr>`;
-            });
-            detallesHTML += '</tbody></table></div>';
-        }
+        const tieneMovimientos = cuenta.detalles && cuenta.detalles.length > 0;
 
-        const cuentaHTML = `
+        let cuentaHTML = '';
+
+        if (!tieneMovimientos) {
+            // Sin movimientos: mostrar formato de tabla simple
+            cuentaHTML = `
                 <div class="account-card">
                     <div class="account-header">
                         <div class="account-title">
@@ -195,9 +192,99 @@ function renderizarLibroMayor(data) {
                             <div class="summary-value">$${cuenta.saldo.toFixed(2)}</div>
                         </div>
                     </div>
-                    ${detallesHTML}
                 </div>
             `;
+        } else {
+            // Con movimientos: formato clásico de cuenta T
+            const movimientosDebe = cuenta.detalles.filter(d => d.tipo === 'D');
+            const movimientosHaber = cuenta.detalles.filter(d => d.tipo === 'H');
+            const maxFilas = Math.max(movimientosDebe.length, movimientosHaber.length);
+
+            let filasHTML = '';
+            let saldoDebe = 0;
+            let saldoHaber = 0;
+
+            // Generar filas de movimientos
+            for (let i = 0; i < maxFilas; i++) {
+                const debe = movimientosDebe[i];
+                const haber = movimientosHaber[i];
+
+                let debeHTML = '';
+                let haberHTML = '';
+
+                if (debe) {
+                    saldoDebe += debe.monto;
+                    debeHTML = `
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee;">
+                            <span style="font-size: 11px; color: #666;">Asiento #${debe.idPartida}</span>
+                            <span style="font-weight: 600;">$${debe.monto.toFixed(2)}</span>
+                        </div>
+                    `;
+                }
+
+                if (haber) {
+                    saldoHaber += haber.monto;
+                    haberHTML = `
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee;">
+                            <span style="font-size: 11px; color: #666;">Asiento #${haber.idPartida}</span>
+                            <span style="font-weight: 600;">$${haber.monto.toFixed(2)}</span>
+                        </div>
+                    `;
+                }
+
+                filasHTML += `
+                    <tr>
+                        <td style="vertical-align: top; padding: 8px;">${debeHTML}</td>
+                        <td style="vertical-align: top; padding: 8px;">${haberHTML}</td>
+                    </tr>
+                `;
+            }
+
+            // Calcular saldo final
+            const saldoFinal = Math.abs(saldoDebe - saldoHaber);
+            const ladoSaldo = saldoDebe > saldoHaber ? 'debe' : 'haber';
+
+            cuentaHTML = `
+                <div class="account-card" style="margin-bottom: 30px;">
+                    <div class="account-header" >
+                        <div class="account-title">
+                            <h3 style="margin: 0; font-size: 18px;">${cuenta.nombre}</h3>
+                            <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.9;">${cuenta.tipo} - ${cuenta.naturaleza === 'D' ? 'Deudora' : 'Acreedora'}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="cuenta-t-clasica">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #ecf0f1;">
+                                    <th style="width: 50%; padding: 12px; text-align: center;  font-weight: 700; color: #d32f2f;">DEBE</th>
+                                    <th style="width: 50%; padding: 12px; text-align: center; font-weight: 700; color: #388e3c;">HABER</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${filasHTML}
+                            </tbody>
+                            <tfoot>
+                                <tr style="background: #f8f9fa; font-weight: 700; ">
+                                    <td style="padding: 12px; text-align: right; color: #d32f2f;">
+                                        Total: $${saldoDebe.toFixed(2)}
+                                    </td>
+                                    <td style="padding: 12px; text-align: right; color: #388e3c;">
+                                        Total: $${saldoHaber.toFixed(2)}
+                                    </td>
+                                </tr>
+                                <tr style="background: #fff3cd; font-weight: 700;">
+                                    <td colspan="2" style="padding: 12px; text-align: center; font-size: 16px; color: #856404;">
+                                        Saldo Final: $${saldoFinal.toFixed(2)} (${ladoSaldo === 'debe' ? 'DEUDOR' : 'ACREEDOR'})
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
         container.innerHTML += cuentaHTML;
     });
 }
@@ -312,7 +399,7 @@ function renderizarTodoReporte() {
                     <div style="font-size: 24px; font-weight: 700; color: #333; margin-top: 10px;">${reporteData.libroDiario.length}</div>
                 </div>
                 <div style="background: #f9f9f9; padding: 20px; border-radius: 8px;">
-                    <div style="font-size: 12px; color: #666; font-weight: 600;">Número de Cuentas con Movimiento</div>
+                    <div style="font-size: 12px; color: #666; font-weight: 600;">Número de Cuentas</div>
                     <div style="font-size: 24px; font-weight: 700; color: #333; margin-top: 10px;">${Object.keys(reporteData.libroMayor || {}).length}</div>
                 </div>
                 <div style="background: #f9f9f9; padding: 20px; border-radius: 8px;">
@@ -324,9 +411,8 @@ function renderizarTodoReporte() {
     tabAll.innerHTML = html;
 }
 
-function abrirModalExportacion(tipo) {
-    console.log("[v0] Abriendo modal de exportacion, tipo:", tipo);
-    console.log("[v0] reporteData existe:", reporteData !== null);
+function exportarPDF() {
+    console.log("[v0] Iniciando exportación PDF directa");
 
     if (!reporteData) {
         Swal.fire({
@@ -334,550 +420,356 @@ function abrirModalExportacion(tipo) {
             title: 'Sin datos',
             text: 'Por favor genera un reporte primero'
         });
-        console.error('[v0] No hay reporteData');
         return;
     }
 
-    tipoExportacionActual = tipo;
-    const modal = document.getElementById('modalExportacion');
-    const overlay = document.getElementById('modalOverlay');
-
-    console.log("[v0] Modal elemento:", modal);
-    console.log("[v0] Overlay elemento:", overlay);
-
-    if (modal) {
-        modal.style.display = 'block';
-        console.log("[v0] Modal mostrado");
-    }
-    if (overlay) {
-        overlay.style.display = 'block';
-    }
-
-    document.body.style.overflow = 'hidden';
-}
-
-function cerrarModalExportacion() {
-    console.log("[v0] Cerrando modal");
-    const modal = document.getElementById('modalExportacion');
-    const overlay = document.getElementById('modalOverlay');
-
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    if (overlay) {
-        overlay.style.display = 'none';
-    }
-
-    document.body.style.overflow = 'auto';
-    tipoExportacionActual = null;
-}
-
-function obtenerSeccionesSeleccionadas() {
-    const checkboxes = document.querySelectorAll('input[name="secciones"]:checked');
-    console.log("[v0] Checkboxes encontrados:", checkboxes.length);
-
-    const secciones = {};
-
-    checkboxes.forEach(checkbox => {
-        console.log("[v0] Checkbox seleccionado:", checkbox.value);
-        secciones[checkbox.value] = true;
-    });
-
-    console.log("[v0] Secciones seleccionadas:", secciones);
-    return secciones;
-}
-
-function confirmarExportacion() {
-    console.log("[v0] Confirmando exportación");
-
-    const secciones = obtenerSeccionesSeleccionadas();
-
-    if (Object.keys(secciones).length === 0) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Selecciona secciones',
-            text: 'Por favor selecciona al menos una sección'
-        });
-        return;
-    }
-
-    console.log("[v0] Tipo exportación actual:", tipoExportacionActual);
-
-    cerrarModalExportacion();
-
+    // Show loading state
     Swal.fire({
-        title: 'Generando archivo...',
+        title: 'Generando PDF...',
         html: 'Por favor espera',
-        icon: 'info',
         allowOutsideClick: false,
-        allowEscapeKey: false,
         didOpen: () => {
             Swal.showLoading();
         }
     });
 
-    if (tipoExportacionActual === 'pdf') {
-        console.log("[v0] Iniciando exportación PDF");
-        setTimeout(() => exportarPDF(secciones), 100);
-    } else if (tipoExportacionActual === 'excel') {
-        console.log("[v0] Iniciando exportación Excel");
-        setTimeout(() => exportarExcel(secciones), 100);
-    }
-}
+    // Use setTimeout to allow the UI to update before heavy processing
+    setTimeout(() => {
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            let yPosition = 20;
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin = 15;
 
-function exportarPDF(secciones = null) {
-    console.log("[v0] Iniciando exportación con jsPDF, secciones:", secciones);
-
-    if (!reporteData) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Por favor genera un reporte primero'
-        });
-        return;
-    }
-
-    if (!secciones) {
-        secciones = {
-            'partida-doble': true,
-            'libro-mayor': true,
-            'balance-comprobacion': true,
-            'balance-general': true
-        };
-    }
-
-    try {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
-        let yPosition = 20;
-        const pageHeight = doc.internal.pageSize.getHeight();
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const margin = 15;
-        const contentWidth = pageWidth - 2 * margin;
-
-        // Título
-        doc.setFontSize(16);
-        doc.setFont(undefined, 'bold');
-        doc.text('Reporte Contable', margin, yPosition);
-        yPosition += 10;
-
-        // Fecha de generación
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'normal');
-        doc.text('Fecha de generación: ' + new Date().toLocaleString('es-ES'), margin, yPosition);
-        yPosition += 15;
-
-        // Partida Doble
-        if (secciones['partida-doble'] && reporteData.libroDiario && reporteData.libroDiario.length > 0) {
-            if (yPosition > pageHeight - 50) {
-                doc.addPage();
-                yPosition = 20;
-            }
-
-            doc.setFontSize(14);
+            // Título
+            doc.setFontSize(16);
             doc.setFont(undefined, 'bold');
-            doc.text('Libro Diario (Partida Doble)', margin, yPosition);
+            doc.text('Reporte Contable', margin, yPosition);
             yPosition += 10;
 
-            const dataDiario = reporteData.libroDiario.map(p => [
-                p.idPartida,
-                p.fecha,
-                p.concepto || '---',
-                '$' + p.totalDebe.toFixed(2),
-                '$' + p.totalHaber.toFixed(2)
-            ]);
+            // Fecha de generación
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text('Fecha de generación: ' + new Date().toLocaleString('es-ES'), margin, yPosition);
+            yPosition += 15;
 
-            doc.autoTable({
-                head: [['# Asiento', 'Fecha', 'Descripción', 'Debe', 'Haber']],
-                body: dataDiario,
-                startY: yPosition,
-                margin: { left: margin, right: margin },
-                columnStyles: {
-                    0: { halign: 'center' },
-                    1: { halign: 'center' },
-                    3: { halign: 'right' },
-                    4: { halign: 'right' }
-                },
-                didDrawPage: function(data) {
-                    yPosition = data.cursor.y + 5;
+            // --- Partida Doble ---
+            if (reporteData.libroDiario && reporteData.libroDiario.length > 0) {
+                if (yPosition > pageHeight - 50) doc.addPage();
+
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text('Libro Diario (Partida Doble)', margin, yPosition);
+                yPosition += 10;
+
+                const dataDiario = [];
+
+                reporteData.libroDiario.forEach(partida => {
+                    // Agregar cada movimiento de la partida
+                    partida.movimientos.forEach((mov, index) => {
+                        if (index === 0) {
+                            // Primera fila incluye número de asiento, fecha y concepto
+                            dataDiario.push([
+                                partida.idPartida,
+                                partida.fecha,
+                                mov.nombreCuenta,
+                                partida.concepto || '---',
+                                mov.tipo === 'D' ? '$' + mov.monto.toFixed(2) : '',
+                                mov.tipo === 'H' ? '$' + mov.monto.toFixed(2) : ''
+                            ]);
+                        } else {
+                            // Filas siguientes solo muestran la cuenta y montos
+                            dataDiario.push([
+                                '',
+                                '',
+                                mov.nombreCuenta,
+                                '',
+                                mov.tipo === 'D' ? '$' + mov.monto.toFixed(2) : '',
+                                mov.tipo === 'H' ? '$' + mov.monto.toFixed(2) : ''
+                            ]);
+                        }
+                    });
+
+                    // Agregar línea separadora entre partidas
+                    dataDiario.push(['', '', '', '', '', '']);
+                });
+
+                doc.autoTable({
+                    head: [['# Asiento', 'Fecha', 'Cuenta', 'Descripción', 'Debe', 'Haber']],
+                    body: dataDiario,
+                    startY: yPosition,
+                    margin: { left: margin, right: margin },
+                    columnStyles: {
+                        0: { halign: 'center', cellWidth: 20 },
+                        1: { halign: 'center', cellWidth: 25 },
+                        2: { halign: 'left', cellWidth: 50 },
+                        3: { halign: 'left', cellWidth: 40 },
+                        4: { halign: 'right', cellWidth: 25 },
+                        5: { halign: 'right', cellWidth: 25 }
+                    },
+                    styles: {
+                        fontSize: 9,
+                        cellPadding: 3
+                    },
+                    didDrawPage: function(data) {
+                        yPosition = data.cursor.y + 5;
+                    }
+                });
+                yPosition = doc.lastAutoTable.finalY + 15;
+            }
+
+            // --- Libro Mayor ---
+            if (reporteData.libroMayor) {
+                if (yPosition > pageHeight - 50) {
+                    doc.addPage();
+                    yPosition = 20;
                 }
-            });
 
-            yPosition = doc.lastAutoTable.finalY + 15;
-        }
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text('Libro Mayor (Cuentas T)', margin, yPosition);
+                yPosition += 10;
 
-        // Libro Mayor
-        if (secciones['libro-mayor'] && reporteData.libroMayor) {
-            if (yPosition > pageHeight - 50) {
-                doc.addPage();
-                yPosition = 20;
+                // Separar cuentas con y sin movimientos
+                const cuentasConMovimiento = [];
+                const cuentasSinMovimiento = [];
+
+                Object.values(reporteData.libroMayor).forEach(cuenta => {
+                    if (cuenta.detalles && cuenta.detalles.length > 0) {
+                        cuentasConMovimiento.push(cuenta);
+                    } else {
+                        cuentasSinMovimiento.push(cuenta);
+                    }
+                });
+
+                // Mostrar cuentas CON movimiento con detalles
+                cuentasConMovimiento.forEach(cuenta => {
+                    // Verificar espacio disponible
+                    if (yPosition > pageHeight - 80) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+
+                    // Título de la cuenta
+                    doc.setFontSize(12);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(`${cuenta.nombre} - ${cuenta.tipo} (${cuenta.naturaleza === 'D' ? 'Deudora' : 'Acreedora'})`, margin, yPosition);
+                    yPosition += 8;
+
+                    // Preparar datos de movimientos
+                    const movimientosDebe = cuenta.detalles.filter(d => d.tipo === 'D');
+                    const movimientosHaber = cuenta.detalles.filter(d => d.tipo === 'H');
+                    const maxFilas = Math.max(movimientosDebe.length, movimientosHaber.length);
+
+                    const dataMovimientos = [];
+
+                    for (let i = 0; i < maxFilas; i++) {
+                        const debe = movimientosDebe[i];
+                        const haber = movimientosHaber[i];
+
+                        dataMovimientos.push([
+                            debe ? `Asiento #${debe.idPartida}` : '',
+                            debe ? '$' + debe.monto.toFixed(2) : '',
+                            haber ? `Asiento #${haber.idPartida}` : '',
+                            haber ? '$' + haber.monto.toFixed(2) : ''
+                        ]);
+                    }
+
+                    // Agregar totales
+                    dataMovimientos.push([
+                        'TOTAL DEBE',
+                        '$' + cuenta.totalDebe.toFixed(2),
+                        'TOTAL HABER',
+                        '$' + cuenta.totalHaber.toFixed(2)
+                    ]);
+
+                    // Agregar saldo final
+                    const saldoFinal = Math.abs(cuenta.totalDebe - cuenta.totalHaber);
+                    const ladoSaldo = cuenta.totalDebe > cuenta.totalHaber ? 'DEUDOR' : 'ACREEDOR';
+                    dataMovimientos.push([
+                        { content: `SALDO FINAL: $${saldoFinal.toFixed(2)} (${ladoSaldo})`, colSpan: 4, styles: { halign: 'center', fontStyle: 'bold', fillColor: [255, 243, 205] } }
+                    ]);
+
+                    doc.autoTable({
+                        head: [['DEBE', 'Monto', 'HABER', 'Monto']],
+                        body: dataMovimientos,
+                        startY: yPosition,
+                        margin: { left: margin, right: margin },
+                        columnStyles: {
+                            0: { halign: 'left', cellWidth: 45 },
+                            1: { halign: 'right', cellWidth: 35 },
+                            2: { halign: 'left', cellWidth: 45 },
+                            3: { halign: 'right', cellWidth: 35 }
+                        },
+                        headStyles: {
+                            fillColor: [236, 240, 241],
+                            textColor: [0, 0, 0],
+                            fontStyle: 'bold'
+                        },
+                        styles: {
+                            fontSize: 9,
+                            cellPadding: 3
+                        },
+                        didDrawPage: function(data) {
+                            yPosition = data.cursor.y + 5;
+                        }
+                    });
+
+                    yPosition = doc.lastAutoTable.finalY + 12;
+                });
+
+                // Mostrar cuentas SIN movimiento en tabla simple
+                if (cuentasSinMovimiento.length > 0) {
+                    if (yPosition > pageHeight - 50) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+
+                    doc.setFontSize(12);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Cuentas sin Movimiento', margin, yPosition);
+                    yPosition += 8;
+
+                    const dataSinMovimiento = cuentasSinMovimiento.map(cuenta => [
+                        cuenta.nombre,
+                        cuenta.tipo,
+                        cuenta.naturaleza === 'D' ? 'Deudora' : 'Acreedora',
+                        '$' + cuenta.totalDebe.toFixed(2),
+                        '$' + cuenta.totalHaber.toFixed(2),
+                        '$' + cuenta.saldo.toFixed(2)
+                    ]);
+
+                    doc.autoTable({
+                        head: [['Cuenta', 'Tipo', 'Naturaleza', 'Total Debe', 'Total Haber', 'Saldo']],
+                        body: dataSinMovimiento,
+                        startY: yPosition,
+                        margin: { left: margin, right: margin },
+                        columnStyles: {
+                            3: { halign: 'right' },
+                            4: { halign: 'right' },
+                            5: { halign: 'right' }
+                        },
+                        styles: {
+                            fontSize: 9,
+                            cellPadding: 3
+                        },
+                        didDrawPage: function(data) {
+                            yPosition = data.cursor.y + 5;
+                        }
+                    });
+                    yPosition = doc.lastAutoTable.finalY + 15;
+                }
             }
 
-            doc.setFontSize(14);
-            doc.setFont(undefined, 'bold');
-            doc.text('Libro Mayor (Cuentas T)', margin, yPosition);
-            yPosition += 10;
+            // --- Balance de Comprobación ---
+            if (reporteData.balanceComprobacion && reporteData.balanceComprobacion.length > 0) {
+                if (yPosition > pageHeight - 50) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
 
-            const dataLibroMayor = [];
-            Object.values(reporteData.libroMayor || {}).forEach(cuenta => {
-                dataLibroMayor.push([
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text('Balance de Comprobación', margin, yPosition);
+                yPosition += 10;
+
+                const dataBC = reporteData.balanceComprobacion.map(cuenta => [
                     cuenta.nombre,
                     cuenta.tipo,
-                    cuenta.naturaleza === 'D' ? 'Deudora' : 'Acreedora',
-                    '$' + cuenta.totalDebe.toFixed(2),
-                    '$' + cuenta.totalHaber.toFixed(2),
-                    '$' + cuenta.saldo.toFixed(2)
+                    '$' + (cuenta.debe ? parseFloat(cuenta.debe).toFixed(2) : '0.00'),
+                    '$' + (cuenta.haber ? parseFloat(cuenta.haber).toFixed(2) : '0.00')
                 ]);
-            });
 
-            doc.autoTable({
-                head: [['Cuenta', 'Tipo', 'Naturaleza', 'Total Debe', 'Total Haber', 'Saldo']],
-                body: dataLibroMayor,
-                startY: yPosition,
-                margin: { left: margin, right: margin },
-                columnStyles: {
-                    0: { halign: 'left' },
-                    3: { halign: 'right' },
-                    4: { halign: 'right' },
-                    5: { halign: 'right' }
-                },
-                didDrawPage: function(data) {
-                    yPosition = data.cursor.y + 5;
+                // Totales
+                if (reporteData.totalesBalanceComprobacion) {
+                    dataBC.push([
+                        'TOTALES',
+                        '',
+                        '$' + (reporteData.totalesBalanceComprobacion.debe ? reporteData.totalesBalanceComprobacion.debe.toFixed(2) : '0.00'),
+                        '$' + (reporteData.totalesBalanceComprobacion.haber ? reporteData.totalesBalanceComprobacion.haber.toFixed(2) : '0.00')
+                    ]);
                 }
-            });
 
-            yPosition = doc.lastAutoTable.finalY + 15;
-        }
-
-        // Balance de Comprobación
-        if (secciones['balance-comprobacion'] && reporteData.balanceComprobacion && reporteData.balanceComprobacion.length > 0) {
-            if (yPosition > pageHeight - 50) {
-                doc.addPage();
-                yPosition = 20;
+                doc.autoTable({
+                    head: [['Cuenta', 'Tipo', 'Debe', 'Haber']],
+                    body: dataBC,
+                    startY: yPosition,
+                    margin: { left: margin, right: margin },
+                    columnStyles: {
+                        2: { halign: 'right' },
+                        3: { halign: 'right' }
+                    },
+                    didDrawPage: function(data) {
+                        yPosition = data.cursor.y + 5;
+                    }
+                });
+                yPosition = doc.lastAutoTable.finalY + 15;
             }
 
-            doc.setFontSize(14);
-            doc.setFont(undefined, 'bold');
-            doc.text('Balance de Comprobación', margin, yPosition);
-            yPosition += 10;
-
-            const dataBC = [];
-            let totalDebe = 0;
-            let totalHaber = 0;
-
-            reporteData.balanceComprobacion.forEach(cuenta => {
-                const debe = parseFloat(cuenta.debe) || 0;
-                const haber = parseFloat(cuenta.haber) || 0;
-                totalDebe += debe;
-                totalHaber += haber;
-
-                dataBC.push([
-                    cuenta.nombre,
-                    cuenta.tipo,
-                    '$' + debe.toFixed(2),
-                    '$' + haber.toFixed(2)
-                ]);
-            });
-
-            dataBC.push([
-                'TOTALES',
-                '',
-                '$' + totalDebe.toFixed(2),
-                '$' + totalHaber.toFixed(2)
-            ]);
-
-            doc.autoTable({
-                head: [['Cuenta', 'Tipo', 'Debe', 'Haber']],
-                body: dataBC,
-                startY: yPosition,
-                margin: { left: margin, right: margin },
-                columnStyles: {
-                    2: { halign: 'right' },
-                    3: { halign: 'right' }
-                },
-                didDrawPage: function(data) {
-                    yPosition = data.cursor.y + 5;
+            // --- Balance General ---
+            if (reporteData.activos || reporteData.pasivos || reporteData.capital) {
+                if (yPosition > pageHeight - 50) {
+                    doc.addPage();
+                    yPosition = 20;
                 }
+
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text('Balance General', margin, yPosition);
+                yPosition += 10;
+
+                const dataBalanceGeneral = [];
+
+                // Helper to add rows
+                const addRows = (items, sectionName) => {
+                    if (items && items.length > 0) {
+                        let total = 0;
+                        items.forEach(item => {
+                            const val = parseFloat(item.saldo) || 0;
+                            total += val;
+                            dataBalanceGeneral.push([sectionName, item.nombre, '$' + val.toFixed(2)]);
+                        });
+                        dataBalanceGeneral.push([sectionName, 'TOTAL ' + sectionName, '$' + total.toFixed(2)]);
+                    }
+                };
+
+                addRows(reporteData.activos, 'ACTIVOS');
+                addRows(reporteData.pasivos, 'PASIVOS');
+                addRows(reporteData.capital, 'CAPITAL');
+
+                doc.autoTable({
+                    head: [['Sección', 'Cuenta', 'Saldo']],
+                    body: dataBalanceGeneral,
+                    startY: yPosition,
+                    margin: { left: margin, right: margin },
+                    columnStyles: {
+                        2: { halign: 'right' }
+                    }
+                });
+            }
+
+            // Guardar PDF
+            const filename = 'reporte_' + new Date().toISOString().split('T')[0] + '.pdf';
+            doc.save(filename);
+
+            Swal.close();
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: 'PDF descargado correctamente'
             });
 
-            yPosition = doc.lastAutoTable.finalY + 15;
-        }
-
-        // Balance General
-        if (secciones['balance-general']) {
-            if (yPosition > pageHeight - 50) {
-                doc.addPage();
-                yPosition = 20;
-            }
-
-            doc.setFontSize(14);
-            doc.setFont(undefined, 'bold');
-            doc.text('Balance General', margin, yPosition);
-            yPosition += 10;
-
-            let totalActivos = 0;
-            let totalPasivos = 0;
-            let totalCapital = 0;
-
-            if (reporteData.activos) {
-                reporteData.activos.forEach(a => {
-                    totalActivos += parseFloat(a.saldo) || 0;
-                });
-            }
-            if (reporteData.pasivos) {
-                reporteData.pasivos.forEach(p => {
-                    totalPasivos += parseFloat(p.saldo) || 0;
-                });
-            }
-            if (reporteData.capital) {
-                reporteData.capital.forEach(c => {
-                    totalCapital += parseFloat(c.saldo) || 0;
-                });
-            }
-
-            const dataBalanceGeneral = [];
-
-            if (reporteData.activos && reporteData.activos.length > 0) {
-                reporteData.activos.forEach(a => {
-                    dataBalanceGeneral.push(['ACTIVOS', a.nombre, '$' + parseFloat(a.saldo).toFixed(2)]);
-                });
-                dataBalanceGeneral.push(['ACTIVOS', 'Total Activos', '$' + totalActivos.toFixed(2)]);
-            }
-
-            if (reporteData.pasivos && reporteData.pasivos.length > 0) {
-                reporteData.pasivos.forEach(p => {
-                    dataBalanceGeneral.push(['PASIVOS', p.nombre, '$' + parseFloat(p.saldo).toFixed(2)]);
-                });
-                dataBalanceGeneral.push(['PASIVOS', 'Total Pasivos', '$' + totalPasivos.toFixed(2)]);
-            }
-
-            if (reporteData.capital && reporteData.capital.length > 0) {
-                reporteData.capital.forEach(c => {
-                    dataBalanceGeneral.push(['CAPITAL', c.nombre, '$' + parseFloat(c.saldo).toFixed(2)]);
-                });
-                dataBalanceGeneral.push(['CAPITAL', 'Total Capital', '$' + totalCapital.toFixed(2)]);
-            }
-
-            doc.autoTable({
-                head: [['Sección', 'Cuenta', 'Saldo']],
-                body: dataBalanceGeneral,
-                startY: yPosition,
-                margin: { left: margin, right: margin },
-                columnStyles: {
-                    2: { halign: 'right' }
-                }
+        } catch (error) {
+            console.error('[v0] Error en exportarPDF:', error);
+            Swal.close();
+            Swal.fire({
+                icon: 'error',
+                title: 'Error al generar PDF',
+                text: error.message || 'Ocurrió un error inesperado'
             });
         }
-
-        // Guardar PDF
-        const filename = 'reporte_' + new Date().toISOString().split('T')[0] + '.pdf';
-        doc.save(filename);
-
-        Swal.close();
-        Swal.fire({
-            icon: 'success',
-            title: 'Éxito',
-            text: 'PDF generado y descargado correctamente'
-        });
-
-    } catch (error) {
-        Swal.close();
-        console.error('[v0] Error en exportarPDF:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Error al generar PDF: ' + error.message
-        });
-    }
-}
-
-function exportarExcel(secciones = null) {
-    console.log("[v0] Función exportarExcel llamada con secciones:", secciones);
-
-    if (!reporteData) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Por favor genera un reporte primero'
-        });
-        return;
-    }
-
-    if (!secciones) {
-        secciones = {
-            'partida-doble': true,
-            'libro-mayor': true,
-            'balance-comprobacion': true,
-            'balance-general': true
-        };
-    }
-
-    if (typeof XLSX === 'undefined') {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Error: La librería XLSX no se cargó correctamente'
-        });
-        return;
-    }
-
-    try {
-        const workbook = XLSX.utils.book_new();
-
-        if (secciones['partida-doble'] && reporteData.libroDiario && reporteData.libroDiario.length > 0) {
-            const dataDiario = reporteData.libroDiario.map(p => ({
-                '# Asiento': p.idPartida,
-                'Fecha': p.fecha,
-                'Descripción': p.concepto || '---',
-                'Debe': p.totalDebe,
-                'Haber': p.totalHaber
-            }));
-            const ws1 = XLSX.utils.json_to_sheet(dataDiario);
-            ws1['!cols'] = [
-                { wch: 10 },
-                { wch: 12 },
-                { wch: 25 },
-                { wch: 12 },
-                { wch: 12 }
-            ];
-            XLSX.utils.book_append_sheet(workbook, ws1, 'Libro Diario');
-        }
-
-        if (secciones['libro-mayor'] && reporteData.libroMayor) {
-            const dataLibroMayor = [];
-            Object.values(reporteData.libroMayor || {}).forEach((cuenta, index) => {
-                dataLibroMayor.push({
-                    'Cuenta': cuenta.nombre,
-                    'Tipo': cuenta.tipo,
-                    'Naturaleza': cuenta.naturaleza === 'D' ? 'Deudora' : 'Acreedora',
-                    'Total Debe': cuenta.totalDebe,
-                    'Total Haber': cuenta.totalHaber,
-                    'Saldo': cuenta.saldo
-                });
-            });
-            const ws2 = XLSX.utils.json_to_sheet(dataLibroMayor);
-            ws2['!cols'] = [
-                { wch: 20 },
-                { wch: 12 },
-                { wch: 12 },
-                { wch: 12 },
-                { wch: 12 },
-                { wch: 12 }
-            ];
-            XLSX.utils.book_append_sheet(workbook, ws2, 'Libro Mayor');
-        }
-
-        if (secciones['balance-comprobacion'] && reporteData.balanceComprobacion && reporteData.balanceComprobacion.length > 0) {
-            const dataBC = reporteData.balanceComprobacion.map(c => ({
-                'Cuenta': c.nombre,
-                'Tipo': c.tipo,
-                'Debe': c.debe,
-                'Haber': c.haber
-            }));
-
-            let totalDebe = 0;
-            let totalHaber = 0;
-            reporteData.balanceComprobacion.forEach(c => {
-                totalDebe += parseFloat(c.debe) || 0;
-                totalHaber += parseFloat(c.haber) || 0;
-            });
-            dataBC.push({
-                'Cuenta': 'TOTALES',
-                'Tipo': '',
-                'Debe': totalDebe,
-                'Haber': totalHaber
-            });
-
-            const ws3 = XLSX.utils.json_to_sheet(dataBC);
-            ws3['!cols'] = [
-                { wch: 25 },
-                { wch: 12 },
-                { wch: 12 },
-                { wch: 12 }
-            ];
-            XLSX.utils.book_append_sheet(workbook, ws3, 'Balance Comprobación');
-        }
-
-        if (secciones['balance-general']) {
-            const dataBalanceGeneral = [];
-
-            if (reporteData.activos && reporteData.activos.length > 0) {
-                let totalActivos = 0;
-                reporteData.activos.forEach(a => {
-                    totalActivos += parseFloat(a.saldo) || 0;
-                    dataBalanceGeneral.push({
-                        'Sección': 'ACTIVOS',
-                        'Cuenta': a.nombre,
-                        'Saldo': parseFloat(a.saldo)
-                    });
-                });
-                dataBalanceGeneral.push({
-                    'Sección': 'ACTIVOS',
-                    'Cuenta': 'Total Activos',
-                    'Saldo': totalActivos
-                });
-            }
-
-            if (reporteData.pasivos && reporteData.pasivos.length > 0) {
-                let totalPasivos = 0;
-                reporteData.pasivos.forEach(p => {
-                    totalPasivos += parseFloat(p.saldo) || 0;
-                    dataBalanceGeneral.push({
-                        'Sección': 'PASIVOS',
-                        'Cuenta': p.nombre,
-                        'Saldo': parseFloat(p.saldo)
-                    });
-                });
-                dataBalanceGeneral.push({
-                    'Sección': 'PASIVOS',
-                    'Cuenta': 'Total Pasivos',
-                    'Saldo': totalPasivos
-                });
-            }
-
-            if (reporteData.capital && reporteData.capital.length > 0) {
-                let totalCapital = 0;
-                reporteData.capital.forEach(c => {
-                    totalCapital += parseFloat(c.saldo) || 0;
-                    dataBalanceGeneral.push({
-                        'Sección': 'CAPITAL',
-                        'Cuenta': c.nombre,
-                        'Saldo': parseFloat(c.saldo)
-                    });
-                });
-                dataBalanceGeneral.push({
-                    'Sección': 'CAPITAL',
-                    'Cuenta': 'Total Capital',
-                    'Saldo': totalCapital
-                });
-            }
-
-            const ws4 = XLSX.utils.json_to_sheet(dataBalanceGeneral);
-            ws4['!cols'] = [
-                { wch: 15 },
-                { wch: 25 },
-                { wch: 12 }
-            ];
-            XLSX.utils.book_append_sheet(workbook, ws4, 'Balance General');
-        }
-
-        const filename = 'reporte_' + new Date().toISOString().split('T')[0] + '.xlsx';
-        XLSX.writeFile(workbook, filename);
-
-        Swal.close();
-        Swal.fire({
-            icon: 'success',
-            title: 'Éxito',
-            text: 'Excel generado y descargado correctamente'
-        });
-    } catch (error) {
-        Swal.close();
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Error al generar Excel: ' + error.message
-        });
-    }
+    }, 500);
 }
 
 window.addEventListener('load', function() {
