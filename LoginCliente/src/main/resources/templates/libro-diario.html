@@ -129,26 +129,15 @@
                     </div>
                 </div>
             </div>
-
-            <div class="form-group">
-                <p>Archivos origen de la partida:</p>
-                <div class="form-group" id="archivosOrigen">
-                    <div style="margin: 2rem;">
-                        <p>Documento #1</p>
-                        <div class="form-group">
-                            <label for="nombreArchivo">Nombre del documento:</label>
-                            <input type="text" name="nombreArchivo" id="nombreArchivo" placeholder="Nombre para el documento..." class="nombre-documento" required>
-                        </div>
-                        <label for="archivoOrigen" class="file-label">Subir archivo</label>
-                        <input type="file" name="archivoOrigen" id="archivoOrigen" accept=".pdf,image/*" class="file-input archivo-origen" required>
-
-                        <div class="preview-container" id="previewContainer">
-                            <p>Ningún archivo seleccionado</p>
-                        </div>
+            <div class="movimientos-container">
+                <div class="form-group">
+                    <h3>Archivos origen de la partida:</h3>
+                    <div class="form-group" id="archivosOrigen">
+                        <!--Espacio para el input de los documentos-->
                     </div>
+                    <button type="button" class="btn btn-edit" onclick="addDocumento()"><i class="fa fa-plus"></i> Agregar</button>
+                    <button type="button" class="btn btn-remove" onclick="removeDocumento()" id="eliminarUltimoDocumento" disabled> <i class="fa fa-minus"></i> Eliminar ultimo</button>
                 </div>
-                <button type="button" class="btn btn-add" onclick="addDocumento()">Agregar nuevo archivo</button>
-                <button type="button" class="btn btn-delete" onclick="removeDocumento()" id="eliminarUltimoDocumento" disabled>Eliminar ultimo</button>
             </div>
 
             <button type="submit" class="btn btn-primary">Guardar Partida</button>
