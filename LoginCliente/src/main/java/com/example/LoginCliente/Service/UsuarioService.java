@@ -9,8 +9,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 @Service
@@ -45,8 +47,58 @@ public class UsuarioService implements UserDetailsService {
         return usuarioRepository.findByUsuario(usuario);
     }
 
+    public Usuario findByCorreo(String correo) {
+        return usuarioRepository.findByCorreo(correo);
+    }
+
     public boolean verificarContrasena(String contrasenaNoCodificada, String contrasenaCodificada) {
         return passwordEncoder.matches(contrasenaNoCodificada, contrasenaCodificada);
+    }
+
+    /**
+     * Genera un token único de recuperación y lo asigna al usuario
+     * El token expira en 24 horas
+     */
+    public String generarTokenRecuperacion(Usuario usuario) {
+        String token = UUID.randomUUID().toString();
+        usuario.setTokenRecuperacion(token);
+        usuario.setTokenExpiracion(LocalDateTime.now().plusHours(24));
+        usuarioRepository.save(usuario);
+        return token;
+    }
+
+    /**
+     * Valida si el token es válido y no ha expirado
+     */
+    public Usuario validarToken(String token) {
+        Usuario usuario = usuarioRepository.findByTokenRecuperacion(token);
+
+        if (usuario == null) {
+            return null;
+        }
+
+        // Verificar si el token ha expirado
+        if (usuario.getTokenExpiracion() == null ||
+            LocalDateTime.now().isAfter(usuario.getTokenExpiracion())) {
+            return null;
+        }
+
+        return usuario;
+    }
+
+    /**
+     * Cambia la contraseña del usuario y elimina el token
+     */
+    public void cambiarContrasenaConToken(String token, String nuevaContrasena) {
+        Usuario usuario = validarToken(token);
+        if (usuario == null) {
+            throw new IllegalArgumentException("Token inválido o expirado");
+        }
+
+        usuario.setPwd(passwordEncoder.encode(nuevaContrasena));
+        usuario.setTokenRecuperacion(null);
+        usuario.setTokenExpiracion(null);
+        usuarioRepository.save(usuario);
     }
 
     @Override

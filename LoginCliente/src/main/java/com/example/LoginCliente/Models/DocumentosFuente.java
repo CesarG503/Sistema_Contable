@@ -29,10 +29,62 @@ public class DocumentosFuente {
     @Column(nullable = false)
     private String ruta;
 
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal valor; // campo agregado
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "añadido_por") // columna en la base de datos
-    private Usuario añadidoPor; // Usuario que añadió el documento
+    @JoinColumn(name = "anadido_por") // columna en la base de datos (sin caracteres no-ASCII)
+    private Usuario anadidoPor; // Usuario que añadió el documento (renombrado)
 
     @OneToMany(mappedBy = "documento", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DocumentosPartida> partidaDocumentos = new ArrayList<>();
+
+    // getters / setters mínimos relevantes
+    public Integer getId_documento() {
+        return id_documento;
+    }
+
+    public void setId_documento(Integer id_documento) {
+        this.id_documento = id_documento;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public String getRuta() {
+        return ruta;
+    }
+
+    public void setRuta(String ruta) {
+        this.ruta = ruta;
+    }
+
+    public Timestamp getFecha_subida() {
+        return fecha_subida;
+    }
+
+    public void setFecha_subida(Timestamp fecha_subida) {
+        this.fecha_subida = fecha_subida;
+    }
+
+    public BigDecimal getValor() {
+        return valor;
+    }
+
+    public void setValor(BigDecimal valor) {
+        this.valor = valor;
+    }
+
+    public Usuario getAnadidoPor() {
+        return anadidoPor;
+    }
+
+    public void setAnadidoPor(Usuario anadidoPor) {
+        this.anadidoPor = anadidoPor;
+    }
 }

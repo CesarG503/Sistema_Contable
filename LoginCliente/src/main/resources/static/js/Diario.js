@@ -150,6 +150,10 @@ function resetVistaPrevia() {
     });
 }
 
+document.getElementById("archivoOrigen").addEventListener("change", () =>{
+    cargarVistaPrevia('');
+});
+
 document.getElementById("partidaForm").addEventListener("submit", async (e) => {
     e.preventDefault()
 
@@ -163,6 +167,7 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
 
     let nombreDocumentosArray = [];
     let archivosOrigenArray = [];
+    let montosArchivoArray = [];
 
     nombreDocumentosInputs.forEach((input) => {
         if (input.value) {
@@ -173,6 +178,12 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
     archivosOrigenInputs.forEach((input) => {
         if (input.files[0]) {
             archivosOrigenArray.push(input.files[0]);
+        }
+    });
+
+    montosArchivoInputs.forEach((input) => {
+        if (input.value) {
+            montosArchivoArray.push(input.value);
         }
     });
 
@@ -200,20 +211,20 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
     formData.append("nombresArchivos", JSON.stringify(nombreDocumentosArray));
 
     // Debug: mostrar cuántos archivos se van a enviar
-    console.log("=== DEBUG JS ===");
-    console.log("Archivos a enviar:", archivosOrigenArray.length);
+    /*console.log("=== DEBUG JS ===");
+    console.log("Archivos a enviar:", archivosOrigenArray.length);*/
 
     // Importante: usar el mismo nombre de parámetro para todos los archivos
     archivosOrigenArray.forEach((archivo, index) => {
-        console.log(`Añadiendo archivo ${index}:`, archivo.name);
+        //console.log(`Añadiendo archivo ${index}:`, archivo.name);
         formData.append('archivosOrigen', archivo);
     });
 
     // Debug: mostrar el contenido del FormData
-    console.log("Contenido del FormData:");
+    /*console.log("Contenido del FormData:");
     for (let pair of formData.entries()) {
         console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
-    }
+    }*/
 
     try {
         const response = await fetch("/partidas/crear", {

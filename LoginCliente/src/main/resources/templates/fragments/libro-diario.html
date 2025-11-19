@@ -1,0 +1,55 @@
+<div th:fragment="libro-diario" class="table-section">
+    <div class="table-header">Libro Diario</div>
+    <div th:if="${partidasConMovimientos != null and partidasConMovimientos.isEmpty()}">
+        <p style="text-align: center; color: #666; padding: 40px;">No hay partidas registradas</p>
+    </div>
+    <table th:if="${partidasConMovimientos != null and not partidasConMovimientos.isEmpty()}">
+        <thead>
+        <tr>
+            <th># Asiento</th>
+            <th>Fecha</th>
+            <th>Descripción</th>
+            <th>Debe</th>
+            <th>Haber</th>
+            <th>Detalles</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <th:block th:each="entry : ${partidasConMovimientos}">
+            <tr th:each="mov, iterStat : ${entry.value}">
+                <td th:if="${iterStat.first}" th:rowspan="${entry.value.size()}" th:text="${entry.key.idPartida}"></td>
+                <td th:if="${iterStat.first}" th:rowspan="${entry.value.size()}" th:text="${entry.key.fechaFormateada}"></td>
+                <td>
+                    <div th:if="${iterStat.first}" th:text="${entry.key.concepto}" style="font-weight: 600;"></div>
+                    <div th:each="cuenta : ${cuentas}" th:if="${cuenta.idCuenta == mov.idCuenta}" th:text="${cuenta.nombre}"></div>
+                </td>
+                <td th:text="${mov.tipo == 'D' ? '$' + mov.monto : ''}"></td>
+                <td th:text="${mov.tipo == 'H' ? '$' + mov.monto : ''}"></td>
+                <td th:if="${iterStat.first}" th:rowspan="${entry.value.size()}">
+                    <button class="btn-details"
+                            th:attr="data-asiento=${entry.key.idPartida},
+                                            data-fecha=${entry.key.fechaFormateada},
+                                            data-concepto=${entry.key.concepto}"
+                            onclick="openDetailsModal(this)">Ver detalles →</button>
+                </td >
+                <td th:if="${iterStat.first}" th:rowspan="${entry.value.size()}">
+                    <button class="btn btn-edit"
+                            th:attr="data-partida-id=${entry.key.idPartida}"
+                            onclick="openEditModal(this)">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <form th:action="@{/partidas/eliminar/{id}(id=${entry.key.idPartida})}"
+                          method="post"
+                          style="display: inline;"
+                          onsubmit="return confirm('¿Estás seguro de eliminar esta partida?');">
+                        <button type="submit" class="btn btn-delete">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+</div>

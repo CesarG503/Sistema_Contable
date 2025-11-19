@@ -15,4 +15,8 @@ public class DocumentosPartidaService {
     public List<DocumentosFuente> findDocumentosByPartidaId(Integer idPartida) {
         return documentosFuenteRepository.findDocumentosByPartidaIdpartida(idPartida);
     }
+
+    public void deleteDocumentoById(Integer idDocumento) {
+        documentosFuenteRepository.deleteById(idDocumento);
+    }
 }

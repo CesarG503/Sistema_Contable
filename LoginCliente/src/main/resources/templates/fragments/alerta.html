@@ -1,0 +1,16 @@
+<div th:fragment="alerta(mensaje, tipo)"
+     class="alert"
+     th:classappend="' alert-' + ${tipo}"
+     role="alert">
+
+    <div class="alert-content">
+        <span class="alert-icon" th:if="${tipo == 'success'}"><i class="fa-regular fa-circle-check"></i></span>
+        <span class="alert-icon" th:if="${tipo == 'danger'}"><i class="fa-solid fa-triangle-exclamation"></i></span>
+
+        <div class="alert-message">
+            <div class="alert-text" th:text="${mensaje}"></div>
+        </div>
+    </div>
+
+    <button class="alert-close" onclick="cerrarAlerta(this)" aria-label="Cerrar">×</button>
+</div>

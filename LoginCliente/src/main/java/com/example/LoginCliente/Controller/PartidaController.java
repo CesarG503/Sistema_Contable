@@ -9,6 +9,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.io.BigDecimalParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -31,6 +34,8 @@ import java.util.*;
 @Controller
 @RequestMapping("/partidas")
 public class PartidaController {
+
+    private static final Logger logger = LoggerFactory.getLogger(PartidaController.class);
 
     @Autowired
     private PartidaService partidaService;
@@ -72,13 +77,16 @@ public class PartidaController {
             List<DocumentosFuente> documentos = documentosPartidaService.findDocumentosByPartidaId(partida.getIdPartida());
             List<DocumentosFuenteDTO> documentosDTO = new ArrayList<>();
             documentos.forEach(documento -> {
+                String authorUsuario = documento.getAnadidoPor() != null ? documento.getAnadidoPor().getUsuario() : "";
+                String fechaSubida = documento.getFecha_subida() != null ? documento.getFecha_subida().toString() : "";
                 documentosDTO.add(
                         new DocumentosFuenteDTO(
                                 documento.getId_documento(),
                                 documento.getNombre(),
                                 documento.getRuta(),
-                                documento.getFecha_subida().toString(),
-                                documento.getAñadidoPor().getUsuario()
+                                fechaSubida,
+                                documento.getValor(),
+                                authorUsuario
                         ));
             });
             PartidaDTO partidaDTO = new PartidaDTO(
@@ -117,8 +125,21 @@ public class PartidaController {
             Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
             Integer usuarioEmpresaId = (Integer) session.getAttribute("usuarioEmpresaId");
 
+            // Log de depuración para entender por qué puede fallar
+            logger.debug("crearPartida called - empresaActiva={}, usuarioEmpresaId={}, concepto='{}', fechaPartida='{}'", empresaActiva, usuarioEmpresaId, concepto, fechaPartida);
+            logger.debug("movimientosJson length={}, nombresArchivosJson length={}", movimientosJson != null ? movimientosJson.length() : 0, nombresArchivosJson != null ? nombresArchivosJson.length() : 0);
+            logger.debug("archivosOrigen is null? {}", archivosOrigen == null);
+            if (archivosOrigen != null) {
+                logger.debug("archivosOrigen length={}", archivosOrigen.length);
+                for (int i = 0; i < archivosOrigen.length; i++) {
+                    MultipartFile f = archivosOrigen[i];
+                    logger.debug("archivo[{}] name={}, size={}", i, f.getOriginalFilename(), f.getSize());
+                }
+            }
+
             if (empresaActiva == null || usuarioEmpresaId == null) {
                 response.put("error", "Debe seleccionar una empresa primero");
+                logger.warn("crearPartida aborted - empresaActiva or usuarioEmpresaId is null (empresaActiva={}, usuarioEmpresaId={})", empresaActiva, usuarioEmpresaId);
                 return ResponseEntity.badRequest().body(response);
             }
 
@@ -170,12 +191,13 @@ public class PartidaController {
             }
 
             String[] nombresArchivos = mapper.readValue(nombresArchivosJson, String[].class);
+            logger.debug("nombresArchivos count={}", nombresArchivos != null ? nombresArchivos.length : 0);
             List<DocumentosFuente> documentosFuentes = new ArrayList<>();
             if (archivosOrigen != null) {
                 for (int i = 0; i < archivosOrigen.length; i++) {
                     String nombreDbArchivo = nombresArchivos[i];
                     MultipartFile archivoOrigen = archivosOrigen[i];
-                    System.out.println("Nombre para DB: " + nombreDbArchivo);
+                    logger.debug("Processing archivo {} -> nombreDbArchivo='{}' originalName='{}'", i, nombreDbArchivo, archivoOrigen.getOriginalFilename());
 
                     DocumentosFuente documento = new DocumentosFuente();
                     if (archivoOrigen != null && !archivoOrigen.isEmpty()) {
@@ -194,7 +216,8 @@ public class PartidaController {
                         documento.setNombre(nombreDbArchivo);
                         documento.setRuta(destino.toString());
                         documento.setFecha_subida(partida.getFecha());
-                        documento.setAñadidoPor(usuario);
+                        documento.setAnadidoPor(usuario);
+                        documento.setValor(BigDecimal.ZERO);
 
                         documentosFuentes.add(documento);
                     }
@@ -208,6 +231,7 @@ public class PartidaController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("error", "Error al crear la partida: " + e.getMessage());
+            logger.error("Error al crear la partida", e);
             return ResponseEntity.badRequest().body(response);
         }
     }
@@ -249,4 +273,218 @@ public class PartidaController {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    /**
+     * Obtener datos completos de una partida para edición
+     */
+    @GetMapping("/{idPartida}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> obtenerPartida(@PathVariable Integer idPartida) {
+        try {
+            Optional<Partida> partidaOpt = partidaService.findById(idPartida);
+            if (!partidaOpt.isPresent()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Partida partida = partidaOpt.get();
+            Map<String, Object> response = new HashMap<>();
+
+            // Formatear fecha
+            String fechaFormateada = "";
+            if (partida.getFecha() != null) {
+                if (partida.getFecha() instanceof Timestamp) {
+                    fechaFormateada = ((Timestamp) partida.getFecha()).toLocalDateTime().toLocalDate().toString();
+                }
+            }
+
+            response.put("idPartida", partida.getIdPartida());
+            response.put("concepto", partida.getConcepto());
+            response.put("fecha", fechaFormateada);
+
+            // Obtener movimientos
+            List<Movimiento> movimientos = partidaService.findMovimientosByPartida(idPartida);
+            List<Map<String, Object>> movimientosData = new ArrayList<>();
+            for (Movimiento mov : movimientos) {
+                Map<String, Object> movData = new HashMap<>();
+                movData.put("idMovimiento", mov.getIdMovimiento());
+                movData.put("idCuenta", mov.getIdCuenta());
+                movData.put("monto", mov.getMonto());
+                movData.put("tipo", mov.getTipo());
+                movimientosData.add(movData);
+            }
+            response.put("movimientos", movimientosData);
+
+            // Obtener documentos
+            List<DocumentosFuente> documentos = documentosPartidaService.findDocumentosByPartidaId(idPartida);
+            List<Map<String, Object>> documentosData = new ArrayList<>();
+            for (DocumentosFuente doc : documentos) {
+                Map<String, Object> docData = new HashMap<>();
+                docData.put("id", doc.getId_documento());
+                docData.put("nombre", doc.getNombre());
+                docData.put("ruta", doc.getRuta());
+//                docData.put("valor", doc.getValor());
+                documentosData.add(docData);
+            }
+            response.put("documentos", documentosData);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * Actualizar una partida existente
+     */
+    @PostMapping("/actualizar/{idPartida}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> actualizarPartida(
+            @PathVariable Integer idPartida,
+            @RequestParam("concepto") String concepto,
+            @RequestParam("fechaPartida") String fechaPartida,
+            @RequestParam(value = "movimientos") String movimientosJson,
+            @RequestParam(value = "nombresArchivos", required = false) String nombresArchivosJson,
+            @RequestParam(value = "archivosOrigen", required = false) MultipartFile[] archivosOrigen,
+            @RequestParam(value = "montosArchivo", required = false) String montosArchivoJson,
+            @RequestParam(value = "documentosAEliminar", required = false) String documentosAEliminarJson,
+            HttpSession session) {
+
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
+            Integer usuarioEmpresaId = (Integer) session.getAttribute("usuarioEmpresaId");
+
+            if (empresaActiva == null || usuarioEmpresaId == null) {
+                response.put("error", "Debe seleccionar una empresa primero");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // Verificar que la partida existe
+            Optional<Partida> partidaOpt = partidaService.findById(idPartida);
+            if (!partidaOpt.isPresent()) {
+                response.put("error", "Partida no encontrada");
+                return ResponseEntity.notFound().build();
+            }
+
+            Partida partida = partidaOpt.get();
+
+            // Actualizar datos básicos
+            partida.setConcepto(concepto);
+            if (fechaPartida != null && !fechaPartida.isEmpty()) {
+                LocalDateTime fecha = LocalDateTime.parse(fechaPartida + "T00:00:00");
+                partida.setFecha(Timestamp.valueOf(fecha));
+            }
+
+            // Procesar movimientos
+            List<Movimiento> movimientos = new ArrayList<>();
+            ObjectMapper mapper = new ObjectMapper();
+            List<Map<String, Object>> movimientosData = mapper.readValue(movimientosJson, List.class);
+
+            BigDecimal totalDebe = BigDecimal.ZERO;
+            BigDecimal totalHaber = BigDecimal.ZERO;
+
+            for (Map<String, Object> movData : movimientosData) {
+                Integer idCuenta = Integer.valueOf(movData.get("idCuenta").toString());
+                BigDecimal monto = new BigDecimal(movData.get("monto").toString());
+                String tipo = movData.get("tipo").toString();
+
+                Movimiento mov = new Movimiento();
+                mov.setIdCuenta(idCuenta);
+                mov.setMonto(monto);
+                mov.setTipo(tipo);
+                mov.setIdPartida(idPartida);
+
+                movimientos.add(mov);
+
+                if ("D".equals(tipo)) {
+                    totalDebe = totalDebe.add(monto);
+                } else {
+                    totalHaber = totalHaber.add(monto);
+                }
+            }
+
+            // Validar balance
+            if (totalDebe.compareTo(totalHaber) != 0) {
+                response.put("error", "El total del Debe debe ser igual al total del Haber");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // Eliminar documentos marcados
+            if (documentosAEliminarJson != null && !documentosAEliminarJson.isEmpty()) {
+                List<Integer> documentosAEliminar = mapper.readValue(documentosAEliminarJson, List.class);
+                for (Integer docId : documentosAEliminar) {
+                    documentosPartidaService.deleteDocumentoById(docId);
+                }
+            }
+
+            // Procesar nuevos documentos
+            List<DocumentosFuente> nuevosDocumentos = new ArrayList<>();
+            if (archivosOrigen != null && archivosOrigen.length > 0 && nombresArchivosJson != null) {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                String username = authentication.getName();
+                Usuario usuario = usuarioService.findByUsuario(username);
+
+                List<String> nombresArchivos = mapper.readValue(nombresArchivosJson, List.class);
+                List<BigDecimal> montosArchivo = mapper.readValue(montosArchivoJson, List.class);
+
+                String uploadDir = "uploads/";
+                File uploadDirFile = new File(uploadDir);
+                if (!uploadDirFile.exists()) {
+                    uploadDirFile.mkdirs();
+                }
+
+                for (int i = 0; i < archivosOrigen.length; i++) {
+                    MultipartFile file = archivosOrigen[i];
+                    if (file != null && !file.isEmpty()) {
+                        String originalFilename = file.getOriginalFilename();
+                        String extension = originalFilename != null ? originalFilename.substring(originalFilename.lastIndexOf(".")) : ".bin";
+                        String nuevoNombre = UUID.randomUUID() + extension;
+                        Path filepath = Paths.get(uploadDir, nuevoNombre);
+                        Files.write(filepath, file.getBytes());
+
+                        DocumentosFuente documento = new DocumentosFuente();
+                        documento.setNombre(nombresArchivos.get(i));
+                        documento.setRuta("uploads/" + nuevoNombre);
+                        documento.setFecha_subida(new Timestamp(System.currentTimeMillis()));
+                        documento.setAnadidoPor(usuario);
+                        documento.setValor(BigDecimal.ZERO);
+
+                        nuevosDocumentos.add(documento);
+                    }
+                }
+            }
+
+            // Actualizar partida con movimientos y documentos
+            Partida partidaActualizada = partidaService.update(partida, movimientos, nuevosDocumentos);
+
+            response.put("success", true);
+            response.put("partidaId", partidaActualizada.getIdPartida());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("error", "Error al actualizar la partida: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/eliminar/{id}")
+    public String eliminarPartida(@PathVariable Integer id,
+                                  @RequestHeader(value = "Referer", required = false) String referer,
+                                  RedirectAttributes redirectAttributes) {
+        try {
+            partidaService.deleteById(id);
+            redirectAttributes.addFlashAttribute("success", "Partida eliminada exitosamente");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error al eliminar: " + e.getMessage());
+        }
+
+        // Si hay referer, redirige ahí, sino a una página por defecto
+        if (referer != null && !referer.isEmpty()) {
+            return "redirect:" + referer;
+        }
+        // Sino encuentra la referencia, redirige al dashboard o a otra página predeterminada
+        return "redirect:/dashboard";
+    }
+
 }

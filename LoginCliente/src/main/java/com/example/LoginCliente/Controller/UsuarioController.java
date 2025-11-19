@@ -1,10 +1,12 @@
 package com.example.LoginCliente.Controller;
 
 import com.example.LoginCliente.Models.Usuario;
+import com.example.LoginCliente.Service.EmailService;
 import com.example.LoginCliente.Service.UsuarioService;
 import jakarta.servlet.http.HttpSession;
 import jdk.jfr.Name;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
@@ -13,8 +15,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 @Controller
@@ -23,6 +28,9 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioService usuarioService;
+
+    @Autowired
+    private EmailService emailService;
 
     private static final Logger logger = Logger.getLogger(UsuarioController.class.getName());
 
@@ -168,9 +176,53 @@ public class UsuarioController {
         return "dashboard";
     }
 
-    @GetMapping("/recuperar-cuenta")
-    public String recuperarCuenta(Model model) {
-        return "redirect:/recuperar";
+    @PostMapping("/recuperar-cuenta")
+    public String recuperarCuenta(@RequestParam("email") String email,
+                                  RedirectAttributes redirectAttributes) {
+        if (email == null || email.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "El email es obligatorio.");
+            return "redirect:/usuarios/recuperar";
+        }
+
+        // Buscar usuario por correo
+        Usuario usuario = usuarioService.findByCorreo(email.trim());
+
+        if (usuario == null) {
+            // Por seguridad, no revelamos si el correo existe o no
+            redirectAttributes.addFlashAttribute("success",
+                "Si el correo existe, recibirás un enlace de recuperación.");
+            return "redirect:/usuarios/recuperar";
+        }
+
+        try {
+            // Generar token de recuperación
+            String token = usuarioService.generarTokenRecuperacion(usuario);
+
+            // Construir enlace de recuperación
+            String enlaceRecuperacion = "http://localhost:8080/usuarios/restablecer-pwd?token=" + token;
+
+            // Preparar variables para el template
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("enlace", enlaceRecuperacion);
+            variables.put("nombreUsuario", usuario.getUsuario());
+
+            // Enviar correo con el template
+            emailService.sendEmailHtml(
+                email.trim(),
+                "OneDI System",
+                "auth/email-pwd",
+                variables
+            );
+
+            redirectAttributes.addFlashAttribute("success",
+                "Si el correo existe, recibirás un enlace de recuperación.");
+        } catch (Exception e) {
+            logger.severe("Error al enviar correo de recuperación: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error",
+                "Hubo un error al procesar tu solicitud. Intenta nuevamente.");
+        }
+
+        return "redirect:/usuarios/recuperar";
     }
 
     @GetMapping("/recuperar")
@@ -178,5 +230,64 @@ public class UsuarioController {
 
 
         return "auth/recuperar";
+    }
+
+    /**
+     * Endpoint que recibe el token y muestra el formulario para cambiar contraseña
+     */
+    @GetMapping("/restablecer-pwd")
+    public String restablecerPassword(@RequestParam("token") String token, Model model) {
+        Usuario usuario = usuarioService.validarToken(token);
+
+        if (usuario == null) {
+            model.addAttribute("error", "El enlace es inválido o ha expirado.");
+            return "auth/recuperar";
+        }
+
+        model.addAttribute("token", token);
+        model.addAttribute("usuario", usuario.getUsuario());
+        return "auth/restablecer-pwd";
+    }
+
+    /**
+     * Endpoint para procesar el cambio de contraseña
+     */
+    @PostMapping("/restablecer-pwd")
+    public String procesarRestablecerPassword(@RequestParam("token") String token,
+                                              @RequestParam("password") String password,
+                                              @RequestParam("password2") String password2,
+                                              RedirectAttributes redirectAttributes) {
+
+        if (password == null || password.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "La contraseña es obligatoria.");
+            redirectAttributes.addAttribute("token", token);
+            return "redirect:/usuarios/restablecer-pwd";
+        }
+
+        if (password.length() < 8) {
+            redirectAttributes.addFlashAttribute("error", "La contraseña debe tener al menos 8 caracteres.");
+            redirectAttributes.addAttribute("token", token);
+            return "redirect:/usuarios/restablecer-pwd";
+        }
+
+        if (!password.equals(password2)) {
+            redirectAttributes.addFlashAttribute("error", "Las contraseñas no coinciden.");
+            redirectAttributes.addAttribute("token", token);
+            return "redirect:/usuarios/restablecer-pwd";
+        }
+
+        try {
+            usuarioService.cambiarContrasenaConToken(token, password);
+            redirectAttributes.addFlashAttribute("success", "Contraseña cambiada exitosamente. Ya puedes iniciar sesión.");
+            return "redirect:/usuarios/auth?panel=login";
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", "El enlace es inválido o ha expirado.");
+            return "redirect:/usuarios/recuperar";
+        } catch (Exception e) {
+            logger.severe("Error al cambiar contraseña: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Error al cambiar la contraseña. Intenta nuevamente.");
+            redirectAttributes.addAttribute("token", token);
+            return "redirect:/usuarios/restablecer-pwd";
+        }
     }
 }

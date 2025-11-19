@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar Reporte - Sistema de Contabilidad</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" th:href="@{/css/reporte.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+
+<button class="mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
+
+<div th:replace="fragments/sidebar :: sidebar"></div>
+
+<div class="main-content">
+    <div class="page-header">
+        <h1>Generar Reporte</h1>
+    </div>
+
+    <div class="report-container">
+        <!-- Filtros de Fecha -->
+        <div class="filter-section">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="fechaInicio">Fecha inicial</label>
+                    <input type="date" id="fechaInicio">
+                </div>
+                <div class="filter-group">
+                    <label for="fechaFin">Fecha final</label>
+                    <input type="date" id="fechaFin">
+                </div>
+                <button class="btn-filter" onclick="generarReporte()">Filtrar</button>
+            </div>
+        </div>
+
+        <!-- Tabs y Botones de Exportación -->
+        <div class="tabs-section">
+            <div class="export-buttons" style="padding: 15px 30px; background: white; display: flex; justify-content: flex-end; gap: 10px;">
+                <!-- Simplified buttons to call export functions directly, removing modal logic -->
+                <button class="btn-export btn-export-pdf" onclick="exportarPDF()">
+                    <i class="fas fa-file-pdf"></i> Exportar PDF
+                </button>
+                <button class="btn-export btn-export-excel" onclick="exportarExcel()">
+                    <i class="fas fa-file-excel"></i> Exportar Excel
+                </button>
+            </div>
+
+            <div class="tabs-header">
+                <button class="tab-button active" onclick="cambiarTab('all', event)" data-tab="all">Resumen</button>
+                <button class="tab-button" onclick="cambiarTab('partida-doble', event)" data-tab="partida-doble">Partida doble</button>
+                <button class="tab-button" onclick="cambiarTab('libro-mayor', event)" data-tab="libro-mayor">Libro mayor</button>
+                <button class="tab-button" onclick="cambiarTab('balance-comprobacion', event)" data-tab="balance-comprobacion">Balance de comprobación</button>
+                <button class="tab-button" onclick="cambiarTab('balance-general', event)" data-tab="balance-general">Balance general</button>
+            </div>
+
+            <div class="tabs-content">
+                <div class="loading" id="loading">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 10px;"></i>
+                    <p>Generando reporte...</p>
+                </div>
+
+                <!-- Tab: Todo -->
+                <div class="tab-pane active" id="tab-all">
+                    <div class="empty-state">Selecciona un rango de fechas y haz clic en Filtrar para generar el reporte</div>
+                </div>
+
+                <!-- Tab: Partida Doble (Libro Diario) -->
+                <div class="tab-pane" id="tab-partida-doble">
+                    <h3 style="margin-top: 0;">Libro Diario</h3>
+                    <div class="table-responsive">
+                        <table class="report-table" id="tabla-partida-doble">
+                            <thead>
+                            <tr>
+                                <th># Asiento</th>
+                                <th>Fecha</th>
+                                <th>Descripción</th>
+                                <th></th>
+                                <th>Debe</th>
+                                <th>Haber</th>
+                            </tr>
+                            </thead>
+                            <tbody id="tbody-partida-doble">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab: Libro Mayor (Cuentas T) -->
+                <div class="tab-pane" id="tab-libro-mayor">
+                    <h3 style="margin-top: 0; margin-bottom: 2rem">Libro Mayor - Cuentas T</h3>
+                    <div id="cuentas-t-container">
+                    </div>
+                </div>
+
+                <!-- Tab: Balance de Comprobación -->
+                <div class="tab-pane" id="tab-balance-comprobacion">
+                    <h3 style="margin-top: 0;">Balance de Comprobación</h3>
+                    <div class="table-responsive">
+                        <table class="report-table" id="tabla-balance-comprobacion">
+                            <thead>
+                            <tr>
+                                <th>Cuenta</th>
+                                <th>Tipo</th>
+                                <th class="text-right">Debe</th>
+                                <th class="text-right">Haber</th>
+                            </tr>
+                            </thead>
+                            <tbody id="tbody-balance-comprobacion">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab: Balance General -->
+                <div class="tab-pane" id="tab-balance-general">
+                    <h3 style="margin-top: 0;">Balance General</h3>
+                    <div id="balance-general-container">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/Sidebar.js}"></script>
+<!-- Replaced html2pdf with jsPDF and autoTable for better performance -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<!-- Ensure XLSX is loaded and add the new reporte-excel.js script -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+
+<!-- Add SweetAlert2 library -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script th:src="@{/js/reporte.js}"></script>
+<script th:src="@{/js/reporte-excel.js}"></script>
+</body>
+</html>

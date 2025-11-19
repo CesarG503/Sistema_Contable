@@ -345,12 +345,15 @@ tr:hover {
 
 .btn-remove {
     background: #dc3545;
+    color: #dee2e6;
+}
+.btn-r{
+    background: #dc3545;
     padding: 10px 15px;
     margin: auto;
     width: 100%;
     max-width: 150px;
 }
-
 .btn-remove:hover {
     background: #c82333;
 }
@@ -513,14 +516,40 @@ textarea:focus {
     margin-bottom: 15px;
 }
 
+.cuenta-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+
+/* Información de la cuenta - ocupa el máximo espacio */
+.cuenta-info {
+    flex: 1;
+    min-width: 0; /* Permite que el texto se trunce si es necesario */
+}
+
+/* Botones de acción - ocupan el mínimo espacio */
+.cuenta-actions {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0; /* No se encoge */
+    align-items: flex-start;
+}
+
 .cuenta-header h3 {
     color: #667eea;
-    margin-bottom: 5px;
+    margin: 0 0 5px 0;
+    font-size: 20px;
 }
 
 .cuenta-header p {
     color: #666;
     font-size: 14px;
+    margin: 0 0 8px 0;
 }
 
 .cuenta-naturaleza {
@@ -540,6 +569,28 @@ textarea:focus {
 .naturaleza-A {
     background: #f3e5f5;
     color: #7b1fa2;
+}
+
+
+
+/* Responsive para pantallas muy pequeñas */
+@media (max-width: 480px) {
+    .cuenta-header h3 {
+        font-size: 18px;
+    }
+
+    .cuenta-header p {
+        font-size: 13px;
+    }
+
+    .cuenta-actions {
+        gap: 8px;
+    }
+
+    .btn {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
 }
 
 .saldos {
@@ -906,4 +957,213 @@ textarea:focus {
 .cuenta-movimiento.haber {
     background: #f8d7da;
     color: #721c24;
+}
+
+.swal-high-zindex {
+    z-index: 10000 !important;
+}
+
+.swal2-container {
+    z-index: 10000 !important;
+}
+
+.swal-wide {
+    width: 600px !important;
+    max-width: 90vw !important;
+}
+
+.swal-wide .swal2-html-container {
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/* Alerta base */
+.alert {
+    position: relative;
+    padding: 12px 20px;
+    margin-bottom: 16px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+/* Contenido de la alerta */
+.alert-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alert-icon {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.alert-message {
+    flex: 1;
+}
+
+.alert-text {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Botón cerrar */
+.alert-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.alert-close:hover {
+    opacity: 1;
+}
+
+/* Success */
+.alert-success {
+    color: #0f5132;
+    background-color: #d1e7dd;
+    border-color: #badbcc;
+}
+
+.alert-success .alert-close {
+    color: #0f5132;
+}
+
+/* Error */
+.alert-danger {
+    color: #842029;
+    background-color: #f8d7da;
+    border-color: #f5c2c7;
+}
+
+.alert-danger .alert-close {
+    color: #842029;
+}
+
+
+.mensaje-ajuste-texto {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #721c24;
+    margin: 15px 0 0 0;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c2c7 100%);
+    border-left: 4px solid #dc3545;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.15);
+    animation: slideInUp 0.3s ease;
+}
+
+.mensaje-ajuste-texto i {
+    font-size: 16px;
+    color: #dc3545;
+    flex-shrink: 0;
+}
+
+.mensaje-ajuste-texto span {
+    flex: 1;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Tarjeta con ajuste necesario - Borde rojo LED */
+.necesita-ajuste {
+    border: 2px solid #dc3545;
+    box-shadow: 0 0 15px rgba(220, 53, 69, 0.3),
+    0 0 30px rgba(220, 53, 69, 0.2),
+    inset 0 0 10px rgba(220, 53, 69, 0.1);
+    animation: ledPulse 2s ease-in-out infinite;
+    position: relative;
+}
+
+
+
+/* Animación LED pulsante */
+@keyframes ledPulse {
+    0%, 100% {
+        box-shadow: 0 0 15px rgba(220, 53, 69, 0.4),
+        0 0 30px rgba(220, 53, 69, 0.2),
+        inset 0 0 10px rgba(220, 53, 69, 0.1);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(220, 53, 69, 0.6),
+        0 0 40px rgba(220, 53, 69, 0.3),
+        inset 0 0 15px rgba(220, 53, 69, 0.15);
+    }
+}
+
+@keyframes gradientShift {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+/* Destacar el saldo negativo */
+.cuenta-card.necesita-ajuste .saldo-final strong {
+    color: #dc3545;
+    font-weight: 700;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
 }
