@@ -9,6 +9,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.io.BigDecimalParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -32,6 +34,8 @@ import java.util.*;
 @Controller
 @RequestMapping("/partidas")
 public class PartidaController {
+
+    private static final Logger logger = LoggerFactory.getLogger(PartidaController.class);
 
     @Autowired
     private PartidaService partidaService;
@@ -121,8 +125,21 @@ public class PartidaController {
             Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
             Integer usuarioEmpresaId = (Integer) session.getAttribute("usuarioEmpresaId");
 
+            // Log de depuración para entender por qué puede fallar
+            logger.debug("crearPartida called - empresaActiva={}, usuarioEmpresaId={}, concepto='{}', fechaPartida='{}'", empresaActiva, usuarioEmpresaId, concepto, fechaPartida);
+            logger.debug("movimientosJson length={}, nombresArchivosJson length={}", movimientosJson != null ? movimientosJson.length() : 0, nombresArchivosJson != null ? nombresArchivosJson.length() : 0);
+            logger.debug("archivosOrigen is null? {}", archivosOrigen == null);
+            if (archivosOrigen != null) {
+                logger.debug("archivosOrigen length={}", archivosOrigen.length);
+                for (int i = 0; i < archivosOrigen.length; i++) {
+                    MultipartFile f = archivosOrigen[i];
+                    logger.debug("archivo[{}] name={}, size={}", i, f.getOriginalFilename(), f.getSize());
+                }
+            }
+
             if (empresaActiva == null || usuarioEmpresaId == null) {
                 response.put("error", "Debe seleccionar una empresa primero");
+                logger.warn("crearPartida aborted - empresaActiva or usuarioEmpresaId is null (empresaActiva={}, usuarioEmpresaId={})", empresaActiva, usuarioEmpresaId);
                 return ResponseEntity.badRequest().body(response);
             }
 
@@ -174,12 +191,13 @@ public class PartidaController {
             }
 
             String[] nombresArchivos = mapper.readValue(nombresArchivosJson, String[].class);
+            logger.debug("nombresArchivos count={}", nombresArchivos != null ? nombresArchivos.length : 0);
             List<DocumentosFuente> documentosFuentes = new ArrayList<>();
             if (archivosOrigen != null) {
                 for (int i = 0; i < archivosOrigen.length; i++) {
                     String nombreDbArchivo = nombresArchivos[i];
                     MultipartFile archivoOrigen = archivosOrigen[i];
-                    System.out.println("Nombre para DB: " + nombreDbArchivo);
+                    logger.debug("Processing archivo {} -> nombreDbArchivo='{}' originalName='{}'", i, nombreDbArchivo, archivoOrigen.getOriginalFilename());
 
                     DocumentosFuente documento = new DocumentosFuente();
                     if (archivoOrigen != null && !archivoOrigen.isEmpty()) {
@@ -212,6 +230,7 @@ public class PartidaController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("error", "Error al crear la partida: " + e.getMessage());
+            logger.error("Error al crear la partida", e);
             return ResponseEntity.badRequest().body(response);
         }
     }

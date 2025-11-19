@@ -3,15 +3,18 @@ function openModal() {
 }
 
 function closeModal() {
-    document.getElementById("partidaModal").style.display = "none"
-    document.getElementById("partidaForm").reset()
-    //Eliminar documentos seleccionados
+    const modal = document.getElementById("partidaModal");
+    if (modal) modal.style.display = "none";
+    const form = document.getElementById("partidaForm");
+    if (form) form.reset();
+    // Eliminar documentos seleccionados (remover todos los hijos)
     const archivosOrigen = document.getElementById("archivosOrigen");
-    const nDocumentos = archivosOrigen.children.length;
-    while(nDocumentos > 0) {
-        archivosOrigen.removeChild(archivosOrigen.lastChild);
+    if (archivosOrigen) {
+        while (archivosOrigen.firstChild) {
+            archivosOrigen.removeChild(archivosOrigen.lastChild);
+        }
     }
-    //resetVistaPrevia();
+    resetVistaPrevia();
 }
 
 function addMovimiento() {
@@ -149,9 +152,26 @@ function resetVistaPrevia() {
     });
 }
 
-document.getElementById("archivoOrigen").addEventListener("change", () =>{
-    cargarVistaPrevia('');
-});
+// proteger elemento que puede no existir inicialmente
+const archivoOrigenElement = document.getElementById("archivoOrigen");
+if (archivoOrigenElement) {
+    archivoOrigenElement.addEventListener("change", () =>{
+        cargarVistaPrevia('');
+    });
+}
+
+// Obtener token CSRF (si está presente en la página)
+function getCsrf() {
+    const tokenMeta = document.querySelector('meta[name="_csrf"]');
+    const headerMeta = document.querySelector('meta[name="_csrf_header"]');
+    if (tokenMeta && headerMeta) {
+        return {
+            headerName: headerMeta.getAttribute('content'),
+            token: tokenMeta.getAttribute('content')
+        };
+    }
+    return null;
+}
 
 document.getElementById("partidaForm").addEventListener("submit", async (e) => {
     e.preventDefault()
@@ -190,10 +210,10 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
         const listId = row.querySelector(".cuenta-select").getAttribute("list");
         const dataList = document.getElementById(listId);
         const cuentaInput = row.querySelector(".cuenta-select");
-        const selectedOption = Array.from(dataList.options).find(
+        const selectedOption = dataList ? Array.from(dataList.options).find(
             option => option.value === cuentaInput.value
-        );
-        const idCuenta = selectedOption.dataset.id;
+        ) : null;
+        const idCuenta = selectedOption ? selectedOption.dataset.id : null;
 
         const monto = row.querySelector(".monto-input").value
         const tipo = row.querySelector(".tipo-select").value
@@ -209,25 +229,32 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
     formData.append('movimientos', JSON.stringify(movimientos));
     formData.append("nombresArchivos", JSON.stringify(nombreDocumentosArray));
 
-    // Debug: mostrar cuántos archivos se van a enviar
-    /*console.log("=== DEBUG JS ===");
-    console.log("Archivos a enviar:", archivosOrigenArray.length);*/
-
     // Importante: usar el mismo nombre de parámetro para todos los archivos
     archivosOrigenArray.forEach((archivo, index) => {
-        //console.log(`Añadiendo archivo ${index}:`, archivo.name);
         formData.append('archivosOrigen', archivo);
     });
 
-    // Debug: mostrar el contenido del FormData
-    /*console.log("Contenido del FormData:");
-    for (let pair of formData.entries()) {
-        console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
-    }*/
-
     try {
+        const csrf = getCsrf();
+        const headers = {};
+        if (csrf && csrf.headerName) headers[csrf.headerName] = csrf.token;
+
+        // If no header is available but a CSRF param name exists in meta, append it to the FormData
+        if (!(csrf && csrf.headerName) ) {
+            const paramMeta = document.querySelector('meta[name="_csrf_param"]');
+            const tokenMeta = document.querySelector('meta[name="_csrf"]');
+            if (paramMeta && tokenMeta && tokenMeta.getAttribute('content')) {
+                const paramName = paramMeta.getAttribute('content');
+                const token = tokenMeta.getAttribute('content');
+                if (paramName && token) {
+                    formData.append(paramName, token);
+                }
+            }
+        }
+
         const response = await fetch("/partidas/crear", {
             method: "POST",
+            headers: headers,
             body: formData
         })
 
@@ -238,7 +265,8 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
             await alerta("Partida creada exitosamente")
             location.reload()
         } else {
-            await alerta("Error al crear la partida: " + error.message, 'error')
+            const errMsg = data && (data.error || data.message) ? (data.error || data.message) : 'Error al crear la partida';
+            await alerta("Error al crear la partida: " + errMsg, 'error')
         }
     } catch (error) {
         await alerta("Error al crear la partida: " + error.message, 'error')
