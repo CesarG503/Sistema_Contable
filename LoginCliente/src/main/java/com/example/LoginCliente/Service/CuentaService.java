@@ -240,6 +240,13 @@ public class CuentaService {
                 cuenta.setTipo(campos[2].trim());
                 cuenta.setDescripcion(campos.length > 7 ? campos[7].trim() : "");
 
+                String tipo = cuenta.getTipo().toUpperCase();
+                if (tipo.contains("ACTIVO") || tipo.contains("GASTO") || tipo.contains("COSTO")) {
+                    cuenta.setNaturaleza("D");
+                } else {
+                    cuenta.setNaturaleza("A");
+                }
+
                 cuentas.add(cuenta);
             }
         }
