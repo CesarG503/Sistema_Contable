@@ -1079,3 +1079,92 @@ textarea:focus {
 .alert-danger .alert-close {
     color: #842029;
 }
+
+
+.mensaje-ajuste-texto {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #721c24;
+    margin: 15px 0 0 0;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c2c7 100%);
+    border-left: 4px solid #dc3545;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.15);
+    animation: slideInUp 0.3s ease;
+}
+
+.mensaje-ajuste-texto i {
+    font-size: 16px;
+    color: #dc3545;
+    flex-shrink: 0;
+}
+
+.mensaje-ajuste-texto span {
+    flex: 1;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Tarjeta con ajuste necesario - Borde rojo LED */
+.necesita-ajuste {
+    border: 2px solid #dc3545;
+    box-shadow: 0 0 15px rgba(220, 53, 69, 0.3),
+    0 0 30px rgba(220, 53, 69, 0.2),
+    inset 0 0 10px rgba(220, 53, 69, 0.1);
+    animation: ledPulse 2s ease-in-out infinite;
+    position: relative;
+}
+
+
+
+/* Animación LED pulsante */
+@keyframes ledPulse {
+    0%, 100% {
+        box-shadow: 0 0 15px rgba(220, 53, 69, 0.4),
+        0 0 30px rgba(220, 53, 69, 0.2),
+        inset 0 0 10px rgba(220, 53, 69, 0.1);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(220, 53, 69, 0.6),
+        0 0 40px rgba(220, 53, 69, 0.3),
+        inset 0 0 15px rgba(220, 53, 69, 0.15);
+    }
+}
+
+@keyframes gradientShift {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+/* Destacar el saldo negativo */
+.cuenta-card.necesita-ajuste .saldo-final strong {
+    color: #dc3545;
+    font-weight: 700;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
