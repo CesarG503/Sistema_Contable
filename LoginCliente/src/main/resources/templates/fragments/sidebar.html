@@ -26,6 +26,26 @@
     <div class="sidebar-menu">
 
         <div class="menu-section">
+            <div class="menu-title">Atajos Rápidos</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 15px; margin-bottom: 15px;">
+                <!-- Botón Crear Cuenta -->
+                <a href="/cuentas/crear" class="btn btn-success"
+                   style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px 8px"
+                   onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.5)';"
+                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.3)';">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span style="font-size: 11px; font-weight: 600; text-align: center; line-height: 1.2; padding: 10px 0 ">Crear Cuenta</span>
+                </a>
+
+                <!-- Botón Nueva Partida -->
+                <a href="/partidas/libro-diario?openModal=true" class="btn btn-success"
+                   style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px 8px;"
+                   onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 6px 20px rgba(245, 87, 108, 0.5)';"
+                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(245, 87, 108, 0.3)';">
+                    <i class="fa-solid fa-plus-circle"></i>
+                    <span style="font-size: 11px; font-weight: 600; text-align: center; line-height: 1.2; padding: 10px 0">Nueva Partida</span>
+                </a>
+            </div>
             <div class="menu-title">MENU</div>
             <a href="/usuarios/home" class="menu-item" th:classappend="${page} == 'dashboard' ? ' active' : ''">
                 <div class="menu-icon"><i class="fa-solid fa-scale-balanced"></i></div>
@@ -39,17 +59,9 @@
                 <div class="menu-icon"><i class="fa-solid fa-file"></i></div>
                 <span>Cuentas T</span>
             </a>
-            <a href="/cuentas/crear" class="menu-item" th:classappend="${page} == 'crear-cuentas' ? ' active' : ''">
-                <div class="menu-icon">➕</div>
-                <span>Crear Cuenta</span>
-            </a>
             <a href="/reportes/generar" class="menu-item" th:classappend="${page} == 'generar-reporte' ? ' active' : ''">
                 <div class="menu-icon"><i class="fa-solid fa-file-export"></i></div>
                 <span>Generar Reportes</span>
-            </a>
-            <a href="/cuentas/cargar-cuentas" class="menu-item" th:classappend="${page} == 'cargar-cuentas' ? ' active' : ''">
-                <div class="menu-icon"><i class="fa-solid fa-file-csv"></i></div>
-                <span>Cargar Cuentas CSV</span>
             </a>
         </div>
 

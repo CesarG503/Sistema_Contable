@@ -93,6 +93,19 @@ body {
     border-left-color: #667eea;
 }
 
+/* Estilo especial para el atajo de Nueva Partida */
+.menu-item.shortcut-highlight {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+    border-left-color: #667eea;
+    color: #a8b3ff;
+    font-weight: 600;
+}
+
+.menu-item.shortcut-highlight .menu-icon {
+    color: #667eea;
+    animation: pulse 2s ease-in-out infinite;
+}
+
 .menu-icon {
     width: 24px;
     height: 24px;

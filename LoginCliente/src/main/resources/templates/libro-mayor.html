@@ -17,10 +17,14 @@
 
 <div class="main-content">
     <div class="page-header">
-        <div>
             <h1>Cuentas T</h1>
-            <p>Resumen de movimientos y saldos por cuenta</p>
+        <div>
+            <a href="/cuentas/crear" class="btn btn-primary">Crear Cuenta</a>
+            <a href="/cuentas/cargar-cuentas" class="btn btn-edit" th:classappend="${page} == 'cargar-cuentas' ? ' active' : ''">
+                <span>Crear con CSV</span>
+            </a>
         </div>
+
     </div>
 
     <!-- Mensaje de éxito -->

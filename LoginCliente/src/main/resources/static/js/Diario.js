@@ -194,27 +194,26 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
         }
     });
 
-    const formData = new FormData();
-    formData.append('concepto', concepto);
-    formData.append('fechaPartida', fechaPartida);
-    formData.append('movimientos', JSON.stringify(movimientos));
-    formData.append("nombresArchivos", JSON.stringify(nombreDocumentosArray));
+    // Función auxiliar para crear el FormData
+    const crearFormData = (incluirForzar = false) => {
+        const fd = new FormData();
+        fd.append('concepto', concepto);
+        fd.append('fechaPartida', fechaPartida);
+        fd.append('movimientos', JSON.stringify(movimientos));
+        fd.append("nombresArchivos", JSON.stringify(nombreDocumentosArray));
 
-    // Debug: mostrar cuántos archivos se van a enviar
-    /*console.log("=== DEBUG JS ===");
-    console.log("Archivos a enviar:", archivosOrigenArray.length);*/
+        archivosOrigenArray.forEach((archivo) => {
+            fd.append('archivosOrigen', archivo);
+        });
 
-    // Importante: usar el mismo nombre de parámetro para todos los archivos
-    archivosOrigenArray.forEach((archivo, index) => {
-        //console.log(`Añadiendo archivo ${index}:`, archivo.name);
-        formData.append('archivosOrigen', archivo);
-    });
+        if (incluirForzar) {
+            fd.append('forzar', 'true');
+        }
 
-    // Debug: mostrar el contenido del FormData
-    /*console.log("Contenido del FormData:");
-    for (let pair of formData.entries()) {
-        console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
-    }*/
+        return fd;
+    };
+
+    const formData = crearFormData();
 
     try {
         const response = await fetch("/partidas/crear", {
@@ -225,16 +224,61 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
         const data = await response.json();
 
         if (response.ok) {
-            closeModal()  // Cierra la modal antes de la alerta
-            await alerta("Partida creada exitosamente")
-            location.reload()
+            // Verificar si hay advertencia de cuentas negativas
+            if (data.warning) {
+                // No cerramos la modal para conservar los datos ingresados
+
+                // Construir mensaje detallado
+                let mensajeDetallado = data.mensaje + "\n\n";
+                const result = await Swal.fire({
+                    icon: 'warning',
+                    title: 'Advertencia de Saldo Negativo',
+                    html: mensajeDetallado.replace(/\n/g, '<br>'),
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, continuar',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6'
+                });
+
+                if (result.isConfirmed) {
+                    // Usuario confirmó, crear nuevo FormData con forzar=true
+                    const formDataForzado = crearFormData(true);
+
+                    const responseForzado = await fetch("/partidas/crear", {
+                        method: "POST",
+                        body: formDataForzado
+                    });
+
+                    const dataForzado = await responseForzado.json();
+
+                    if (responseForzado.ok && dataForzado.success) {
+                        // Solo cerramos si es exitoso
+                        closeModal();
+                        await alerta("Partida creada exitosamente", 'success');
+                        location.reload();
+                    } else {
+                        // Error al forzar: NO cerramos la modal
+                        await alerta(dataForzado.error || "Error al crear la partida", 'error');
+                        // La modal permanece abierta
+                    }
+                }
+                // Si cancela, no hacemos nada - la modal sigue abierta
+            } else if (data.success) {
+                // Éxito normal sin advertencias
+                closeModal();
+                await alerta("Partida creada exitosamente", 'success');
+                location.reload();
+            }
         } else {
-            closeModal()
-            await alerta("Error al crear la partida: " + error.message, 'error')
+            // Error en la respuesta: NO cerramos la modal
+            await alerta(data.error || "Error al crear la partida", 'error');
+            // La modal permanece abierta con los datos
         }
     } catch (error) {
-        closeModal()
-        await alerta("Error al crear la partida: " + error.message, 'error')
+        // Error de red/excepción: NO cerramos la modal
+        await alerta("Error al crear la partida: " + error.message, 'error');
+        // La modal permanece abierta con los datos
     }
 });
 
@@ -247,3 +291,14 @@ async function alerta(message, type = 'info', title = 'OneDi system') {
         confirmButtonText: 'Aceptar'
     });
 }
+
+// Detectar si se debe abrir la modal automáticamente desde el sidebar
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('openModal') === 'true') {
+        openModal();
+        // Limpiar el parámetro de la URL sin recargar la página
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+});
+
