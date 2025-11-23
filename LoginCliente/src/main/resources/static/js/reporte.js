@@ -983,12 +983,13 @@ function exportarPDF() {
                         yPosition = data.cursor.y + 5
                     },
                 })
-                yPosition = doc.lastAutoTable.finalY + 15
+                yPosition = doc.lastAutoTable.finalY + 20 // Increased spacing
             }
 
             // --- Estado de Resultados ---
             if (reporteData.ingresos || reporteData.gastos) {
-                if (yPosition > pageHeight - 50) {
+                if (yPosition > pageHeight - 60) {
+                    // Increased page break threshold
                     doc.addPage()
                     yPosition = 20
                 }
@@ -996,69 +997,67 @@ function exportarPDF() {
                 doc.setFontSize(14)
                 doc.setFont(undefined, "bold")
                 doc.text("Estado de Resultados", margin, yPosition)
-                yPosition += 10
+                yPosition += 15 // Increased spacing
 
                 const dataER = []
 
                 if (reporteData.ingresos && reporteData.ingresos.length > 0) {
-                    doc.setFontSize(12)
-                    doc.setFont(undefined, "bold")
-                    doc.text("Ingresos (Debe)", margin, yPosition)
-                    yPosition += 8
+                    dataER.push([{ content: "INGRESOS", colSpan: 2, styles: { fontStyle: "bold", fillColor: [240, 240, 240] } }])
 
+                    let totalIngresosSection = 0
                     reporteData.ingresos.forEach((ingreso) => {
-                        dataER.push([ingreso.nombre, "$" + Number.parseFloat(ingreso.saldo).toFixed(2)])
-                        yPosition += 5
+                        const val = Number.parseFloat(ingreso.saldo)
+                        totalIngresosSection += val
+                        dataER.push([ingreso.nombre, "$" + val.toFixed(2)])
                     })
-
-                    dataER.push(["Total Ingresos", "$" + (Number.parseFloat(reporteData.totalIngresos) || 0).toFixed(2)])
-                    yPosition += 15
+                    dataER.push([
+                        { content: "Total Ingresos", styles: { fontStyle: "bold" } },
+                        { content: "$" + totalIngresosSection.toFixed(2), styles: { fontStyle: "bold", halign: "right" } },
+                    ])
                 }
 
                 if (reporteData.gastos && reporteData.gastos.length > 0) {
-                    doc.setFontSize(12)
-                    doc.setFont(undefined, "bold")
-                    doc.text("Gastos (Haber)", margin, yPosition)
-                    yPosition += 8
+                    dataER.push([{ content: "GASTOS", colSpan: 2, styles: { fontStyle: "bold", fillColor: [240, 240, 240] } }])
 
+                    let totalGastosSection = 0
                     reporteData.gastos.forEach((gasto) => {
-                        dataER.push([gasto.nombre, "$" + Number.parseFloat(gasto.saldo).toFixed(2)])
-                        yPosition += 5
+                        const val = Number.parseFloat(gasto.saldo)
+                        totalGastosSection += val
+                        dataER.push([gasto.nombre, "$" + val.toFixed(2)])
                     })
-
-                    dataER.push(["Total Gastos", "$" + (Number.parseFloat(reporteData.totalGastos) || 0).toFixed(2)])
-                    yPosition += 15
+                    dataER.push([
+                        { content: "Total Gastos", styles: { fontStyle: "bold" } },
+                        { content: "$" + totalGastosSection.toFixed(2), styles: { fontStyle: "bold", halign: "right" } },
+                    ])
                 }
 
                 const utilidadNeta = Number.parseFloat(reporteData.utilidadNeta) || 0
-                const utilidadColor = utilidadNeta >= 0 ? "#27ae60" : "#c0392b"
+                const labelUtilidad = utilidadNeta >= 0 ? "UTILIDAD NETA" : "PÉRDIDA NETA"
 
-                dataER.push(
-                    [
-                        "Utilidad Neta",
-                        utilidadColor === "#27ae60" ? "$" + utilidadNeta.toFixed(2) : "-$" + Math.abs(utilidadNeta).toFixed(2),
-                    ],
-                    [""],
-                )
+                dataER.push([
+                    { content: labelUtilidad, styles: { fontStyle: "bold", fontSize: 11 } },
+                    { content: "$" + utilidadNeta.toFixed(2), styles: { fontStyle: "bold", fontSize: 11, halign: "right" } },
+                ])
 
                 doc.autoTable({
-                    head: [["Concepto", "Monto"]],
                     body: dataER,
                     startY: yPosition,
                     margin: { left: margin, right: margin },
                     columnStyles: {
-                        1: { halign: "right" },
+                        1: { halign: "right", cellWidth: 50 },
                     },
+                    theme: "grid", // Use grid theme for better readability
                     didDrawPage: (data) => {
                         yPosition = data.cursor.y + 5
                     },
                 })
-                yPosition = doc.lastAutoTable.finalY + 15
+                yPosition = doc.lastAutoTable.finalY + 20 // Increased spacing
             }
 
             // --- Estado de Capital ---
             if (reporteData.capitalAccounts || reporteData.retiros) {
-                if (yPosition > pageHeight - 50) {
+                if (yPosition > pageHeight - 60) {
+                    // Increased page break threshold
                     doc.addPage()
                     yPosition = 20
                 }
@@ -1066,68 +1065,43 @@ function exportarPDF() {
                 doc.setFontSize(14)
                 doc.setFont(undefined, "bold")
                 doc.text("Estado de Capital", margin, yPosition)
-                yPosition += 10
+                yPosition += 15 // Increased spacing
 
                 const dataEC = []
-
-                if (reporteData.capitalAccounts && reporteData.capitalAccounts.length > 0) {
-                    doc.setFontSize(12)
-                    doc.setFont(undefined, "bold")
-                    doc.text("Capital Contable", margin, yPosition)
-                    yPosition += 8
-
-                    reporteData.capitalAccounts.forEach((cap) => {
-                        dataEC.push([cap.nombre, "$" + Number.parseFloat(cap.saldo).toFixed(2)])
-                        yPosition += 5
-                    })
-
-                    dataEC.push(["Total Capital", "$" + (Number.parseFloat(reporteData.totalCapitalInicial) || 0).toFixed(2)])
-                    yPosition += 15
-                }
-
-                if (reporteData.retiros && reporteData.retiros.length > 0) {
-                    doc.setFontSize(12)
-                    doc.setFont(undefined, "bold")
-                    doc.text("Retiros", margin, yPosition)
-                    yPosition += 8
-
-                    reporteData.retiros.forEach((retiro) => {
-                        dataEC.push([retiro.nombre, "-$" + Number.parseFloat(retiro.saldo).toFixed(2)])
-                        yPosition += 5
-                    })
-
-                    dataEC.push(["Total Retiros", "-$" + (Number.parseFloat(reporteData.totalRetiros) || 0).toFixed(2)])
-                    yPosition += 15
-                }
-
+                const capitalInicial = Number.parseFloat(reporteData.totalCapitalInicial) || 0
+                const utilidadNeta = Number.parseFloat(reporteData.utilidadNeta) || 0
+                const retiros = Number.parseFloat(reporteData.totalRetiros) || 0
                 const capitalFinal = Number.parseFloat(reporteData.capitalFinal) || 0
-                const capitalColor = capitalFinal >= 0 ? "#27ae60" : "#c0392b"
 
-                dataEC.push(
-                    [
-                        "Capital Final",
-                        capitalColor === "#27ae60" ? "$" + capitalFinal.toFixed(2) : "-$" + Math.abs(capitalFinal).toFixed(2),
-                    ],
-                    [""],
-                )
+                dataEC.push(["Capital Inicial", "$" + capitalInicial.toFixed(2)])
+                dataEC.push(["Más: Utilidad Neta", "$" + utilidadNeta.toFixed(2)])
+                if (retiros > 0) {
+                    dataEC.push(["Menos: Retiros", "$" + retiros.toFixed(2)])
+                }
+
+                dataEC.push([
+                    { content: "CAPITAL CONTABLE FINAL", styles: { fontStyle: "bold", fontSize: 11 } },
+                    { content: "$" + capitalFinal.toFixed(2), styles: { fontStyle: "bold", fontSize: 11, halign: "right" } },
+                ])
 
                 doc.autoTable({
-                    head: [["Concepto", "Monto"]],
                     body: dataEC,
                     startY: yPosition,
                     margin: { left: margin, right: margin },
                     columnStyles: {
-                        1: { halign: "right" },
+                        1: { halign: "right", cellWidth: 50 },
                     },
+                    theme: "grid",
                     didDrawPage: (data) => {
                         yPosition = data.cursor.y + 5
                     },
                 })
+                yPosition = doc.lastAutoTable.finalY + 20 // Increased spacing
             }
 
             // --- Balance General ---
             if (reporteData.activos || reporteData.pasivos || reporteData.capital) {
-                if (yPosition > pageHeight - 50) {
+                if (yPosition > pageHeight - 60) {
                     doc.addPage()
                     yPosition = 20
                 }
@@ -1135,35 +1109,76 @@ function exportarPDF() {
                 doc.setFontSize(14)
                 doc.setFont(undefined, "bold")
                 doc.text("Balance General", margin, yPosition)
-                yPosition += 10
+                yPosition += 15 // Increased spacing
 
                 const dataBalanceGeneral = []
 
-                // Helper to add rows
-                const addRows = (items, sectionName) => {
+                const addSection = (items, sectionName) => {
                     if (items && items.length > 0) {
+                        dataBalanceGeneral.push([
+                            { content: sectionName, colSpan: 2, styles: { fontStyle: "bold", fillColor: [220, 220, 220] } },
+                        ])
                         let total = 0
                         items.forEach((item) => {
                             const val = Number.parseFloat(item.saldo) || 0
                             total += val
-                            dataBalanceGeneral.push([sectionName, item.nombre, "$" + val.toFixed(2)])
+                            dataBalanceGeneral.push([item.nombre, "$" + val.toFixed(2)])
                         })
-                        dataBalanceGeneral.push([sectionName, "TOTAL " + sectionName, "$" + total.toFixed(2)])
+                        dataBalanceGeneral.push([
+                            { content: "TOTAL " + sectionName, styles: { fontStyle: "bold" } },
+                            { content: "$" + total.toFixed(2), styles: { fontStyle: "bold", halign: "right" } },
+                        ])
                     }
                 }
 
-                addRows(reporteData.activos, "ACTIVOS")
-                addRows(reporteData.pasivos, "PASIVOS")
-                addRows(reporteData.capital, "CAPITAL")
+                addSection(reporteData.activos, "ACTIVOS")
+                addSection(reporteData.pasivos, "PASIVOS")
+
+                dataBalanceGeneral.push([
+                    { content: "CAPITAL", colSpan: 2, styles: { fontStyle: "bold", fillColor: [220, 220, 220] } },
+                ])
+                const capitalFinal = Number.parseFloat(reporteData.capitalFinal) || 0
+                dataBalanceGeneral.push(["Capital Contable del Propietario", "$" + capitalFinal.toFixed(2)])
+                dataBalanceGeneral.push([
+                    { content: "TOTAL CAPITAL", styles: { fontStyle: "bold" } },
+                    { content: "$" + capitalFinal.toFixed(2), styles: { fontStyle: "bold", halign: "right" } },
+                ])
+
+                let totalActivos = 0
+                if (reporteData.activos) reporteData.activos.forEach((a) => (totalActivos += Number.parseFloat(a.saldo)))
+
+                let totalPasivos = 0
+                if (reporteData.pasivos) reporteData.pasivos.forEach((p) => (totalPasivos += Number.parseFloat(p.saldo)))
+
+                const totalPasivoCapital = totalPasivos + capitalFinal
+
+                dataBalanceGeneral.push([{ content: "", colSpan: 2, styles: { fillColor: [255, 255, 255] } }]) // Spacer
+                dataBalanceGeneral.push([
+                    { content: "TOTAL ACTIVOS", styles: { fontStyle: "bold", fontSize: 10, fillColor: [230, 240, 255] } },
+                    {
+                        content: "$" + totalActivos.toFixed(2),
+                        styles: { fontStyle: "bold", fontSize: 10, halign: "right", fillColor: [230, 240, 255] },
+                    },
+                ])
+                dataBalanceGeneral.push([
+                    {
+                        content: "TOTAL PASIVO + CAPITAL",
+                        styles: { fontStyle: "bold", fontSize: 10, fillColor: [230, 240, 255] },
+                    },
+                    {
+                        content: "$" + totalPasivoCapital.toFixed(2),
+                        styles: { fontStyle: "bold", fontSize: 10, halign: "right", fillColor: [230, 240, 255] },
+                    },
+                ])
 
                 doc.autoTable({
-                    head: [["Sección", "Cuenta", "Saldo"]],
                     body: dataBalanceGeneral,
                     startY: yPosition,
                     margin: { left: margin, right: margin },
                     columnStyles: {
-                        2: { halign: "right" },
+                        1: { halign: "right" },
                     },
+                    theme: "grid",
                 })
             }
 
@@ -1198,3 +1213,4 @@ window.addEventListener("load", () => {
     document.getElementById("fechaFin").valueAsDate = today
     console.log("[v0] Inicialización completada")
 })
+console.log("[v0] Inicialización completada")

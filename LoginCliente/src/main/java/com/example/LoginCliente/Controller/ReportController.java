@@ -209,16 +209,29 @@ public class ReportController {
                     }
                 }
 
+                // Calculate net balance: Debe - Haber
+                BigDecimal saldoNeto = totalDebe.subtract(totalHaber);
+                BigDecimal debeFinal = BigDecimal.ZERO;
+                BigDecimal haberFinal = BigDecimal.ZERO;
+
+                // If saldoNeto is positive, it's a Debit balance. If negative, it's a Credit balance.
+                if (saldoNeto.compareTo(BigDecimal.ZERO) > 0) {
+                    debeFinal = saldoNeto;
+                } else if (saldoNeto.compareTo(BigDecimal.ZERO) < 0) {
+                    haberFinal = saldoNeto.abs();
+                }
+
+                // Only add if there is a non-zero balance or there was activity (optional, but cleaner if we only show active accounts)
                 if (totalDebe.compareTo(BigDecimal.ZERO) > 0 || totalHaber.compareTo(BigDecimal.ZERO) > 0) {
                     Map<String, Object> cuentaBC = new HashMap<>();
                     cuentaBC.put("nombre", cuenta.getNombre());
                     cuentaBC.put("tipo", cuenta.getTipo());
-                    cuentaBC.put("debe", totalDebe);
-                    cuentaBC.put("haber", totalHaber);
+                    cuentaBC.put("debe", debeFinal);
+                    cuentaBC.put("haber", haberFinal);
                     balanceComprobacion.add(cuentaBC);
 
-                    totalDebeBC = totalDebeBC.add(totalDebe);
-                    totalHaberBC = totalHaberBC.add(totalHaber);
+                    totalDebeBC = totalDebeBC.add(debeFinal);
+                    totalHaberBC = totalHaberBC.add(haberFinal);
                 }
             }
 
