@@ -53,6 +53,8 @@
                 <button class="tab-button" onclick="cambiarTab('partida-doble', event)" data-tab="partida-doble">Partida doble</button>
                 <button class="tab-button" onclick="cambiarTab('libro-mayor', event)" data-tab="libro-mayor">Libro mayor</button>
                 <button class="tab-button" onclick="cambiarTab('balance-comprobacion', event)" data-tab="balance-comprobacion">Balance de comprobación</button>
+                <button class="tab-button" onclick="cambiarTab('estado-resultados', event)" data-tab="estado-resultados">Estado de Resultados</button>
+                <button class="tab-button" onclick="cambiarTab('estado-capital', event)" data-tab="estado-capital">Estado de Capital</button>
                 <button class="tab-button" onclick="cambiarTab('balance-general', event)" data-tab="balance-general">Balance general</button>
             </div>
 
@@ -114,9 +116,21 @@
                     </div>
                 </div>
 
+                <!-- Tab: Estado de Resultados -->
+                <div class="tab-pane" id="tab-estado-resultados">
+
+                    <div id="estado-resultados-container"></div>
+                </div>
+
+                <!-- Tab: Estado de Capital -->
+                <div class="tab-pane" id="tab-estado-capital">
+
+                    <div id="estado-capital-container"></div>
+                </div>
+
                 <!-- Tab: Balance General -->
                 <div class="tab-pane" id="tab-balance-general">
-                    <h3 style="margin-top: 0;">Balance General</h3>
+                    <h3 style="margin-top: 0; padding-bottom: 2rem;">Balance General</h3>
                     <div id="balance-general-container">
                     </div>
                 </div>

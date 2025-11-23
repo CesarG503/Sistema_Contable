@@ -234,6 +234,15 @@ public class ReportController {
             List<Map<String, Object>> activos = new ArrayList<>();
             List<Map<String, Object>> pasivos = new ArrayList<>();
             List<Map<String, Object>> capital = new ArrayList<>();
+            List<Map<String, Object>> ingresos = new ArrayList<>();
+            List<Map<String, Object>> gastos = new ArrayList<>();
+            List<Map<String, Object>> retiros = new ArrayList<>();
+            List<Map<String, Object>> capitalAccounts = new ArrayList<>();
+
+            BigDecimal totalIngresos = BigDecimal.ZERO;
+            BigDecimal totalGastos = BigDecimal.ZERO;
+            BigDecimal totalRetiros = BigDecimal.ZERO;
+            BigDecimal totalCapitalInicial = BigDecimal.ZERO;
 
             for (Cuenta cuenta : cuentas) {
                 String tipo = cuenta.getTipo();
@@ -242,24 +251,33 @@ public class ReportController {
                 List<Movimiento> movimientos = cuentaService.obtenerMovimientosPorCuentaYFechas(cuenta.getIdCuenta(), tsInicio, tsFin);
                 BigDecimal saldo = BigDecimal.ZERO;
 
+                BigDecimal totalDebeCuenta = BigDecimal.ZERO;
+                BigDecimal totalHaberCuenta = BigDecimal.ZERO;
+
                 for (Movimiento mov : movimientos) {
                     if ("D".equals(mov.getTipo())) {
                         saldo = saldo.add(mov.getMonto());
+                        totalDebeCuenta = totalDebeCuenta.add(mov.getMonto());
                     } else {
                         saldo = saldo.subtract(mov.getMonto());
+                        totalHaberCuenta = totalHaberCuenta.add(mov.getMonto());
                     }
                 }
 
+                // Determine nature-based balance for display
+                BigDecimal saldoNaturaleza;
                 if ("D".equals(cuenta.getNaturaleza())) {
-                    saldo = saldo.abs();
+                    saldoNaturaleza = saldo; // Debit is positive
                 } else {
-                    saldo = saldo.abs().negate();
+                    saldoNaturaleza = saldo.negate(); // Credit is positive
                 }
 
-                if (saldo.compareTo(BigDecimal.ZERO) != 0) {
+                // Only add if there's a balance or movement
+                if (saldoNaturaleza.compareTo(BigDecimal.ZERO) != 0 || totalDebeCuenta.compareTo(BigDecimal.ZERO) != 0 || totalHaberCuenta.compareTo(BigDecimal.ZERO) != 0) {
                     Map<String, Object> cuentaData = new HashMap<>();
                     cuentaData.put("nombre", cuenta.getNombre());
-                    cuentaData.put("saldo", saldo);
+                    cuentaData.put("saldo", saldoNaturaleza);
+                    cuentaData.put("numeroCuenta", cuenta.getNumeroCuenta());
 
                     if ("ACTIVO".equalsIgnoreCase(tipo)) {
                         activos.add(cuentaData);
@@ -267,9 +285,31 @@ public class ReportController {
                         pasivos.add(cuentaData);
                     } else if ("CAPITAL".equalsIgnoreCase(tipo)) {
                         capital.add(cuentaData);
+                        // Logic for Statement of Owner's Equity
+                        // Assuming 'D' nature in Capital implies Withdrawals (Retiros)
+                        if ("D".equals(cuenta.getNaturaleza())) {
+                            retiros.add(cuentaData);
+                            totalRetiros = totalRetiros.add(saldoNaturaleza);
+                        } else {
+                            capitalAccounts.add(cuentaData);
+                            totalCapitalInicial = totalCapitalInicial.add(saldoNaturaleza);
+                        }
+                    } else if ("INGRESO".equalsIgnoreCase(tipo)) {
+                        ingresos.add(cuentaData);
+                        totalIngresos = totalIngresos.add(saldoNaturaleza);
+                    } else if ("GASTO".equalsIgnoreCase(tipo)) {
+                        gastos.add(cuentaData);
+                        totalGastos = totalGastos.add(saldoNaturaleza);
                     }
                 }
             }
+
+            // Calculate Net Income
+            BigDecimal utilidadNeta = totalIngresos.subtract(totalGastos);
+
+            // Calculate Final Capital
+            // Capital Final = Capital Inicial + Utilidad Neta - Retiros
+            BigDecimal capitalFinal = totalCapitalInicial.add(utilidadNeta).subtract(totalRetiros);
 
             response.put("libroDiario", libroDiario);
             response.put("documentosPorPartida", documentosPorPartida);
@@ -277,6 +317,19 @@ public class ReportController {
             response.put("activos", activos);
             response.put("pasivos", pasivos);
             response.put("capital", capital);
+
+            response.put("ingresos", ingresos);
+            response.put("gastos", gastos);
+            response.put("totalIngresos", totalIngresos);
+            response.put("totalGastos", totalGastos);
+            response.put("utilidadNeta", utilidadNeta);
+
+            response.put("capitalAccounts", capitalAccounts); // Only credit nature capital accounts
+            response.put("retiros", retiros);
+            response.put("totalRetiros", totalRetiros);
+            response.put("totalCapitalInicial", totalCapitalInicial);
+            response.put("capitalFinal", capitalFinal);
+
             response.put("ecuacionContable", ecuacionContable);
             response.put("success", true);
 

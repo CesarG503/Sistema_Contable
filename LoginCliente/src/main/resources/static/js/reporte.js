@@ -1,134 +1,138 @@
-var reporteData = null;
-let tipoExportacionActual = null;
+var reporteData = null
+const tipoExportacionActual = null
+const Swal = window.Swal // Declare the Swal variable
 
 function cambiarTab(tabName, evt) {
     // Remover clase active de todos los botones
-    document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.classList.remove('active');
-    });
+    document.querySelectorAll(".tab-button").forEach((btn) => {
+        btn.classList.remove("active")
+    })
     // Remover clase active de todos los tab panes
-    document.querySelectorAll('.tab-pane').forEach(pane => {
-        pane.classList.remove('active');
-    });
+    document.querySelectorAll(".tab-pane").forEach((pane) => {
+        pane.classList.remove("active")
+    })
 
     // Determinar el botón que activó la acción: puede venir desde evt o buscarse por data-tab
-    let btnToActivate = null;
+    let btnToActivate = null
     if (evt && evt.target) {
-        btnToActivate = evt.target.closest('.tab-button');
+        btnToActivate = evt.target.closest(".tab-button")
     }
     if (!btnToActivate) {
-        btnToActivate = document.querySelector(`.tab-button[data-tab="${tabName}"]`);
+        btnToActivate = document.querySelector(`.tab-button[data-tab="${tabName}"]`)
     }
     if (btnToActivate) {
-        btnToActivate.classList.add('active');
+        btnToActivate.classList.add("active")
     }
 
     // Mostrar el tab correspondiente
-    const tabId = 'tab-' + tabName;
-    const tabElement = document.getElementById(tabId);
+    const tabId = "tab-" + tabName
+    const tabElement = document.getElementById(tabId)
     if (tabElement) {
-        tabElement.classList.add('active');
+        tabElement.classList.add("active")
     }
 
     // Renderizar datos si ya existen
-    if (reporteData && tabName === 'all') {
-        renderizarTodoReporte();
+    if (reporteData && tabName === "all") {
+        renderizarTodoReporte()
     }
 }
 
 function generarReporte() {
-    const fechaInicio = document.getElementById('fechaInicio').value;
-    const fechaFin = document.getElementById('fechaFin').value;
+    const fechaInicio = document.getElementById("fechaInicio").value
+    const fechaFin = document.getElementById("fechaFin").value
 
-    console.log("[v0] Generando reporte desde:", fechaInicio, "hasta:", fechaFin);
+    console.log("[v0] Generando reporte desde:", fechaInicio, "hasta:", fechaFin)
 
     if (!fechaInicio || !fechaFin) {
         Swal.fire({
-            icon: 'warning',
-            title: 'Campos incompletos',
-            text: 'Por favor completa ambas fechas'
-        });
-        return;
+            icon: "warning",
+            title: "Campos incompletos",
+            text: "Por favor completa ambas fechas",
+        })
+        return
     }
 
     if (new Date(fechaInicio) > new Date(fechaFin)) {
         Swal.fire({
-            icon: 'error',
-            title: 'Fecha inválida',
-            text: 'La fecha inicial no puede ser mayor a la fecha final'
-        });
-        return;
+            icon: "error",
+            title: "Fecha inválida",
+            text: "La fecha inicial no puede ser mayor a la fecha final",
+        })
+        return
     }
 
-    document.getElementById('loading').classList.add('show');
+    document.getElementById("loading").classList.add("show")
 
-    fetch('/reportes/obtener-datos', {
-        method: 'POST',
+    fetch("/reportes/obtener-datos", {
+        method: "POST",
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            "Content-Type": "application/x-www-form-urlencoded",
         },
         body: new URLSearchParams({
             fechaInicio: fechaInicio,
-            fechaFin: fechaFin
-        })
+            fechaFin: fechaFin,
+        }),
     })
-        .then(response => {
-            console.log("[v0] Response status:", response.status);
-            return response.json();
+        .then((response) => {
+            console.log("[v0] Response status:", response.status)
+            return response.json()
         })
-        .then(data => {
-            console.log("[v0] Datos recibidos:", data);
-            document.getElementById('loading').classList.remove('show');
+        .then((data) => {
+            console.log("[v0] Datos recibidos:", data)
+            document.getElementById("loading").classList.remove("show")
 
             if (data.error) {
                 Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: data.error
-                });
-                console.error("[v0] Error en datos:", data.error);
-                return;
+                    icon: "error",
+                    title: "Error",
+                    text: data.error,
+                })
+                console.error("[v0] Error en datos:", data.error)
+                return
             }
 
-            reporteData = data;
-            console.log("[v0] Reporte data asignado:", reporteData);
+            reporteData = data
+            console.log("[v0] Reporte data asignado:", reporteData)
 
-            renderizarLibroDiario(data);
-            renderizarLibroMayor(data);
-            renderizarBalanceComprobacion(data);
-            renderizarBalanceGeneral(data);
+            renderizarLibroDiario(data)
+            renderizarLibroMayor(data)
+            renderizarBalanceComprobacion(data)
+            renderizarEstadoResultados(data)
+            renderizarEstadoCapital(data)
+            renderizarBalanceGeneral(data)
 
             Swal.fire({
-                icon: 'success',
-                title: 'Éxito',
-                text: 'Reporte generado correctamente'
-            });
+                icon: "success",
+                title: "Éxito",
+                text: "Reporte generado correctamente",
+            })
 
-            cambiarTab('partida-doble');
+            cambiarTab("partida-doble")
         })
-        .catch(error => {
-            document.getElementById('loading').classList.remove('show');
-            console.error('[v0] Error de fetch:', error);
+        .catch((error) => {
+            document.getElementById("loading").classList.remove("show")
+            console.error("[v0] Error de fetch:", error)
             Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Error al generar el reporte: ' + error.message
-            });
-        });
+                icon: "error",
+                title: "Error",
+                text: "Error al generar el reporte: " + error.message,
+            })
+        })
 }
 
 function renderizarLibroDiario(data) {
-    const tbody = document.getElementById('tbody-partida-doble');
-    tbody.innerHTML = '';
+    const tbody = document.getElementById("tbody-partida-doble")
+    tbody.innerHTML = ""
 
     if (!data.libroDiario || data.libroDiario.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">No hay partidas en este período</td></tr>';
-        return;
+        tbody.innerHTML =
+            '<tr><td colspan="6" style="text-align: center; color: #999;">No hay partidas en este período</td></tr>'
+        return
     }
 
-    data.libroDiario.forEach(partida => {
+    data.libroDiario.forEach((partida) => {
         partida.movimientos.forEach((mov, index) => {
-            const fila = document.createElement('tr');
+            const fila = document.createElement("tr")
 
             // Primera fila muestra el número de asiento, fecha y descripción
             if (index === 0) {
@@ -136,37 +140,37 @@ function renderizarLibroDiario(data) {
                     <td rowspan="${partida.movimientos.length}">${partida.idPartida}</td>
                     <td rowspan="${partida.movimientos.length}">${partida.fecha}</td>
                     <td><strong>${mov.nombreCuenta}</strong></td>
-                    <td rowspan="${partida.movimientos.length}" style="font-style: italic; color: #555;">${partida.concepto || '---'}</td>
-                    <td class="text-right">${mov.tipo === 'D' ? '$' + mov.monto.toFixed(2) : ''}</td>
-                    <td class="text-right">${mov.tipo === 'H' ? '$' + mov.monto.toFixed(2) : ''}</td>
-                `;
+                    <td rowspan="${partida.movimientos.length}" style="font-style: italic; color: #555;">${partida.concepto || "---"}</td>
+                    <td class="text-right">${mov.tipo === "D" ? "$" + mov.monto.toFixed(2) : ""}</td>
+                    <td class="text-right">${mov.tipo === "H" ? "$" + mov.monto.toFixed(2) : ""}</td>
+                `
             } else {
                 // Filas siguientes solo muestran la cuenta y montos
                 fila.innerHTML = `
                     <td><strong>${mov.nombreCuenta}</strong></td>
-                    <td class="text-right">${mov.tipo === 'D' ? '$' + mov.monto.toFixed(2) : ''}</td>
-                    <td class="text-right">${mov.tipo === 'H' ? '$' + mov.monto.toFixed(2) : ''}</td>
-                `;
+                    <td class="text-right">${mov.tipo === "D" ? "$" + mov.monto.toFixed(2) : ""}</td>
+                    <td class="text-right">${mov.tipo === "H" ? "$" + mov.monto.toFixed(2) : ""}</td>
+                `
             }
 
-            tbody.appendChild(fila);
-        });
-    });
+            tbody.appendChild(fila)
+        })
+    })
 }
 
 function renderizarLibroMayor(data) {
-    const container = document.getElementById('cuentas-t-container');
-    container.innerHTML = '';
+    const container = document.getElementById("cuentas-t-container")
+    container.innerHTML = ""
 
     if (!data.libroMayor || Object.keys(data.libroMayor).length === 0) {
-        container.innerHTML = '<div class="empty-state">No hay cuentas con movimientos en este período</div>';
-        return;
+        container.innerHTML = '<div class="empty-state">No hay cuentas con movimientos en este período</div>'
+        return
     }
 
     Object.values(data.libroMayor).forEach((cuenta, index) => {
-        const tieneMovimientos = cuenta.detalles && cuenta.detalles.length > 0;
+        const tieneMovimientos = cuenta.detalles && cuenta.detalles.length > 0
 
-        let cuentaHTML = '';
+        let cuentaHTML = ""
 
         if (!tieneMovimientos) {
             // Sin movimientos: mostrar formato de tabla simple
@@ -175,7 +179,7 @@ function renderizarLibroMayor(data) {
                     <div class="account-header">
                         <div class="account-title">
                             <h3>${cuenta.nombre}</h3>
-                            <p>${cuenta.tipo} - ${cuenta.naturaleza === 'D' ? 'Deudora' : 'Acreedora'}</p>
+                            <p>${cuenta.tipo} - ${cuenta.naturaleza === "D" ? "Deudora" : "Acreedora"}</p>
                         </div>
                     </div>
                     <div class="account-summary">
@@ -193,43 +197,43 @@ function renderizarLibroMayor(data) {
                         </div>
                     </div>
                 </div>
-            `;
+            `
         } else {
             // Con movimientos: formato clásico de cuenta T
-            const movimientosDebe = cuenta.detalles.filter(d => d.tipo === 'D');
-            const movimientosHaber = cuenta.detalles.filter(d => d.tipo === 'H');
-            const maxFilas = Math.max(movimientosDebe.length, movimientosHaber.length);
+            const movimientosDebe = cuenta.detalles.filter((d) => d.tipo === "D")
+            const movimientosHaber = cuenta.detalles.filter((d) => d.tipo === "H")
+            const maxFilas = Math.max(movimientosDebe.length, movimientosHaber.length)
 
-            let filasHTML = '';
-            let saldoDebe = 0;
-            let saldoHaber = 0;
+            let filasHTML = ""
+            let saldoDebe = 0
+            let saldoHaber = 0
 
             // Generar filas de movimientos
             for (let i = 0; i < maxFilas; i++) {
-                const debe = movimientosDebe[i];
-                const haber = movimientosHaber[i];
+                const debe = movimientosDebe[i]
+                const haber = movimientosHaber[i]
 
-                let debeHTML = '';
-                let haberHTML = '';
+                let debeHTML = ""
+                let haberHTML = ""
 
                 if (debe) {
-                    saldoDebe += debe.monto;
+                    saldoDebe += debe.monto
                     debeHTML = `
                         <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee;">
                             <span style="font-size: 11px; color: #666;">Asiento #${debe.idPartida}</span>
                             <span style="font-weight: 600;">$${debe.monto.toFixed(2)}</span>
                         </div>
-                    `;
+                    `
                 }
 
                 if (haber) {
-                    saldoHaber += haber.monto;
+                    saldoHaber += haber.monto
                     haberHTML = `
                         <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee;">
                             <span style="font-size: 11px; color: #666;">Asiento #${haber.idPartida}</span>
                             <span style="font-weight: 600;">$${haber.monto.toFixed(2)}</span>
                         </div>
-                    `;
+                    `
                 }
 
                 filasHTML += `
@@ -237,19 +241,19 @@ function renderizarLibroMayor(data) {
                         <td style="vertical-align: top; padding: 8px;">${debeHTML}</td>
                         <td style="vertical-align: top; padding: 8px;">${haberHTML}</td>
                     </tr>
-                `;
+                `
             }
 
             // Calcular saldo final
-            const saldoFinal = Math.abs(saldoDebe - saldoHaber);
-            const ladoSaldo = saldoDebe > saldoHaber ? 'debe' : 'haber';
+            const saldoFinal = Math.abs(saldoDebe - saldoHaber)
+            const ladoSaldo = saldoDebe > saldoHaber ? "debe" : "haber"
 
             cuentaHTML = `
                 <div class="account-card" style="margin-bottom: 30px;">
                     <div class="account-header" >
                         <div class="account-title">
                             <h3 style="margin: 0; font-size: 18px;">${cuenta.nombre}</h3>
-                            <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.9;">${cuenta.tipo} - ${cuenta.naturaleza === 'D' ? 'Deudora' : 'Acreedora'}</p>
+                            <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.9;">${cuenta.tipo} - ${cuenta.naturaleza === "D" ? "Deudora" : "Acreedora"}</p>
                         </div>
                     </div>
                     
@@ -275,123 +279,384 @@ function renderizarLibroMayor(data) {
                                 </tr>
                                 <tr style="background: #fff3cd; font-weight: 700;">
                                     <td colspan="2" style="padding: 12px; text-align: center; font-size: 16px; color: #856404;">
-                                        Saldo Final: $${saldoFinal.toFixed(2)} (${ladoSaldo === 'debe' ? 'DEUDOR' : 'ACREEDOR'})
+                                        Saldo Final: $${saldoFinal.toFixed(2)} (${ladoSaldo === "debe" ? "DEUDOR" : "ACREEDOR"})
                                     </td>
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
                 </div>
-            `;
+            `
         }
 
-        container.innerHTML += cuentaHTML;
-    });
+        container.innerHTML += cuentaHTML
+    })
 }
 
 function renderizarBalanceComprobacion(data) {
-    const tbody = document.getElementById('tbody-balance-comprobacion');
-    tbody.innerHTML = '';
+    const tbody = document.getElementById("tbody-balance-comprobacion")
+    tbody.innerHTML = ""
 
     if (!data.balanceComprobacion || data.balanceComprobacion.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;">No hay datos</td></tr>';
-        return;
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;">No hay datos</td></tr>'
+        return
     }
 
-    let totalDebe = 0;
-    let totalHaber = 0;
+    let totalDebe = 0
+    let totalHaber = 0
 
-    data.balanceComprobacion.forEach(cuenta => {
-        const debe = parseFloat(cuenta.debe) || 0;
-        const haber = parseFloat(cuenta.haber) || 0;
+    data.balanceComprobacion.forEach((cuenta) => {
+        const debe = Number.parseFloat(cuenta.debe) || 0
+        const haber = Number.parseFloat(cuenta.haber) || 0
 
-        totalDebe += debe;
-        totalHaber += haber;
+        totalDebe += debe
+        totalHaber += haber
 
-        const fila = document.createElement('tr');
+        const fila = document.createElement("tr")
         fila.innerHTML = `
                 <td>${cuenta.nombre}</td>
                 <td>${cuenta.tipo}</td>
                 <td class="text-right">$${debe.toFixed(2)}</td>
                 <td class="text-right">$${haber.toFixed(2)}</td>
-            `;
-        tbody.appendChild(fila);
-    });
+            `
+        tbody.appendChild(fila)
+    })
 
     // Agregar fila de totales
-    const filaTotal = document.createElement('tr');
-    filaTotal.style.fontWeight = 'bold';
-    filaTotal.style.backgroundColor = '#f0f0f0';
+    const filaTotal = document.createElement("tr")
+    filaTotal.style.fontWeight = "bold"
+    filaTotal.style.backgroundColor = "#f0f0f0"
     filaTotal.innerHTML = `
             <td colspan="2">TOTALES</td>
             <td class="text-right">$${totalDebe.toFixed(2)}</td>
             <td class="text-right">$${totalHaber.toFixed(2)}</td>
-        `;
-    tbody.appendChild(filaTotal);
+        `
+    tbody.appendChild(filaTotal)
 }
 
-function renderizarBalanceGeneral(data) {
-    const container = document.getElementById('balance-general-container');
+function renderizarEstadoResultados(data) {
+    const container = document.getElementById("estado-resultados-container")
+    const totalIngresos = Number.parseFloat(data.totalIngresos) || 0
+    const totalGastos = Number.parseFloat(data.totalGastos) || 0
+    const utilidadNeta = Number.parseFloat(data.utilidadNeta) || 0
 
-    let totalActivos = 0;
-    let totalPasivos = 0;
-    let totalCapital = 0;
-
-    if (data.activos) {
-        data.activos.forEach(a => {
-            totalActivos += parseFloat(a.saldo) || 0;
-        });
+    let ingresosRows = ""
+    if (data.ingresos && data.ingresos.length > 0) {
+        data.ingresos.forEach((ingreso) => {
+            ingresosRows += `
+        <tr>
+            <td class="fin-indent-1">${ingreso.nombre}</td>
+            <td class="fin-amount">$${Number.parseFloat(ingreso.saldo).toFixed(2)}</td>
+            <td></td>
+        </tr>`
+        })
+    } else {
+        ingresosRows = '<tr><td class="fin-indent-1" style="color:#999;">(Sin ingresos)</td><td></td><td></td></tr>'
     }
 
-    if (data.pasivos) {
-        data.pasivos.forEach(p => {
-            totalPasivos += parseFloat(p.saldo) || 0;
-        });
-    }
-
-    if (data.capital) {
-        data.capital.forEach(c => {
-            totalCapital += parseFloat(c.saldo) || 0;
-        });
+    let gastosRows = ""
+    if (data.gastos && data.gastos.length > 0) {
+        data.gastos.forEach((gasto) => {
+            gastosRows += `
+        <tr>
+            <td class="fin-indent-1">${gasto.nombre}</td>
+            <td class="fin-amount">$${Number.parseFloat(gasto.saldo).toFixed(2)}</td>
+            <td></td>
+        </tr>`
+        })
+    } else {
+        gastosRows = '<tr><td class="fin-indent-1" style="color:#999;">(Sin gastos)</td><td></td><td></td></tr>'
     }
 
     const html = `
-            <div class="balance-grid">
-                <div class="balance-column">
-                    <h4>ACTIVOS</h4>
-                    ${data.activos && data.activos.length > 0 ?
-        data.activos.map(a => `<div style="margin-bottom: 8px; display: flex; justify-content: space-between;"><span>${a.nombre}</span><span>$${parseFloat(a.saldo).toFixed(2)}</span></div>`).join('')
-        : '<p style="color: #999; font-size: 12px;">Sin datos</p>'
-    }
-                    <div class="balance-total">$${totalActivos.toFixed(2)}</div>
-                </div>
+        <div class="financial-paper">
+            <div class="fin-header">
+                
+                <h3>Estado de Resultados</h3>
+                <div class="period">Del ${document.getElementById("fechaInicio").value} al ${document.getElementById("fechaFin").value}</div>
+            </div>
 
-                <div class="balance-column">
-                    <h4>PASIVOS</h4>
-                    ${data.pasivos && data.pasivos.length > 0 ?
-        data.pasivos.map(p => `<div style="margin-bottom: 8px; display: flex; justify-content: space-between;"><span>${p.nombre}</span><span>$${parseFloat(p.saldo).toFixed(2)}</span></div>`).join('')
-        : '<p style="color: #999; font-size: 12px;">Sin datos</p>'
-    }
-                    <div class="balance-total">$${totalPasivos.toFixed(2)}</div>
-                </div>
+            <table class="fin-table">
+                <tr>
+                    <td class="fin-row-header">INGRESOS</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                ${ingresosRows}
+                <tr>
+                    <td class="fin-indent-1" style="font-weight:bold;">Total de Ingresos</td>
+                    <td></td>
+                    <td class="fin-amount fin-total-line">$${totalIngresos.toFixed(2)}</td>
+                </tr>
 
-                <div class="balance-column">
-                    <h4>CAPITAL</h4>
-                    ${data.capital && data.capital.length > 0 ?
-        data.capital.map(c => `<div style="margin-bottom: 8px; display: flex; justify-content: space-between;"><span>${c.nombre}</span><span>$${parseFloat(c.saldo).toFixed(2)}</span></div>`).join('')
-        : '<p style="color: #999; font-size: 12px;">Sin datos</p>'
+                <tr>
+                    <td class="fin-row-header">MENOS: GASTOS</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                ${gastosRows}
+                <tr>
+                    <td class="fin-indent-1" style="font-weight:bold;">Total de Gastos</td>
+                    <td></td>
+                    <td class="fin-amount fin-total-line">$${totalGastos.toFixed(2)}</td>
+                </tr>
+
+                <tr style="height: 20px;"><td></td><td></td><td></td></tr>
+
+                <tr>
+                    <td class="fin-row-header">UTILIDAD (O PÉRDIDA) NETA</td>
+                    <td></td>
+                    <td class="fin-amount fin-grand-total">$${utilidadNeta.toFixed(2)}</td>
+                </tr>
+            </table>
+        </div>
+    `
+
+    container.innerHTML = html
+}
+
+function renderizarEstadoCapital(data) {
+    const container = document.getElementById("estado-capital-container")
+    const capitalInicial = Number.parseFloat(data.totalCapitalInicial) || 0
+    const utilidadNeta = Number.parseFloat(data.utilidadNeta) || 0
+    const retiros = Number.parseFloat(data.totalRetiros) || 0
+    const capitalFinal = Number.parseFloat(data.capitalFinal) || 0
+
+    // Capital accounts detail
+    let capitalRows = ""
+    if (data.capitalAccounts && data.capitalAccounts.length > 0) {
+        data.capitalAccounts.forEach((acc) => {
+            capitalRows += `
+            <tr>
+                <td class="fin-indent-1">${acc.nombre}</td>
+                <td class="fin-amount">$${Number.parseFloat(acc.saldo).toFixed(2)}</td>
+                <td></td>
+            </tr>
+           `
+        })
     }
-                    <div class="balance-total">$${totalCapital.toFixed(2)}</div>
+
+    const html = `
+        <div class="financial-paper">
+            <div class="fin-header">
+                <h3>Estado de Capital</h3>
+                <div class="period">Del ${document.getElementById("fechaInicio").value} al ${document.getElementById("fechaFin").value}</div>
+            </div>
+
+            <table class="fin-table">
+                <tr>
+                    <td class="fin-row-header">CAPITAL CONTABLE</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                ${capitalRows}
+                <tr>
+                    <td class="fin-indent-1" style="font-weight:bold;">Capital Inicial</td>
+                    <td></td>
+                    <td class="fin-amount">$${capitalInicial.toFixed(2)}</td>
+                </tr>
+
+                <tr>
+                    <td class="fin-indent-1">MÁS: Utilidad Neta del Periodo</td>
+                    <td class="fin-amount">$${utilidadNeta.toFixed(2)}</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td class="fin-indent-1"></td>
+                    <td class="fin-amount fin-total-line">$${(capitalInicial + utilidadNeta).toFixed(2)}</td>
+                    <td></td>
+                </tr>
+
+                <tr>
+                    <td class="fin-indent-1">MENOS: Retiros</td>
+                    <td class="fin-amount">$${retiros.toFixed(2)}</td>
+                    <td></td>
+                </tr>
+
+                <tr style="height: 20px;"><td></td><td></td><td></td></tr>
+
+                <tr>
+                    <td class="fin-row-header">CAPITAL CONTABLE FINAL</td>
+                    <td></td>
+                    <td class="fin-amount fin-grand-total">$${capitalFinal.toFixed(2)}</td>
+                </tr>
+            </table>
+        </div>
+    `
+
+    container.innerHTML = html
+}
+
+function renderizarBalanceGeneral(data) {
+    const container = document.getElementById("balance-general-container")
+
+    let totalActivos = 0
+    let totalPasivos = 0
+    // Use the calculated capital final from the backend/state instead of summing accounts again
+    const totalCapital = Number.parseFloat(data.capitalFinal) || 0
+
+    if (data.activos) {
+        data.activos.forEach((a) => {
+            totalActivos += Number.parseFloat(a.saldo) || 0
+        })
+    }
+
+    if (data.pasivos) {
+        data.pasivos.forEach((p) => {
+            totalPasivos += Number.parseFloat(p.saldo) || 0
+        })
+    }
+
+    // We do NOT sum capital accounts here manually as per requirements.
+    // We use totalCapital which is the "Estado de Capital" result.
+
+    const totalPasivoMasCapital = totalPasivos + totalCapital
+
+    // Determinar si el balance está cuadrado (tolerancia pequeña)
+    const isBalanced = Math.abs(totalActivos - totalPasivoMasCapital) < 0.005
+    const difference = Math.abs(totalActivos - totalPasivoMasCapital)
+
+    const html = `
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Activos</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Cuenta</th>
+                                    <th class="text-right">Saldo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${
+        data.activos && data.activos.length > 0
+            ? data.activos
+                .map(
+                    (a) => `
+                                    <tr>
+                                        <td>${a.nombre}</td>
+                                        <td class="text-right">$${Number.parseFloat(a.saldo).toFixed(2)}</td>
+                                    </tr>
+                                `,
+                )
+                .join("")
+            : '<tr><td colspan="2" class="text-center text-muted">No hay activos</td></tr>'
+    }
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-light font-weight-bold ">
+                                    <td>TOTAL ACTIVOS</td>
+                                    <td class="text-right">$${totalActivos.toFixed(2)}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
                 </div>
             </div>
-        `;
 
-    container.innerHTML = html;
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">Pasivos</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Cuenta</th>
+                                    <th class="text-right">Saldo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${
+        data.pasivos && data.pasivos.length > 0
+            ? data.pasivos
+                .map(
+                    (p) => `
+                                    <tr>
+                                        <td>${p.nombre}</td>
+                                        <td class="text-right">$${Number.parseFloat(p.saldo).toFixed(2)}</td>
+                                    </tr>
+                                `,
+                )
+                .join("")
+            : '<tr><td colspan="2" class="text-center text-muted">No hay pasivos</td></tr>'
+    }
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-light font-weight-bold">
+                                    <td>TOTAL PASIVOS</td>
+                                    <td class="text-right">$${totalPasivos.toFixed(2)}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Capital</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Cuenta</th>
+                                    <th class="text-right">Saldo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Capital Contable del Propietario</td>
+                                    <td class="text-right">$${totalCapital.toFixed(2)}</td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-light font-weight-bold">
+                                    <td>TOTAL CAPITAL</td>
+                                    <td class="text-right">$${totalCapital.toFixed(2)}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Resultado visual que permite comparar los totales y ver si está cuadrado -->
+                <div class="resultado-module" style="margin-top: 2rem;">
+                    <div class="resultado-card">
+                        <div class="resultado-left">
+                            <div class="resultado-title">Balance General: Activos = Pasivo + Capital</div>
+                            <div class="resultado-values">
+                                <div class="resultado-item">
+                                    <div class="label">TOTAL ACTIVOS</div>
+                                    <div class="value">$${totalActivos.toFixed(2)}</div>
+                                </div>
+                                <div class="resultado-item">
+                                    <div class="label">TOTAL PASIVO + CAPITAL</div>
+                                    <div class="value">$${totalPasivoMasCapital.toFixed(2)}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="resultado-right">
+                            <div class="resultado-diff">Diferencia: $${difference.toFixed(2)}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `
+
+    container.innerHTML = html
 }
 
 function renderizarTodoReporte() {
-    const tabAll = document.getElementById('tab-all');
-    let html = `
+    const tabAll = document.getElementById("tab-all")
+    const html = `
             <h2>Resumen General del Reporte</h2>
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 20px 0;">
                 <div style="background: #f9f9f9; padding: 20px; border-radius: 8px;">
@@ -407,65 +672,65 @@ function renderizarTodoReporte() {
                     <div style="font-size: 24px; font-weight: 700; color: #27ae60; margin-top: 10px;">✓</div>
                 </div>
             </div>
-        `;
-    tabAll.innerHTML = html;
+        `
+    tabAll.innerHTML = html
 }
 
 function exportarPDF() {
-    console.log("[v0] Iniciando exportación PDF directa");
+    console.log("[v0] Iniciando exportación PDF directa")
 
     if (!reporteData) {
         Swal.fire({
-            icon: 'warning',
-            title: 'Sin datos',
-            text: 'Por favor genera un reporte primero'
-        });
-        return;
+            icon: "warning",
+            title: "Sin datos",
+            text: "Por favor genera un reporte primero",
+        })
+        return
     }
 
     // Show loading state
     Swal.fire({
-        title: 'Generando PDF...',
-        html: 'Por favor espera',
+        title: "Generando PDF...",
+        html: "Por favor espera",
         allowOutsideClick: false,
         didOpen: () => {
-            Swal.showLoading();
-        }
-    });
+            Swal.showLoading()
+        },
+    })
 
     // Use setTimeout to allow the UI to update before heavy processing
     setTimeout(() => {
         try {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('p', 'mm', 'a4');
-            let yPosition = 20;
-            const pageHeight = doc.internal.pageSize.getHeight();
-            const margin = 15;
+            const { jsPDF } = window.jspdf
+            const doc = new jsPDF("p", "mm", "a4")
+            let yPosition = 20
+            const pageHeight = doc.internal.pageSize.getHeight()
+            const margin = 15
 
             // Título
-            doc.setFontSize(16);
-            doc.setFont(undefined, 'bold');
-            doc.text('Reporte Contable', margin, yPosition);
-            yPosition += 10;
+            doc.setFontSize(16)
+            doc.setFont(undefined, "bold")
+            doc.text("Reporte Contable", margin, yPosition)
+            yPosition += 10
 
             // Fecha de generación
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            doc.text('Fecha de generación: ' + new Date().toLocaleString('es-ES'), margin, yPosition);
-            yPosition += 15;
+            doc.setFontSize(10)
+            doc.setFont(undefined, "normal")
+            doc.text("Fecha de generación: " + new Date().toLocaleString("es-ES"), margin, yPosition)
+            yPosition += 15
 
             // --- Partida Doble ---
             if (reporteData.libroDiario && reporteData.libroDiario.length > 0) {
-                if (yPosition > pageHeight - 50) doc.addPage();
+                if (yPosition > pageHeight - 50) doc.addPage()
 
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.text('Libro Diario (Partida Doble)', margin, yPosition);
-                yPosition += 10;
+                doc.setFontSize(14)
+                doc.setFont(undefined, "bold")
+                doc.text("Libro Diario (Partida Doble)", margin, yPosition)
+                yPosition += 10
 
-                const dataDiario = [];
+                const dataDiario = []
 
-                reporteData.libroDiario.forEach(partida => {
+                reporteData.libroDiario.forEach((partida) => {
                     // Agregar cada movimiento de la partida
                     partida.movimientos.forEach((mov, index) => {
                         if (index === 0) {
@@ -474,310 +739,462 @@ function exportarPDF() {
                                 partida.idPartida,
                                 partida.fecha,
                                 mov.nombreCuenta,
-                                partida.concepto || '---',
-                                mov.tipo === 'D' ? '$' + mov.monto.toFixed(2) : '',
-                                mov.tipo === 'H' ? '$' + mov.monto.toFixed(2) : ''
-                            ]);
+                                partida.concepto || "---",
+                                mov.tipo === "D" ? "$" + mov.monto.toFixed(2) : "",
+                                mov.tipo === "H" ? "$" + mov.monto.toFixed(2) : "",
+                            ])
                         } else {
                             // Filas siguientes solo muestran la cuenta y montos
                             dataDiario.push([
-                                '',
-                                '',
+                                "",
+                                "",
                                 mov.nombreCuenta,
-                                '',
-                                mov.tipo === 'D' ? '$' + mov.monto.toFixed(2) : '',
-                                mov.tipo === 'H' ? '$' + mov.monto.toFixed(2) : ''
-                            ]);
+                                "",
+                                mov.tipo === "D" ? "$" + mov.monto.toFixed(2) : "",
+                                mov.tipo === "H" ? "$" + mov.monto.toFixed(2) : "",
+                            ])
                         }
-                    });
+                    })
 
                     // Agregar línea separadora entre partidas
-                    dataDiario.push(['', '', '', '', '', '']);
-                });
+                    dataDiario.push(["", "", "", "", "", ""])
+                })
 
                 doc.autoTable({
-                    head: [['# Asiento', 'Fecha', 'Cuenta', 'Descripción', 'Debe', 'Haber']],
+                    head: [["# Asiento", "Fecha", "Cuenta", "Descripción", "Debe", "Haber"]],
                     body: dataDiario,
                     startY: yPosition,
                     margin: { left: margin, right: margin },
                     columnStyles: {
-                        0: { halign: 'center', cellWidth: 20 },
-                        1: { halign: 'center', cellWidth: 25 },
-                        2: { halign: 'left', cellWidth: 50 },
-                        3: { halign: 'left', cellWidth: 40 },
-                        4: { halign: 'right', cellWidth: 25 },
-                        5: { halign: 'right', cellWidth: 25 }
+                        0: { halign: "center", cellWidth: 20 },
+                        1: { halign: "center", cellWidth: 25 },
+                        2: { halign: "left", cellWidth: 50 },
+                        3: { halign: "left", cellWidth: 40 },
+                        4: { halign: "right", cellWidth: 25 },
+                        5: { halign: "right", cellWidth: 25 },
                     },
                     styles: {
                         fontSize: 9,
-                        cellPadding: 3
+                        cellPadding: 3,
                     },
-                    didDrawPage: function(data) {
-                        yPosition = data.cursor.y + 5;
-                    }
-                });
-                yPosition = doc.lastAutoTable.finalY + 15;
+                    didDrawPage: (data) => {
+                        yPosition = data.cursor.y + 5
+                    },
+                })
+                yPosition = doc.lastAutoTable.finalY + 15
             }
 
             // --- Libro Mayor ---
             if (reporteData.libroMayor) {
                 if (yPosition > pageHeight - 50) {
-                    doc.addPage();
-                    yPosition = 20;
+                    doc.addPage()
+                    yPosition = 20
                 }
 
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.text('Libro Mayor (Cuentas T)', margin, yPosition);
-                yPosition += 10;
+                doc.setFontSize(14)
+                doc.setFont(undefined, "bold")
+                doc.text("Libro Mayor (Cuentas T)", margin, yPosition)
+                yPosition += 10
 
                 // Separar cuentas con y sin movimientos
-                const cuentasConMovimiento = [];
-                const cuentasSinMovimiento = [];
+                const cuentasConMovimiento = []
+                const cuentasSinMovimiento = []
 
-                Object.values(reporteData.libroMayor).forEach(cuenta => {
+                Object.values(reporteData.libroMayor).forEach((cuenta) => {
                     if (cuenta.detalles && cuenta.detalles.length > 0) {
-                        cuentasConMovimiento.push(cuenta);
+                        cuentasConMovimiento.push(cuenta)
                     } else {
-                        cuentasSinMovimiento.push(cuenta);
+                        cuentasSinMovimiento.push(cuenta)
                     }
-                });
+                })
 
                 // Mostrar cuentas CON movimiento con detalles
-                cuentasConMovimiento.forEach(cuenta => {
+                cuentasConMovimiento.forEach((cuenta) => {
                     // Verificar espacio disponible
                     if (yPosition > pageHeight - 80) {
-                        doc.addPage();
-                        yPosition = 20;
+                        doc.addPage()
+                        yPosition = 20
                     }
 
                     // Título de la cuenta
-                    doc.setFontSize(12);
-                    doc.setFont(undefined, 'bold');
-                    doc.text(`${cuenta.nombre} - ${cuenta.tipo} (${cuenta.naturaleza === 'D' ? 'Deudora' : 'Acreedora'})`, margin, yPosition);
-                    yPosition += 8;
+                    doc.setFontSize(12)
+                    doc.setFont(undefined, "bold")
+                    doc.text(
+                        `${cuenta.nombre} - ${cuenta.tipo} (${cuenta.naturaleza === "D" ? "Deudora" : "Acreedora"})`,
+                        margin,
+                        yPosition,
+                    )
+                    yPosition += 8
 
                     // Preparar datos de movimientos
-                    const movimientosDebe = cuenta.detalles.filter(d => d.tipo === 'D');
-                    const movimientosHaber = cuenta.detalles.filter(d => d.tipo === 'H');
-                    const maxFilas = Math.max(movimientosDebe.length, movimientosHaber.length);
+                    const movimientosDebe = cuenta.detalles.filter((d) => d.tipo === "D")
+                    const movimientosHaber = cuenta.detalles.filter((d) => d.tipo === "H")
+                    const maxFilas = Math.max(movimientosDebe.length, movimientosHaber.length)
 
-                    const dataMovimientos = [];
+                    const dataMovimientos = []
 
                     for (let i = 0; i < maxFilas; i++) {
-                        const debe = movimientosDebe[i];
-                        const haber = movimientosHaber[i];
+                        const debe = movimientosDebe[i]
+                        const haber = movimientosHaber[i]
 
                         dataMovimientos.push([
-                            debe ? `Asiento #${debe.idPartida}` : '',
-                            debe ? '$' + debe.monto.toFixed(2) : '',
-                            haber ? `Asiento #${haber.idPartida}` : '',
-                            haber ? '$' + haber.monto.toFixed(2) : ''
-                        ]);
+                            debe ? `Asiento #${debe.idPartida}` : "",
+                            debe ? "$" + debe.monto.toFixed(2) : "",
+                            haber ? `Asiento #${haber.idPartida}` : "",
+                            haber ? "$" + haber.monto.toFixed(2) : "",
+                        ])
                     }
 
                     // Agregar totales
                     dataMovimientos.push([
-                        'TOTAL DEBE',
-                        '$' + cuenta.totalDebe.toFixed(2),
-                        'TOTAL HABER',
-                        '$' + cuenta.totalHaber.toFixed(2)
-                    ]);
+                        "TOTAL DEBE",
+                        "$" + cuenta.totalDebe.toFixed(2),
+                        "TOTAL HABER",
+                        "$" + cuenta.totalHaber.toFixed(2),
+                    ])
 
                     // Agregar saldo final
-                    const saldoFinal = Math.abs(cuenta.totalDebe - cuenta.totalHaber);
-                    const ladoSaldo = cuenta.totalDebe > cuenta.totalHaber ? 'DEUDOR' : 'ACREEDOR';
+                    const saldoFinal = Math.abs(cuenta.totalDebe - cuenta.totalHaber)
+                    const ladoSaldo = cuenta.totalDebe > cuenta.totalHaber ? "DEUDOR" : "ACREEDOR"
                     dataMovimientos.push([
-                        { content: `SALDO FINAL: $${saldoFinal.toFixed(2)} (${ladoSaldo})`, colSpan: 4, styles: { halign: 'center', fontStyle: 'bold', fillColor: [255, 243, 205] } }
-                    ]);
+                        {
+                            content: `SALDO FINAL: $${saldoFinal.toFixed(2)} (${ladoSaldo})`,
+                            colSpan: 4,
+                            styles: { halign: "center", fontStyle: "bold", fillColor: [255, 243, 205] },
+                        },
+                    ])
 
                     doc.autoTable({
-                        head: [['DEBE', 'Monto', 'HABER', 'Monto']],
+                        head: [["DEBE", "Monto", "HABER", "Monto"]],
                         body: dataMovimientos,
                         startY: yPosition,
                         margin: { left: margin, right: margin },
                         columnStyles: {
-                            0: { halign: 'left', cellWidth: 45 },
-                            1: { halign: 'right', cellWidth: 35 },
-                            2: { halign: 'left', cellWidth: 45 },
-                            3: { halign: 'right', cellWidth: 35 }
+                            0: { halign: "left", cellWidth: 45 },
+                            1: { halign: "right", cellWidth: 35 },
+                            2: { halign: "left", cellWidth: 45 },
+                            3: { halign: "right", cellWidth: 35 },
                         },
                         headStyles: {
                             fillColor: [236, 240, 241],
                             textColor: [0, 0, 0],
-                            fontStyle: 'bold'
+                            fontStyle: "bold",
                         },
                         styles: {
                             fontSize: 9,
-                            cellPadding: 3
+                            cellPadding: 3,
                         },
-                        didDrawPage: function(data) {
-                            yPosition = data.cursor.y + 5;
-                        }
-                    });
+                        didDrawPage: (data) => {
+                            yPosition = data.cursor.y + 5
+                        },
+                    })
 
-                    yPosition = doc.lastAutoTable.finalY + 12;
-                });
+                    yPosition = doc.lastAutoTable.finalY + 12
+                })
 
                 // Mostrar cuentas SIN movimiento en tabla simple
                 if (cuentasSinMovimiento.length > 0) {
                     if (yPosition > pageHeight - 50) {
-                        doc.addPage();
-                        yPosition = 20;
+                        doc.addPage()
+                        yPosition = 20
                     }
 
-                    doc.setFontSize(12);
-                    doc.setFont(undefined, 'bold');
-                    doc.text('Cuentas sin Movimiento', margin, yPosition);
-                    yPosition += 8;
+                    doc.setFontSize(12)
+                    doc.setFont(undefined, "bold")
+                    doc.text("Cuentas sin Movimiento", margin, yPosition)
+                    yPosition += 8
 
-                    const dataSinMovimiento = cuentasSinMovimiento.map(cuenta => [
+                    const dataSinMovimiento = cuentasSinMovimiento.map((cuenta) => [
                         cuenta.nombre,
                         cuenta.tipo,
-                        cuenta.naturaleza === 'D' ? 'Deudora' : 'Acreedora',
-                        '$' + cuenta.totalDebe.toFixed(2),
-                        '$' + cuenta.totalHaber.toFixed(2),
-                        '$' + cuenta.saldo.toFixed(2)
-                    ]);
+                        cuenta.naturaleza === "D" ? "Deudora" : "Acreedora",
+                        "$" + cuenta.totalDebe.toFixed(2),
+                        "$" + cuenta.totalHaber.toFixed(2),
+                        "$" + cuenta.saldo.toFixed(2),
+                    ])
 
                     doc.autoTable({
-                        head: [['Cuenta', 'Tipo', 'Naturaleza', 'Total Debe', 'Total Haber', 'Saldo']],
+                        head: [["Cuenta", "Tipo", "Naturaleza", "Total Debe", "Total Haber", "Saldo"]],
                         body: dataSinMovimiento,
                         startY: yPosition,
                         margin: { left: margin, right: margin },
                         columnStyles: {
-                            3: { halign: 'right' },
-                            4: { halign: 'right' },
-                            5: { halign: 'right' }
+                            3: { halign: "right" },
+                            4: { halign: "right" },
+                            5: { halign: "right" },
                         },
                         styles: {
                             fontSize: 9,
-                            cellPadding: 3
+                            cellPadding: 3,
                         },
-                        didDrawPage: function(data) {
-                            yPosition = data.cursor.y + 5;
-                        }
-                    });
-                    yPosition = doc.lastAutoTable.finalY + 15;
+                        didDrawPage: (data) => {
+                            yPosition = data.cursor.y + 5
+                        },
+                    })
+                    yPosition = doc.lastAutoTable.finalY + 15
                 }
             }
 
             // --- Balance de Comprobación ---
             if (reporteData.balanceComprobacion && reporteData.balanceComprobacion.length > 0) {
                 if (yPosition > pageHeight - 50) {
-                    doc.addPage();
-                    yPosition = 20;
+                    doc.addPage()
+                    yPosition = 20
                 }
 
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.text('Balance de Comprobación', margin, yPosition);
-                yPosition += 10;
+                doc.setFontSize(14)
+                doc.setFont(undefined, "bold")
+                doc.text("Balance de Comprobación", margin, yPosition)
+                yPosition += 10
 
-                const dataBC = reporteData.balanceComprobacion.map(cuenta => [
+                const dataBC = reporteData.balanceComprobacion.map((cuenta) => [
                     cuenta.nombre,
                     cuenta.tipo,
-                    '$' + (cuenta.debe ? parseFloat(cuenta.debe).toFixed(2) : '0.00'),
-                    '$' + (cuenta.haber ? parseFloat(cuenta.haber).toFixed(2) : '0.00')
-                ]);
+                    "$" + (cuenta.debe ? Number.parseFloat(cuenta.debe).toFixed(2) : "0.00"),
+                    "$" + (cuenta.haber ? Number.parseFloat(cuenta.haber).toFixed(2) : "0.00"),
+                ])
 
                 // Totales
                 if (reporteData.totalesBalanceComprobacion) {
                     dataBC.push([
-                        'TOTALES',
-                        '',
-                        '$' + (reporteData.totalesBalanceComprobacion.debe ? reporteData.totalesBalanceComprobacion.debe.toFixed(2) : '0.00'),
-                        '$' + (reporteData.totalesBalanceComprobacion.haber ? reporteData.totalesBalanceComprobacion.haber.toFixed(2) : '0.00')
-                    ]);
+                        "TOTALES",
+                        "",
+                        "$" +
+                        (reporteData.totalesBalanceComprobacion.debe
+                            ? reporteData.totalesBalanceComprobacion.debe.toFixed(2)
+                            : "0.00"),
+                        "$" +
+                        (reporteData.totalesBalanceComprobacion.haber
+                            ? reporteData.totalesBalanceComprobacion.haber.toFixed(2)
+                            : "0.00"),
+                    ])
                 }
 
                 doc.autoTable({
-                    head: [['Cuenta', 'Tipo', 'Debe', 'Haber']],
+                    head: [["Cuenta", "Tipo", "Debe", "Haber"]],
                     body: dataBC,
                     startY: yPosition,
                     margin: { left: margin, right: margin },
                     columnStyles: {
-                        2: { halign: 'right' },
-                        3: { halign: 'right' }
+                        2: { halign: "right" },
+                        3: { halign: "right" },
                     },
-                    didDrawPage: function(data) {
-                        yPosition = data.cursor.y + 5;
-                    }
-                });
-                yPosition = doc.lastAutoTable.finalY + 15;
+                    didDrawPage: (data) => {
+                        yPosition = data.cursor.y + 5
+                    },
+                })
+                yPosition = doc.lastAutoTable.finalY + 15
+            }
+
+            // --- Estado de Resultados ---
+            if (reporteData.ingresos || reporteData.gastos) {
+                if (yPosition > pageHeight - 50) {
+                    doc.addPage()
+                    yPosition = 20
+                }
+
+                doc.setFontSize(14)
+                doc.setFont(undefined, "bold")
+                doc.text("Estado de Resultados", margin, yPosition)
+                yPosition += 10
+
+                const dataER = []
+
+                if (reporteData.ingresos && reporteData.ingresos.length > 0) {
+                    doc.setFontSize(12)
+                    doc.setFont(undefined, "bold")
+                    doc.text("Ingresos (Debe)", margin, yPosition)
+                    yPosition += 8
+
+                    reporteData.ingresos.forEach((ingreso) => {
+                        dataER.push([ingreso.nombre, "$" + Number.parseFloat(ingreso.saldo).toFixed(2)])
+                        yPosition += 5
+                    })
+
+                    dataER.push(["Total Ingresos", "$" + (Number.parseFloat(reporteData.totalIngresos) || 0).toFixed(2)])
+                    yPosition += 15
+                }
+
+                if (reporteData.gastos && reporteData.gastos.length > 0) {
+                    doc.setFontSize(12)
+                    doc.setFont(undefined, "bold")
+                    doc.text("Gastos (Haber)", margin, yPosition)
+                    yPosition += 8
+
+                    reporteData.gastos.forEach((gasto) => {
+                        dataER.push([gasto.nombre, "$" + Number.parseFloat(gasto.saldo).toFixed(2)])
+                        yPosition += 5
+                    })
+
+                    dataER.push(["Total Gastos", "$" + (Number.parseFloat(reporteData.totalGastos) || 0).toFixed(2)])
+                    yPosition += 15
+                }
+
+                const utilidadNeta = Number.parseFloat(reporteData.utilidadNeta) || 0
+                const utilidadColor = utilidadNeta >= 0 ? "#27ae60" : "#c0392b"
+
+                dataER.push(
+                    [
+                        "Utilidad Neta",
+                        utilidadColor === "#27ae60" ? "$" + utilidadNeta.toFixed(2) : "-$" + Math.abs(utilidadNeta).toFixed(2),
+                    ],
+                    [""],
+                )
+
+                doc.autoTable({
+                    head: [["Concepto", "Monto"]],
+                    body: dataER,
+                    startY: yPosition,
+                    margin: { left: margin, right: margin },
+                    columnStyles: {
+                        1: { halign: "right" },
+                    },
+                    didDrawPage: (data) => {
+                        yPosition = data.cursor.y + 5
+                    },
+                })
+                yPosition = doc.lastAutoTable.finalY + 15
+            }
+
+            // --- Estado de Capital ---
+            if (reporteData.capitalAccounts || reporteData.retiros) {
+                if (yPosition > pageHeight - 50) {
+                    doc.addPage()
+                    yPosition = 20
+                }
+
+                doc.setFontSize(14)
+                doc.setFont(undefined, "bold")
+                doc.text("Estado de Capital", margin, yPosition)
+                yPosition += 10
+
+                const dataEC = []
+
+                if (reporteData.capitalAccounts && reporteData.capitalAccounts.length > 0) {
+                    doc.setFontSize(12)
+                    doc.setFont(undefined, "bold")
+                    doc.text("Capital Contable", margin, yPosition)
+                    yPosition += 8
+
+                    reporteData.capitalAccounts.forEach((cap) => {
+                        dataEC.push([cap.nombre, "$" + Number.parseFloat(cap.saldo).toFixed(2)])
+                        yPosition += 5
+                    })
+
+                    dataEC.push(["Total Capital", "$" + (Number.parseFloat(reporteData.totalCapitalInicial) || 0).toFixed(2)])
+                    yPosition += 15
+                }
+
+                if (reporteData.retiros && reporteData.retiros.length > 0) {
+                    doc.setFontSize(12)
+                    doc.setFont(undefined, "bold")
+                    doc.text("Retiros", margin, yPosition)
+                    yPosition += 8
+
+                    reporteData.retiros.forEach((retiro) => {
+                        dataEC.push([retiro.nombre, "-$" + Number.parseFloat(retiro.saldo).toFixed(2)])
+                        yPosition += 5
+                    })
+
+                    dataEC.push(["Total Retiros", "-$" + (Number.parseFloat(reporteData.totalRetiros) || 0).toFixed(2)])
+                    yPosition += 15
+                }
+
+                const capitalFinal = Number.parseFloat(reporteData.capitalFinal) || 0
+                const capitalColor = capitalFinal >= 0 ? "#27ae60" : "#c0392b"
+
+                dataEC.push(
+                    [
+                        "Capital Final",
+                        capitalColor === "#27ae60" ? "$" + capitalFinal.toFixed(2) : "-$" + Math.abs(capitalFinal).toFixed(2),
+                    ],
+                    [""],
+                )
+
+                doc.autoTable({
+                    head: [["Concepto", "Monto"]],
+                    body: dataEC,
+                    startY: yPosition,
+                    margin: { left: margin, right: margin },
+                    columnStyles: {
+                        1: { halign: "right" },
+                    },
+                    didDrawPage: (data) => {
+                        yPosition = data.cursor.y + 5
+                    },
+                })
             }
 
             // --- Balance General ---
             if (reporteData.activos || reporteData.pasivos || reporteData.capital) {
                 if (yPosition > pageHeight - 50) {
-                    doc.addPage();
-                    yPosition = 20;
+                    doc.addPage()
+                    yPosition = 20
                 }
 
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.text('Balance General', margin, yPosition);
-                yPosition += 10;
+                doc.setFontSize(14)
+                doc.setFont(undefined, "bold")
+                doc.text("Balance General", margin, yPosition)
+                yPosition += 10
 
-                const dataBalanceGeneral = [];
+                const dataBalanceGeneral = []
 
                 // Helper to add rows
                 const addRows = (items, sectionName) => {
                     if (items && items.length > 0) {
-                        let total = 0;
-                        items.forEach(item => {
-                            const val = parseFloat(item.saldo) || 0;
-                            total += val;
-                            dataBalanceGeneral.push([sectionName, item.nombre, '$' + val.toFixed(2)]);
-                        });
-                        dataBalanceGeneral.push([sectionName, 'TOTAL ' + sectionName, '$' + total.toFixed(2)]);
+                        let total = 0
+                        items.forEach((item) => {
+                            const val = Number.parseFloat(item.saldo) || 0
+                            total += val
+                            dataBalanceGeneral.push([sectionName, item.nombre, "$" + val.toFixed(2)])
+                        })
+                        dataBalanceGeneral.push([sectionName, "TOTAL " + sectionName, "$" + total.toFixed(2)])
                     }
-                };
+                }
 
-                addRows(reporteData.activos, 'ACTIVOS');
-                addRows(reporteData.pasivos, 'PASIVOS');
-                addRows(reporteData.capital, 'CAPITAL');
+                addRows(reporteData.activos, "ACTIVOS")
+                addRows(reporteData.pasivos, "PASIVOS")
+                addRows(reporteData.capital, "CAPITAL")
 
                 doc.autoTable({
-                    head: [['Sección', 'Cuenta', 'Saldo']],
+                    head: [["Sección", "Cuenta", "Saldo"]],
                     body: dataBalanceGeneral,
                     startY: yPosition,
                     margin: { left: margin, right: margin },
                     columnStyles: {
-                        2: { halign: 'right' }
-                    }
-                });
+                        2: { halign: "right" },
+                    },
+                })
             }
 
             // Guardar PDF
-            const filename = 'reporte_' + new Date().toISOString().split('T')[0] + '.pdf';
-            doc.save(filename);
+            const filename = "reporte_" + new Date().toISOString().split("T")[0] + ".pdf"
+            doc.save(filename)
 
-            Swal.close();
+            Swal.close()
             Swal.fire({
-                icon: 'success',
-                title: 'Éxito',
-                text: 'PDF descargado correctamente'
-            });
-
+                icon: "success",
+                title: "Éxito",
+                text: "PDF descargado correctamente",
+            })
         } catch (error) {
-            console.error('[v0] Error en exportarPDF:', error);
-            Swal.close();
+            console.error("[v0] Error en exportarPDF:", error)
+            Swal.close()
             Swal.fire({
-                icon: 'error',
-                title: 'Error al generar PDF',
-                text: error.message || 'Ocurrió un error inesperado'
-            });
+                icon: "error",
+                title: "Error al generar PDF",
+                text: error.message || "Ocurrió un error inesperado",
+            })
         }
-    }, 500);
+    }, 500)
 }
 
-window.addEventListener('load', function() {
-    console.log("[v0] Página cargada, inicializando fechas");
-    const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+window.addEventListener("load", () => {
+    console.log("[v0] Página cargada, inicializando fechas")
+    const today = new Date()
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1)
 
-    document.getElementById('fechaInicio').valueAsDate = firstDay;
-    document.getElementById('fechaFin').valueAsDate = today;
-    console.log("[v0] Inicialización completada");
-});
+    document.getElementById("fechaInicio").valueAsDate = firstDay
+    document.getElementById("fechaFin").valueAsDate = today
+    console.log("[v0] Inicialización completada")
+})

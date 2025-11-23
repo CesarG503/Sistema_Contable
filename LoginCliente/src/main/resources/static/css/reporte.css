@@ -7,7 +7,7 @@
     padding: 25px;
     border-radius: 8px;
     margin-bottom: 30px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .filter-row {
@@ -56,7 +56,7 @@
 .tabs-section {
     background: white;
     border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     overflow: hidden;
 }
 
@@ -478,6 +478,199 @@
     background: #f9f9f9;
 }
 
+/* New styles for professional financial statements */
+.financial-paper {
+    background: white;
+    padding: 40px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.fin-header {
+    text-align: center;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+}
+
+.fin-header h3 {
+    margin: 0 0 10px 0;
+    font-size: 24px;
+    color: #000;
+    letter-spacing: 1px;
+}
+
+.fin-header .company-name {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #444;
+}
+
+.fin-header .period {
+    font-size: 14px;
+    color: #666;
+    font-style: italic;
+}
+
+.fin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.fin-table td {
+    padding: 8px 12px;
+    font-size: 16px;
+    color: #333;
+}
+
+.fin-row-header {
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #000;
+    padding-top: 15px !important;
+}
+
+.fin-indent-1 {
+    padding-left: 30px !important;
+}
+
+.fin-indent-2 {
+    padding-left: 50px !important;
+}
+
+.fin-amount {
+    text-align: right;
+    font-family: "Courier New", Courier, monospace;
+}
+
+.fin-total-line {
+    border-top: 1px solid #000;
+}
+
+.fin-grand-total {
+    border-top: 1px solid #000;
+    border-bottom: 3px double #000; /* Double underline for grand totals */
+    font-weight: bold;
+    color: #000;
+}
+
+.fin-section-title {
+    font-weight: bold;
+    color: #2c3e50;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px !important;
+    margin-top: 20px;
+}
+
+/* Resultado visual para Balance General */
+.resultado-module {
+    display: block;
+    max-width: 100%;
+}
+
+.resultado-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(90deg, #ffffff 0%, #f7fbff 100%);
+    border: 1px solid #e6eef8;
+    padding: 16px;
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(67, 97, 235, 0.06);
+}
+
+.resultado-left {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.resultado-title {
+    padding-bottom: 1rem;
+}
+
+.resultado-values {
+    display: flex;
+    gap: 2rem;
+    align-items: baseline;
+}
+
+.resultado-item .label {
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.resultado-item .value {
+    font-size: 18px;
+    font-weight: 800;
+    color: #111827;
+    margin-top: 6px;
+}
+
+.resultado-right {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.resultado-status {
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-weight: 800;
+    color: white;
+    font-size: 13px;
+}
+
+.resultado-equal {
+    background: linear-gradient(90deg, #16a34a 0%, #34d399 100%); /* verde */
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.12);
+}
+
+.resultado-not-equal {
+    background: linear-gradient(90deg, #ef4444 0%, #f97316 100%); /* rojo/naranja */
+    box-shadow: 0 6px 18px rgba(239, 68, 68, 0.12);
+}
+
+.resultado-diff {
+    font-size: 13px;
+    color: #374151;
+    font-weight: 700;
+}
+
+.resultado-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+}
+
+.btn-highlight {
+    background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.btn-highlight:hover {
+    filter: brightness(0.95);
+}
+
+/* Resaltar tablas cuando hay discrepancia */
+.highlight-table {
+    box-shadow: 0 6px 18px rgba(239, 68, 68, 0.08) inset;
+    border: 2px dashed rgba(239, 68, 68, 0.12);
+}
+
+/* Responsive tweaks */
 @media (max-width: 768px) {
     .filter-row {
         flex-direction: column;
@@ -516,4 +709,18 @@
         width: 95%;
         max-width: 100%;
     }
+
+    .resultado-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .resultado-right {
+        align-items: flex-start;
+        text-align: left;
+    }
+}
+
+.margin-bottom {
+    margin-bottom: 20px;
 }
