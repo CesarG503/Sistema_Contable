@@ -73,7 +73,7 @@
                             <input list="cuentas" type="text" name="cuentas" class="cuenta-select" required>
                             <datalist id="cuentas" class="cuentas-list">
                                 <option value="">Seleccione una cuenta</option>
-                                <option th:each="cuenta : ${cuentas}" th:value="${cuenta.nombre}" th:data-id="${cuenta.idCuenta}"></option>
+                                <option th:each="cuenta : ${cuentas}" th:value="${cuenta.numeroCuenta+' - '+cuenta.nombre}" th:data-id="${cuenta.idCuenta}"></option>
                             </datalist>
                         </div>
                         <div class="form-group">
@@ -96,7 +96,7 @@
                             <input list="cuentas1" type="text" name="cuentas1" class="cuenta-select" required>
                             <datalist class="cuenta-select" id="cuentas1">
                                 <option value="">Seleccione una cuenta</option>
-                                <option th:each="cuenta : ${cuentas}" th:value="${cuenta.nombre}" th:data-id="${cuenta.idCuenta}"></option>
+                                <option th:each="cuenta : ${cuentas}" th:value="${cuenta.numeroCuenta+' - '+cuenta.nombre}" th:data-id="${cuenta.idCuenta}"></option>
                             </datalist>
                         </div>
                         <div class="form-group">

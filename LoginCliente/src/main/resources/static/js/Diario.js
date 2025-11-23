@@ -47,7 +47,7 @@ function addDocumento(){
         <label for="nombreArchivo${nDocumentos}">Nombre del documento:</label>
         <input type="text" name="nombreArchivo${nDocumentos}" id="nombreArchivo${nDocumentos}" placeholder="Nombre para el documento ${nDocumentos}..." class="nombre-documento" required>
     </div>
-    <label for="archivoOrigen${nDocumentos}" id="labelArchivo${nDocumentos}" class="btn btn-primary file-label"><i class="fa fa-file"></i> Subir</label>
+    <label for="archivoOrigen${nDocumentos}" id="labelArchivo${nDocumentos}" class="btn btn-primary file-label"><i class="fa fa-file-arrow-up"></i> Subir</label>
         <input type="file" name="archivoOrigen${nDocumentos}" id="archivoOrigen${nDocumentos}" accept=".pdf,image/*" class="file-input archivo-origen" required>
     <div class="preview-container" id="previewContainer${nDocumentos}">
         <p>Ningún archivo seleccionado</p>
@@ -104,11 +104,15 @@ attachCalculateListeners()
 function cargarVistaPrevia(previewId) {
     const input = document.getElementById('archivoOrigen'+previewId);
     const preview = document.getElementById('previewContainer'+previewId);
+    const label = document.getElementById('labelArchivo'+previewId);
     const file = input.files[0];
     preview.innerHTML = '';
 
     if (!file) {
         preview.innerHTML = '<p>Ningún archivo seleccionado</p>';
+        label.classList.remove('btn-secondary');
+        label.classList.add('btn-primary');
+        label.innerHTML = `<i class="fa fa-file-arrow-up"></i> Subir`;
         return;
     }
 
@@ -128,7 +132,6 @@ function cargarVistaPrevia(previewId) {
         preview.innerHTML = `<p>Tipo de archivo no soportado: ${file.name}</p>`;
     }
 
-    const label = document.getElementById('labelArchivo'+previewId);
     label.classList.remove('btn-primary');
     label.classList.add('btn','btn-secondary');
     label.innerHTML = `<i class="fa fa-file-invoice"></i> ${file.name}`;
@@ -146,7 +149,7 @@ function resetVistaPrevia() {
     labels.forEach(label => {
        label.classList.remove('btn-secondary');
        label.classList.add('btn-primary');
-       label.innerHTML = `<i class="fa fa-file"></i> Subir`;
+       label.innerHTML = `<i class="fa fa-file-arrow-up"></i> Subir`;
     });
 }
 
@@ -177,13 +180,26 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
         }
     });
 
-    document.querySelectorAll(".movimiento-row").forEach((row) => {
+    for (const row of document.querySelectorAll(".movimiento-row")) {
         const listId = row.querySelector(".cuenta-select").getAttribute("list");
         const dataList = document.getElementById(listId);
         const cuentaInput = row.querySelector(".cuenta-select");
         const selectedOption = Array.from(dataList.options).find(
             option => option.value === cuentaInput.value
         );
+        if(!selectedOption) {
+            let mensajeDetallado = `La cuenta ingresada "${cuentaInput.value}" no es válida. Por favor, seleccione una cuenta de la lista sugerida.\n\nAsegúrese de elegir una opción existente para evitar errores en la creación de la partida.`;
+            await Swal.fire({
+                icon: 'warning',
+                title: 'No selecciono correcatemente la cuenta',
+                html: mensajeDetallado.replace(/\n/g, '<br>'),
+                showCancelButton: true,
+                showConfirmButton: false,
+                cancelButtonText: 'Ok',
+                cancelButtonColor: '#d63030'
+            });
+            continue; // Omitir si no hay opción seleccionada válida
+        }
         const idCuenta = selectedOption.dataset.id;
 
         const monto = row.querySelector(".monto-input").value
@@ -192,7 +208,7 @@ document.getElementById("partidaForm").addEventListener("submit", async (e) => {
         if (idCuenta && monto && tipo) {
             movimientos.push({ idCuenta, monto, tipo })
         }
-    });
+    }
 
     // Función auxiliar para crear el FormData
     const crearFormData = (incluirForzar = false) => {
