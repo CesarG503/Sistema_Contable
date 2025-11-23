@@ -356,19 +356,29 @@ document.getElementById('editarPartidaForm').addEventListener('submit', async (e
         }
     });
 
-    // Crear FormData
-    const formData = new FormData();
-    formData.append('concepto', concepto);
-    formData.append('fechaPartida', fechaPartida);
-    formData.append('movimientos', JSON.stringify(movimientos));
-    formData.append('nombresArchivos', JSON.stringify(nombreDocumentosArray));
-    formData.append('montosArchivo', JSON.stringify(montosArchivoArray));
-    formData.append('documentosAEliminar', JSON.stringify(editDocumentosAEliminar));
+    // Función auxiliar para crear el FormData
+    const crearFormData = (incluirForzar = false) => {
+        const fd = new FormData();
+        fd.append('concepto', concepto);
+        fd.append('fechaPartida', fechaPartida);
+        fd.append('movimientos', JSON.stringify(movimientos));
+        fd.append('nombresArchivos', JSON.stringify(nombreDocumentosArray));
+        fd.append('montosArchivo', JSON.stringify(montosArchivoArray));
+        fd.append('documentosAEliminar', JSON.stringify(editDocumentosAEliminar));
 
-    // Agregar archivos
-    archivosOrigenArray.forEach((archivo) => {
-        formData.append('archivosOrigen', archivo);
-    });
+        archivosOrigenArray.forEach((archivo) => {
+            fd.append('archivosOrigen', archivo);
+        });
+
+        if (incluirForzar) {
+            fd.append('forzar', 'true');
+        }
+
+        return fd;
+    };
+
+    // Crear FormData
+    const formData = crearFormData();
 
     try {
         const response = await fetch(`/partidas/actualizar/${partidaId}`, {
@@ -379,9 +389,51 @@ document.getElementById('editarPartidaForm').addEventListener('submit', async (e
         const data = await response.json();
 
         if (response.ok) {
-            closeEditModal();
-            await alerta('Partida actualizada exitosamente', 'success');
-            location.reload();
+            // Verificar si hay advertencia de cuentas negativas
+            if (data.warning) {
+                // No cerramos la modal para conservar los datos ingresados
+
+                // Construir mensaje detallado
+                let mensajeDetallado = data.mensaje + "\n\n";
+
+                const result = await Swal.fire({
+                    icon: 'warning',
+                    title: 'Advertencia de Saldo Negativo',
+                    html: mensajeDetallado.replace(/\n/g, '<br>'),
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, continuar',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6'
+                });
+
+                if (result.isConfirmed) {
+                    // Usuario confirmó, crear nuevo FormData con forzar=true
+                    const formDataForzado = crearFormData(true);
+
+                    const responseForzado = await fetch(`/partidas/actualizar/${partidaId}`, {
+                        method: 'POST',
+                        body: formDataForzado
+                    });
+
+                    const dataForzado = await responseForzado.json();
+
+                    if (responseForzado.ok && dataForzado.success) {
+                        closeEditModal();
+                        await alerta('Partida actualizada exitosamente', 'success');
+                        location.reload();
+                    } else {
+                        await alerta('Error al actualizar la partida: ' + (dataForzado.error || 'Error desconocido'), 'error');
+                    }
+                } else {
+                    // Usuario canceló: no hacemos nada, la modal sigue abierta con los datos intactos
+                }
+            } else if (data.success) {
+                // Éxito normal sin advertencias
+                closeEditModal();
+                await alerta('Partida actualizada exitosamente', 'success');
+                location.reload();
+            }
         } else {
             await alerta('Error al actualizar la partida: ' + (data.error || 'Error desconocido'), 'error');
         }
@@ -397,4 +449,3 @@ window.addEventListener('click', (event) => {
         closeEditModal();
     }
 });
-

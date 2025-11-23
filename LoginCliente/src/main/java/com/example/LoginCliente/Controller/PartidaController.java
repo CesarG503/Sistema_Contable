@@ -117,6 +117,7 @@ public class PartidaController {
                                                             @RequestParam("fechaPartida") String fechaPartida,
                                                             @RequestParam(value = "movimientos") String movimientosJson,
                                                             @RequestParam("nombresArchivos") String nombresArchivosJson,
+                                                            @RequestParam(required = false, defaultValue = "false") boolean forzar,
                                                             @RequestParam(value = "archivosOrigen", required = false) MultipartFile[] archivosOrigen,
                                                             HttpSession session) {
         Map<String, Object> response = new HashMap<>();
@@ -187,6 +188,17 @@ public class PartidaController {
             if (totalDebe.compareTo(totalHaber) != 0) {
                 response.put("error", "El total del Debe debe ser igual al total del Haber");
                 return ResponseEntity.badRequest().body(response);
+            }
+
+            // Validar saldos de las cuentas solo si no se está forzando
+            if (!forzar) {
+                List<String> cuentasNegativas = validarSaldosCuentas(movimientos);
+                if (!cuentasNegativas.isEmpty()) {
+                    response.put("warning", true);
+                    response.put("cuentasNegativas", cuentasNegativas);
+                    response.put("mensaje", "Las siguientes cuentas quedarían con saldo negativo: " + String.join(", ", cuentasNegativas) + ". \n\n¿Desea continuar de todos modos? Deberá realizar ajustes contables.");
+                    return ResponseEntity.ok(response);
+                }
             }
 
             String[] nombresArchivos = mapper.readValue(nombresArchivosJson, String[].class);
@@ -345,6 +357,7 @@ public class PartidaController {
             @RequestParam(value = "archivosOrigen", required = false) MultipartFile[] archivosOrigen,
             @RequestParam(value = "montosArchivo", required = false) String montosArchivoJson,
             @RequestParam(value = "documentosAEliminar", required = false) String documentosAEliminarJson,
+            @RequestParam(required = false, defaultValue = "false") boolean forzar,
             HttpSession session) {
 
         Map<String, Object> response = new HashMap<>();
@@ -406,6 +419,19 @@ public class PartidaController {
             if (totalDebe.compareTo(totalHaber) != 0) {
                 response.put("error", "El total del Debe debe ser igual al total del Haber");
                 return ResponseEntity.badRequest().body(response);
+            }
+
+            // Validar saldos de las cuentas solo si no se está forzando
+            if (!forzar) {
+                // Crear lista de movimientos temporal para validación
+                // Necesitamos restar los movimientos antiguos y sumar los nuevos
+                List<String> cuentasNegativas = validarSaldosCuentasConEdicion(idPartida, movimientos);
+                if (!cuentasNegativas.isEmpty()) {
+                    response.put("warning", true);
+                    response.put("cuentasNegativas", cuentasNegativas);
+                    response.put("mensaje", "Las siguientes cuentas quedarían con saldo negativo: " + String.join(", ", cuentasNegativas) + ". \n\n ¿Desea continuar de todos modos? Deberá realizar ajustes contables.");
+                    return ResponseEntity.ok(response);
+                }
             }
 
             // Eliminar documentos marcados
@@ -482,6 +508,155 @@ public class PartidaController {
         }
         // Sino encuentra la referencia, redirige al dashboard o a otra página predeterminada
         return "redirect:/dashboard";
+    }
+
+    /**
+     * Valida si los movimientos propuestos dejarían alguna cuenta con saldo negativo
+     * @param movimientos Lista de movimientos a validar
+     * @return Lista de nombres de cuentas que quedarían en negativo
+     */
+    private List<String> validarSaldosCuentas(List<Movimiento> movimientos) {
+        List<String> cuentasNegativas = new ArrayList<>();
+
+        // Agrupar movimientos por cuenta
+        Map<Integer, BigDecimal> cambiosPorCuenta = new HashMap<>();
+
+        for (Movimiento mov : movimientos) {
+            Integer idCuenta = mov.getIdCuenta();
+            BigDecimal cambio = cambiosPorCuenta.getOrDefault(idCuenta, BigDecimal.ZERO);
+
+            // Obtener la cuenta para conocer su naturaleza
+            Cuenta cuenta = cuentaService.findById(idCuenta)
+                    .orElseThrow(() -> new RuntimeException("Cuenta no encontrada"));
+
+            // Calcular el impacto en el saldo según naturaleza de la cuenta
+            if ("D".equals(cuenta.getNaturaleza())) {
+                // Para cuentas Deudoras: Debe aumenta, Haber disminuye
+                if ("D".equals(mov.getTipo())) {
+                    cambio = cambio.add(mov.getMonto());
+                } else {
+                    cambio = cambio.subtract(mov.getMonto());
+                }
+            } else {
+                // Para cuentas Acreedoras: Haber aumenta, Debe disminuye
+                if ("H".equals(mov.getTipo())) {
+                    cambio = cambio.add(mov.getMonto());
+                } else {
+                    cambio = cambio.subtract(mov.getMonto());
+                }
+            }
+
+            cambiosPorCuenta.put(idCuenta, cambio);
+        }
+
+        // Verificar cada cuenta afectada
+        for (Map.Entry<Integer, BigDecimal> entry : cambiosPorCuenta.entrySet()) {
+            Integer idCuenta = entry.getKey();
+            BigDecimal cambio = entry.getValue();
+
+            // Obtener saldo actual
+            Map<String, BigDecimal> saldos = cuentaService.calcularSaldoCuenta(idCuenta);
+            BigDecimal saldoActual = saldos.get("saldo");
+            BigDecimal saldoProyectado = saldoActual.add(cambio);
+
+            // Si el saldo proyectado es negativo, agregar a la lista
+            if (saldoProyectado.compareTo(BigDecimal.ZERO) < 0) {
+                Cuenta cuenta = cuentaService.findById(idCuenta).orElse(null);
+                if (cuenta != null) {
+                    cuentasNegativas.add(cuenta.getNombre() + " (Saldo actual: $" + saldoActual +
+                                        ", Saldo proyectado: $" + saldoProyectado + ")");
+                }
+            }
+        }
+
+        return cuentasNegativas;
+    }
+
+    /**
+     * Valida saldos cuando se está editando una partida existente
+     * Primero resta el efecto de los movimientos antiguos, luego suma los nuevos
+     */
+    private List<String> validarSaldosCuentasConEdicion(Integer idPartida, List<Movimiento> nuevosMovimientos) {
+        List<String> cuentasNegativas = new ArrayList<>();
+
+        // Obtener movimientos antiguos
+        List<Movimiento> movimientosAntiguos = partidaService.findMovimientosByPartida(idPartida);
+
+        // Agrupar cambios por cuenta
+        Map<Integer, BigDecimal> cambiosPorCuenta = new HashMap<>();
+
+        // Restar efecto de movimientos antiguos
+        for (Movimiento mov : movimientosAntiguos) {
+            Integer idCuenta = mov.getIdCuenta();
+            BigDecimal cambio = cambiosPorCuenta.getOrDefault(idCuenta, BigDecimal.ZERO);
+
+            Cuenta cuenta = cuentaService.findById(idCuenta)
+                    .orElseThrow(() -> new RuntimeException("Cuenta no encontrada"));
+
+            // Restar el efecto anterior (lo contrario de sumar)
+            if ("D".equals(cuenta.getNaturaleza())) {
+                if ("D".equals(mov.getTipo())) {
+                    cambio = cambio.subtract(mov.getMonto()); // Restar lo que se había sumado
+                } else {
+                    cambio = cambio.add(mov.getMonto()); // Sumar lo que se había restado
+                }
+            } else {
+                if ("H".equals(mov.getTipo())) {
+                    cambio = cambio.subtract(mov.getMonto());
+                } else {
+                    cambio = cambio.add(mov.getMonto());
+                }
+            }
+
+            cambiosPorCuenta.put(idCuenta, cambio);
+        }
+
+        // Sumar efecto de nuevos movimientos
+        for (Movimiento mov : nuevosMovimientos) {
+            Integer idCuenta = mov.getIdCuenta();
+            BigDecimal cambio = cambiosPorCuenta.getOrDefault(idCuenta, BigDecimal.ZERO);
+
+            Cuenta cuenta = cuentaService.findById(idCuenta)
+                    .orElseThrow(() -> new RuntimeException("Cuenta no encontrada"));
+
+            if ("D".equals(cuenta.getNaturaleza())) {
+                if ("D".equals(mov.getTipo())) {
+                    cambio = cambio.add(mov.getMonto());
+                } else {
+                    cambio = cambio.subtract(mov.getMonto());
+                }
+            } else {
+                if ("H".equals(mov.getTipo())) {
+                    cambio = cambio.add(mov.getMonto());
+                } else {
+                    cambio = cambio.subtract(mov.getMonto());
+                }
+            }
+
+            cambiosPorCuenta.put(idCuenta, cambio);
+        }
+
+        // Verificar cada cuenta afectada
+        for (Map.Entry<Integer, BigDecimal> entry : cambiosPorCuenta.entrySet()) {
+            Integer idCuenta = entry.getKey();
+            BigDecimal cambio = entry.getValue();
+
+            // Obtener saldo actual
+            Map<String, BigDecimal> saldos = cuentaService.calcularSaldoCuenta(idCuenta);
+            BigDecimal saldoActual = saldos.get("saldo");
+            BigDecimal saldoProyectado = saldoActual.add(cambio);
+
+            // Si el saldo proyectado es negativo, agregar a la lista
+            if (saldoProyectado.compareTo(BigDecimal.ZERO) < 0) {
+                Cuenta cuenta = cuentaService.findById(idCuenta).orElse(null);
+                if (cuenta != null) {
+                    cuentasNegativas.add(cuenta.getNombre() + " (Saldo actual: $" + saldoActual +
+                                        ", Saldo proyectado: $" + saldoProyectado + ")");
+                }
+            }
+        }
+
+        return cuentasNegativas;
     }
 
 }
