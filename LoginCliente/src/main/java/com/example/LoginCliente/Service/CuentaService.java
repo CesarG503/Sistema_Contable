@@ -236,6 +236,7 @@ public class CuentaService {
                 if (campos.length < 3) continue;
 
                 Cuenta cuenta = new Cuenta();
+                cuenta.setNumeroCuenta(campos[0].trim());
                 cuenta.setNombre(campos[1].trim());
                 cuenta.setTipo(campos[2].trim());
                 cuenta.setDescripcion(campos.length > 7 ? campos[7].trim() : "");
