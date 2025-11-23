@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentos - One Di</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
+
+    <div th:replace="fragments/sidebar :: sidebar"></div>
+    <div class="main-content">
+        <div class="page-header">
+            <div>
+                <h1>Documentos</h1>
+                <p style="margin-top:0.5rem;"> <i class="fa-solid fa-file-lines"></i> Todos los documentos de la empresa</p>
+            </div>
+
+        </div>
+
+        <section class="documents-section">
+
+            <div class="search-filter-container">
+                <div class="search-inputs">
+                    <div class="search-group">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text"
+                               id="searchNombre"
+                               placeholder="Buscar por nombre..."
+                               class="search-input">
+                    </div>
+
+                    <div class="search-group">
+                        <i class="fa-solid fa-folder"></i>
+                        <input type="text" list="dataSearchPartida"
+                                 id="searchPartida"
+                               placeholder="Filtrar por partida..."
+                               class="search-input" />
+                        <datalist id="dataSearchPartida" class="search-select">
+                            <option value="">Todas las partidas</option>
+                            <option th:each="partida : ${partidas}"
+                                    th:value="${partida.idPartida}"
+                                    th:text="'Partida #' + ${partida.idPartida}">
+                                Partida #1
+                            </option>
+                        </datalist>
+                    </div>
+                    <div class="search-actions">
+                        <button onclick="limpiarFiltros()" class="btn-clear">
+                            <i class="fa-solid fa-xmark"></i> Limpiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="documents-grid">
+                <div class="document-card" th:each="documento : ${documentos}">
+                    <div class="document-icon">
+                        <i class="fa-solid fa-file-pdf" th:if="${documento.tipo.toLowerCase() == 'pdf'}"></i>
+                        <i class="fa-solid fa-file-word" th:if="${documento.tipo.toLowerCase() == 'docx' || documento.tipo.toLowerCase() == 'doc'}"></i>
+                        <i class="fa-solid fa-file-excel" th:if="${documento.tipo.toLowerCase() == 'xlsx' || documento.tipo.toLowerCase() == 'xls'}"></i>
+                        <i class="fa-solid fa-file-image" th:if="${documento.tipo.toLowerCase() == 'jpg' || documento.tipo.toLowerCase() == 'png'}"></i>
+                        <i class="fa-solid fa-file" th:unless="${documento.tipo.toLowerCase() == 'pdf' || documento.tipo.toLowerCase() == 'docx' || documento.tipo.toLowerCase() == 'doc' || documento.tipo.toLowerCase() == 'xlsx' || documento.tipo.toLowerCase() == 'xls' || documento.tipo.toLowerCase() == 'jpg' || documento.tipo.toLowerCase() == 'png'}"></i>
+                    </div>
+                    <div class="document-info">
+                        <h3 class="document-name" th:text="${documento.nombre}">Documento</h3>
+                        <p class="document-type" th:text="${documento.tipo}">PDF</p>
+                        <p class="document-date">
+                            <i class="fa-regular fa-calendar"></i>
+                            <span th:text="${#dates.format(documento.fecha_subida, 'dd/MM/yyyy')}">01/01/2024</span>
+                        </p>
+                        <p class="document-partida">
+                            <i class="fa-solid fa-folder-open"></i>
+                            <span th:text="${!documento.partidaDocumentos.isEmpty() ? 'Partida #' + documento.partidaDocumentos[0].partida.idPartida : 'Sin asignar'}">Sin asignar</span>
+                        </p>
+                    </div>
+
+                    <div style="display: flex; gap: 0.5rem; width: 100%;">
+                        <a th:href="${documento.ruta}" class="btn-download-card" download>
+                            <i class="fa-solid fa-download"></i> Descargar
+                        </a>
+                        <a th:href="${documento.ruta}" class="btn-view-card" target="_blank">
+                            <i class="fa-solid fa-eye"></i> Ver
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </div>
+
+    <script>
+        const searchNombre = document.getElementById('searchNombre');
+        const searchPartida = document.getElementById('searchPartida');
+        const documentCards = document.querySelectorAll('.document-card');
+
+        function filtrarDocumentos() {
+            const nombreFiltro = searchNombre.value.toLowerCase().trim();
+            const partidaFiltro = searchPartida.value;
+
+            documentCards.forEach(card => {
+                const nombreDocumento = card.querySelector('.document-name').textContent.toLowerCase();
+                const partidaTexto = card.querySelector('.document-partida span').textContent;
+
+                // Extraer ID de partida del texto "Partida #X" o null si es "Sin asignar"
+                const partidaMatch = partidaTexto.match(/Partida #(\d+)/);
+                const partidaId = partidaMatch ? partidaMatch[1] : null;
+
+                const coincideNombre = nombreFiltro === '' || nombreDocumento.includes(nombreFiltro);
+                const coincidePartida = partidaFiltro === '' ||
+                    (partidaId && partidaId === partidaFiltro);
+
+                if (coincideNombre && coincidePartida) {
+                    card.style.display = 'flex';
+                    card.style.animation = 'fadeIn 0.3s ease-in';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            actualizarMensajeNoResultados();
+        }
+
+        function actualizarMensajeNoResultados() {
+            const documentosVisibles = Array.from(documentCards).filter(card => card.style.display !== 'none');
+            const grid = document.querySelector('.documents-grid');
+
+            let mensajeExistente = document.querySelector('.no-results-message');
+
+            if (documentosVisibles.length === 0) {
+                if (!mensajeExistente) {
+                    const mensaje = document.createElement('div');
+                    mensaje.className = 'no-results-message';
+                    mensaje.innerHTML = `
+                    <i class="fa-solid fa-search"></i>
+                    <p>No se encontraron documentos que coincidan con los filtros</p>
+                `;
+                    grid.appendChild(mensaje);
+                }
+            } else {
+                if (mensajeExistente) {
+                    mensajeExistente.remove();
+                }
+            }
+        }
+
+        function limpiarFiltros() {
+            searchNombre.value = '';
+            searchPartida.value = '';
+            filtrarDocumentos();
+        }
+
+        // Event listeners
+        searchNombre.addEventListener('input', filtrarDocumentos);
+        searchPartida.addEventListener('change', filtrarDocumentos);
+    </script>
+
+    <script th:src="@{/js/sidebar.js}"></script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 package com.example.LoginCliente.Service;
 
 import com.example.LoginCliente.Models.DocumentosFuente;
+import com.example.LoginCliente.Models.DocumentosPartida;
 import com.example.LoginCliente.Repository.DocumentosFuenteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,5 +19,9 @@ public class DocumentosPartidaService {
 
     public void deleteDocumentoById(Integer idDocumento) {
         documentosFuenteRepository.deleteById(idDocumento);
+    }
+
+    public List<DocumentosFuente> findDocumentosByEmpresaId(Integer idEmpresa) {
+        return documentosFuenteRepository.findDocumentosByEmpresaId(idEmpresa);
     }
 }

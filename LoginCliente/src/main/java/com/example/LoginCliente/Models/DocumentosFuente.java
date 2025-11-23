@@ -76,4 +76,9 @@ public class DocumentosFuente {
     public void setAnadidoPor(Usuario anadidoPor) {
         this.anadidoPor = anadidoPor;
     }
+
+    public String getTipo(){
+        String[] partes = ruta.split("\\.");
+        return partes.length > 1 ? partes[partes.length - 1] : "";
+    }
 }

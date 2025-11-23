@@ -39,6 +39,10 @@
                 <div class="menu-icon"><i class="fa-solid fa-file"></i></div>
                 <span>Cuentas T</span>
             </a>
+            <a href="/documentos" class="menu-item" th:classappend="${page} == 'ver-documentos' ? ' active' : ''">
+                <div class="menu-icon"><i class="fa-solid fa-folder-open"></i></div>
+                <span>Ver Recibos</span>
+            </a>
             <a href="/cuentas/crear" class="menu-item" th:classappend="${page} == 'crear-cuentas' ? ' active' : ''">
                 <div class="menu-icon">➕</div>
                 <span>Crear Cuenta</span>

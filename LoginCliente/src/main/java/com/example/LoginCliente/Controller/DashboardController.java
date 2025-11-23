@@ -19,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import com.example.LoginCliente.Repository.PartidaRepository;
 
 @Controller
 public class DashboardController {
@@ -33,6 +34,8 @@ public class DashboardController {
     private UsuarioEmpresaService usuarioEmpresaService;
     @Autowired
     private DocumentosPartidaService documentosPartidaService;
+    @Autowired
+    private PartidaRepository partidaRepository;
 
     @GetMapping("/dashboard")
     public String dashboard(Model model, HttpSession session) {
@@ -125,5 +128,20 @@ public class DashboardController {
 
         model.addAttribute("page", "dashboard");
         return "dashboard";
+    }
+
+    @GetMapping("/documentos")
+    public String verDocumentos(Model model, HttpSession session) {
+        Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
+        if (empresaActiva == null) {
+            model.addAttribute("ErrorMessage", "Por favor, selecciona una empresa para continuar.");
+            return "redirect:/empresas/mis-empresas";
+        }
+
+        List<DocumentosFuente> documentos = documentosPartidaService.findDocumentosByEmpresaId(empresaActiva);
+        model.addAttribute("partidas", partidaRepository.findAll());
+        model.addAttribute("documentos", documentos);
+        model.addAttribute("page", "documentos");
+        return "lista-documentos";
     }
 }
