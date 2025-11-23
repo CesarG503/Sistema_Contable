@@ -29,6 +29,9 @@ public class Cuenta {
     @Column
     private String tipo;
 
+    @Column(name = "numero_cuenta", nullable = false)
+    private String numeroCuenta = "-";
+
     @Column(name = "id_empresa")
     private Integer idEmpresa;
 

@@ -125,6 +125,7 @@ public class CuentaController {
             Map<String, Object> cuentaData = new HashMap<>();
             cuentaData.put("idCuenta", cuenta.getIdCuenta());
             cuentaData.put("nombre", cuenta.getNombre());
+            cuentaData.put("numeroCuenta", cuenta.getNumeroCuenta());
             cuentaData.put("tipo", cuenta.getTipo());
             cuentasData.add(cuentaData);
         }
@@ -253,6 +254,7 @@ public class CuentaController {
 
         // Actualizar la cuenta
         cuentaExistente.setNombre(cuenta.getNombre());
+        cuentaExistente.setNumeroCuenta(cuenta.getNumeroCuenta());
         cuentaExistente.setDescripcion(cuenta.getDescripcion());
         cuentaExistente.setTipo(cuenta.getTipo());
         cuentaExistente.setNaturaleza(cuenta.getNaturaleza());

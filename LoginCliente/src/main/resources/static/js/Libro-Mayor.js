@@ -56,10 +56,11 @@ function filterCuentas() {
 
     accounts.forEach((card) => {
         const nombre = card.getAttribute("data-nombre").toLowerCase()
+        const numero = (card.getAttribute("data-numero") || "").toLowerCase()
         const tipo = card.getAttribute("data-tipo")
 
         // Check if account matches search term
-        const matchesSearch = nombre.includes(searchTerm)
+        const matchesSearch = nombre.includes(searchTerm) || numero.includes(searchTerm)
 
         // Check if account matches type filter
         const matchesType = selectedTipo === "" || tipo === selectedTipo
@@ -104,7 +105,11 @@ function abrirModalDetalle(idCuenta) {
                 return
             }
 
-            document.getElementById("cuentaNombre").textContent = `${data.cuenta.nombre}`
+            const numeroCuenta = data.cuenta.numeroCuenta || ""
+            document.getElementById("cuentaNombre").textContent = numeroCuenta
+                ? `${numeroCuenta} - ${data.cuenta.nombre}`
+                : data.cuenta.nombre
+
             document.getElementById("cuentaDescripcion").textContent = data.cuenta.descripcion || ""
             const tipo = data.cuenta.tipo ? data.cuenta.tipo + ": " : ""
             const naturaleza = data.cuenta.naturaleza === "D" ? "Deudora" : "Acreedora"
@@ -166,10 +171,10 @@ function cerrarModal(event) {
 }
 
 function cerrarAlerta(button) {
-    const alert = button.closest('.alert');
-    alert.style.animation = 'slideOut 0.3s ease';
+    const alert = button.closest(".alert")
+    alert.style.animation = "slideOut 0.3s ease"
 
     setTimeout(() => {
-        alert.style.display = 'none';
-    }, 300);
+        alert.style.display = "none"
+    }, 300)
 }

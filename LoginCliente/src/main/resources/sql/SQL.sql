@@ -74,6 +74,7 @@ CREATE TABLE tbl_cuentas
     descripcion TEXT,
     naturaleza  CHAR(1),
     tipo        TEXT,
+    numero_cuenta  TEXT NOT NULL DEFAULT '-',
     id_empresa  INTEGER,
     CONSTRAINT fk_cuenta_empresa FOREIGN KEY (id_empresa)
         REFERENCES tbl_empresas (id_empresa)

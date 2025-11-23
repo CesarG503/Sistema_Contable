@@ -32,6 +32,12 @@
             <input type="hidden" id="naturalezaOriginal" th:value="${naturalezaOriginal}">
             <input type="hidden" id="confirmarCambio" name="confirmarCambio" value="false">
 
+            <!-- Added input for numeroCuenta -->
+            <div class="form-group">
+                <label for="numeroCuenta">Número de Cuenta:</label>
+                <input type="text" id="numeroCuenta" th:field="*{numeroCuenta}" required>
+            </div>
+
             <div class="form-group">
                 <label for="nombre">Nombre de la Cuenta:</label>
                 <input type="text" id="nombre" th:field="*{nombre}" required>
@@ -96,4 +102,3 @@
 
 </body>
 </html>
-

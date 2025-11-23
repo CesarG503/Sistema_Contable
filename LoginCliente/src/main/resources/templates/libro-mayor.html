@@ -17,7 +17,7 @@
 
 <div class="main-content">
     <div class="page-header">
-            <h1>Cuentas T</h1>
+        <h1>Cuentas T</h1>
         <div>
             <a href="/cuentas/crear" class="btn btn-primary">Crear Cuenta</a>
             <a href="/cuentas/cargar-cuentas" class="btn btn-edit" th:classappend="${page} == 'cargar-cuentas' ? ' active' : ''">
@@ -45,7 +45,7 @@
                 <label for="searchCuentas">
                     <i class="fas fa-search"></i> Buscar cuenta
                 </label>
-                <input type="text" id="searchCuentas" placeholder="Escribe el nombre de la cuenta...">
+                <input type="text" id="searchCuentas" placeholder="Buscar por nombre o número...">
             </div>
             <div class="filter-group">
                 <label for="filterTipo">Filtrar por tipo</label>
@@ -69,13 +69,19 @@
         <!-- Added data attributes for filtering -->
         <div th:each="entry : ${cuentasConSaldos}" class="cuenta-card"
              th:onclick="'abrirModalDetalle(' + ${entry.key.idCuenta} + ')'"
-             th:attr="data-nombre=${entry.key.nombre}, data-tipo=${entry.key.tipo}, data-naturaleza=${entry.key.naturaleza}"
+             th:attr="data-nombre=${entry.key.nombre}, data-tipo=${entry.key.tipo}, data-naturaleza=${entry.key.naturaleza}, data-numero=${entry.key.numeroCuenta}"
              style="cursor: pointer;"
              th:classappend="${entry.value != null and entry.value.saldo < 0 ? 'necesita-ajuste' : ''}">
-        <div class="cuenta-header">
+            <div class="cuenta-header">
                 <div class="cuenta-info">
                     <h3 th:text="${entry.key.nombre}"></h3>
                     <p th:text="${entry.key.descripcion}"></p>
+
+                    <!-- Display numeroCuenta -->
+                    <div style="margin-top: 5px; font-weight: 500; color: #555;">
+                        <span th:text="${entry.key.numeroCuenta}"></span>
+                    </div>
+
                     <span class="cuenta-naturaleza"
                           th:classappend="${entry.key.naturaleza == 'D' ? 'naturaleza-D' : 'naturaleza-A'}"
                           th:text="${entry.key.naturaleza == 'D' ? entry.key.tipo + ': Deudora' : entry.key.tipo + ': Acreedora'}"></span>

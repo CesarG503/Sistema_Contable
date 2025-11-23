@@ -23,6 +23,12 @@
         <h2>Nueva Cuenta Contable</h2>
 
         <form th:action="@{/cuentas/crear}" th:object="${cuenta}" method="post">
+            <!-- Added input for numeroCuenta -->
+            <div class="form-group">
+                <label for="numeroCuenta">Número de Cuenta:</label>
+                <input type="text" id="numeroCuenta" th:field="*{numeroCuenta}" placeholder="Ej. 1105" required>
+            </div>
+
             <div class="form-group">
                 <label for="nombre">Nombre de la Cuenta:</label>
                 <input type="text" id="nombre" th:field="*{nombre}" required>
