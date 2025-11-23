@@ -78,9 +78,7 @@
                     <p th:text="${entry.key.descripcion}"></p>
 
                     <!-- Display numeroCuenta -->
-                    <div style="margin-top: 5px; font-weight: 500; color: #555;">
-                        <span th:text="${entry.key.numeroCuenta}"></span>
-                    </div>
+
 
                     <span class="cuenta-naturaleza"
                           th:classappend="${entry.key.naturaleza == 'D' ? 'naturaleza-D' : 'naturaleza-A'}"
@@ -96,6 +94,10 @@
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </form>
+                    <div class="cuenta-numero" th:classappend="${entry.key.naturaleza == 'D' ? 'cuenta-deudora' : 'cuenta-acreedora'}">
+                        <span class="label">N°:</span>
+                        <span class="numero" th:text="${entry.key.numeroCuenta}"></span>
+                    </div>
                 </div>
             </div>
             <div class="saldos">

@@ -548,9 +548,11 @@ textarea:focus {
 /* Botones de acción - ocupan el mínimo espacio */
 .cuenta-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
     flex-shrink: 0; /* No se encoge */
-    align-items: flex-start;
+    align-items: flex-end;
+    justify-content: flex-end;
 }
 
 .cuenta-header h3 {
@@ -868,6 +870,58 @@ textarea:focus {
     display: block;
     font-size: 18px;
     color: #667eea;
+}
+
+.cuenta-numero {
+    width: 50%;
+    padding: 6px 12px;
+    border-radius: 16px;
+    transition: 0.3s;
+}
+
+.cuenta-numero:hover{
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    transform: translateY(-2px);
+    transition: 0.3s;
+}
+
+.cuenta-acreedora {
+    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+    box-shadow: 0 2px 4px rgba(156, 39, 176, 0.1);
+}
+
+.cuenta-deudora {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.1);
+}
+
+.cuenta-numero .label {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cuenta-acreedora .label {
+    color: #4a148c;
+}
+
+.cuenta-deudora .label {
+    color: #0d47a1;
+}
+
+.cuenta-numero .numero {
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.cuenta-acreedora .numero {
+    color: #6a1b9a;
+}
+
+.cuenta-deudora .numero {
+    color: #0d47a1;
 }
 
 /* Details Modal */
