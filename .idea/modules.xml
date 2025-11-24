@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/LoginCliente/LoginCliente.iml" filepath="$PROJECT_DIR$/LoginCliente/LoginCliente.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/Proyecto_Final_Web.iml" filepath="$PROJECT_DIR$/.idea/Proyecto_Final_Web.iml" />
     </modules>
   </component>
