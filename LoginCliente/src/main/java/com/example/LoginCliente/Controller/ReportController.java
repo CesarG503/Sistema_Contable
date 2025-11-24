@@ -344,6 +344,156 @@ public class ReportController {
             response.put("capitalFinal", capitalFinal);
 
             response.put("ecuacionContable", ecuacionContable);
+
+            // ===== ESTADO DE FLUJO DE EFECTIVO (MÉTODO DIRECTO) =====
+            Map<String, Object> flujoEfectivo = new HashMap<>();
+
+            // 1. Identificar cuentas de Efectivo/Equivalentes
+            List<Integer> idsCuentasEfectivo = new ArrayList<>();
+            List<Cuenta> cuentasEfectivo = new ArrayList<>();
+
+            for (Cuenta c : cuentas) {
+                String nombreLower = c.getNombre() != null ? c.getNombre().toLowerCase() : "";
+                String tipo = c.getTipo() != null ? c.getTipo().toUpperCase() : "";
+                String numeroCuenta = c.getNumeroCuenta() != null ? c.getNumeroCuenta() : "";
+
+                // 1. Por tipo (ACTIVO) y palabras clave ampliadas
+                // 2. Por código contable estándar (comienza con 101, 102, 11, 1.1)
+                boolean esEfectivoNombre = nombreLower.contains("caja") ||
+                        nombreLower.contains("banco") ||
+                        nombreLower.contains("efectivo") ||
+                        nombreLower.contains("disponible") ||
+                        nombreLower.contains("tesoreria") ||
+                        nombreLower.contains("cash");
+
+                boolean esEfectivoCodigo = numeroCuenta.startsWith("101") ||
+                        numeroCuenta.startsWith("102") ||
+                        numeroCuenta.startsWith("1101") ||
+                        numeroCuenta.startsWith("1102") ||
+                        numeroCuenta.startsWith("1.1.01") ||
+                        numeroCuenta.startsWith("1.1.02");
+
+                if (tipo.contains("ACTIVO") && (esEfectivoNombre || esEfectivoCodigo)) {
+                    idsCuentasEfectivo.add(c.getIdCuenta());
+                    cuentasEfectivo.add(c);
+                }
+            }
+
+            // 2. Calcular Saldo Inicial de Efectivo (antes del rango)
+            BigDecimal saldoInicialEfectivo = BigDecimal.ZERO;
+            for (Integer idCuenta : idsCuentasEfectivo) {
+                // Obtener movimientos previos a fechaInicio
+                // Nota: Esto requería un servicio específico o lógica adicional.
+                // Por simplificación, usaremos el saldo calculado de movimientos totales - movimientos del periodo
+                // O mejor, consultamos el saldo total hasta fechaInicio
+
+                // Opción robusta: Calcular saldo acumulado hasta el día anterior al inicio
+                List<Movimiento> movsPrevios = cuentaService.obtenerMovimientosPorCuentaYFechas(idCuenta, Timestamp.valueOf("1900-01-01 00:00:00"), Timestamp.valueOf(tsInicio.toLocalDateTime().minusSeconds(1)));
+                for(Movimiento m : movsPrevios) {
+                    if ("D".equals(m.getTipo())) {
+                        saldoInicialEfectivo = saldoInicialEfectivo.add(m.getMonto());
+                    } else {
+                        saldoInicialEfectivo = saldoInicialEfectivo.subtract(m.getMonto());
+                    }
+                }
+            }
+
+            // 3. Clasificar movimientos del periodo
+            List<Map<String, Object>> actividadesOperacion = new ArrayList<>();
+            List<Map<String, Object>> actividadesInversion = new ArrayList<>();
+            List<Map<String, Object>> actividadesFinanciamiento = new ArrayList<>();
+
+            BigDecimal totalOperacion = BigDecimal.ZERO;
+            BigDecimal totalInversion = BigDecimal.ZERO;
+            BigDecimal totalFinanciamiento = BigDecimal.ZERO;
+
+            // Iteramos sobre las partidas del periodo
+            for (Partida partida : partidas) {
+                List<Movimiento> movsPartida = partidaService.findMovimientosByPartida(partida.getIdPartida());
+
+                // Verificar si esta partida afecta efectivo
+                boolean afectaEfectivo = false;
+                BigDecimal montoEfectivoNeto = BigDecimal.ZERO; // Positivo = Entrada, Negativo = Salida
+
+                for (Movimiento m : movsPartida) {
+                    if (idsCuentasEfectivo.contains(m.getIdCuenta())) {
+                        afectaEfectivo = true;
+                        if ("D".equals(m.getTipo())) {
+                            montoEfectivoNeto = montoEfectivoNeto.add(m.getMonto());
+                        } else {
+                            montoEfectivoNeto = montoEfectivoNeto.subtract(m.getMonto());
+                        }
+                    }
+                }
+
+                if (afectaEfectivo && montoEfectivoNeto.compareTo(BigDecimal.ZERO) != 0) {
+                    // Buscar la contrapartida (causa del flujo)
+                    // Simplificación: Buscamos la cuenta principal que NO es efectivo con mayor monto
+                    String conceptoFlujo = partida.getConcepto();
+                    String tipoActividad = "OPERACION"; // Default
+
+                    // Análisis básico de contrapartidas para clasificar
+                    for (Movimiento m : movsPartida) {
+                        if (!idsCuentasEfectivo.contains(m.getIdCuenta())) {
+                            // Buscar la cuenta
+                            Cuenta cContra = null;
+                            for(Cuenta c : cuentas) {
+                                if(c.getIdCuenta().equals(m.getIdCuenta())) {
+                                    cContra = c;
+                                    break;
+                                }
+                            }
+
+                            if (cContra != null) {
+                                String nombreContra = cContra.getNombre().toLowerCase();
+                                String tipoContra = cContra.getTipo();
+
+                                // Lógica de clasificación heurística
+                                if (nombreContra.contains("capital") || nombreContra.contains("socio") || nombreContra.contains("prestamo") || nombreContra.contains("hipoteca")) {
+                                    tipoActividad = "FINANCIAMIENTO";
+                                } else if (nombreContra.contains("equipo") || nombreContra.contains("maquinaria") || nombreContra.contains("edificio") || nombreContra.contains("terreno") || nombreContra.contains("vehiculo") || nombreContra.contains("mobiliario")) {
+                                    tipoActividad = "INVERSION";
+                                }
+                                // Si no cae en los anteriores, se queda en OPERACION (Ventas, Gastos, Clientes, Proveedores)
+                            }
+                        }
+                    }
+
+                    Map<String, Object> flujoItem = new HashMap<>();
+                    flujoItem.put("concepto", conceptoFlujo);
+                    flujoItem.put("monto", montoEfectivoNeto); // Positivo entrada, negativo salida
+
+                    if ("OPERACION".equals(tipoActividad)) {
+                        actividadesOperacion.add(flujoItem);
+                        totalOperacion = totalOperacion.add(montoEfectivoNeto);
+                    } else if ("INVERSION".equals(tipoActividad)) {
+                        actividadesInversion.add(flujoItem);
+                        totalInversion = totalInversion.add(montoEfectivoNeto);
+                    } else {
+                        actividadesFinanciamiento.add(flujoItem);
+                        totalFinanciamiento = totalFinanciamiento.add(montoEfectivoNeto);
+                    }
+                }
+            }
+
+            BigDecimal flujoNetoTotal = totalOperacion.add(totalInversion).add(totalFinanciamiento);
+            BigDecimal saldoFinalEfectivoCalculado = saldoInicialEfectivo.add(flujoNetoTotal);
+
+            flujoEfectivo.put("saldoInicial", saldoInicialEfectivo);
+            flujoEfectivo.put("saldoFinal", saldoFinalEfectivoCalculado);
+            flujoEfectivo.put("flujoNetoTotal", flujoNetoTotal);
+
+            flujoEfectivo.put("actividadesOperacion", actividadesOperacion);
+            flujoEfectivo.put("totalOperacion", totalOperacion);
+
+            flujoEfectivo.put("actividadesInversion", actividadesInversion);
+            flujoEfectivo.put("totalInversion", totalInversion);
+
+            flujoEfectivo.put("actividadesFinanciamiento", actividadesFinanciamiento);
+            flujoEfectivo.put("totalFinanciamiento", totalFinanciamiento);
+
+            response.put("flujoEfectivo", flujoEfectivo);
+
             response.put("success", true);
 
             return ResponseEntity.ok(response);
