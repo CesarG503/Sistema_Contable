@@ -124,7 +124,6 @@ public class GestionUsuariosEmpresaController {
             return "redirect:/empresas/mis-empresas";
         }
 
-        // Validate current user is admin
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         Usuario usuarioActual = usuarioService.findByUsuario(username);
@@ -137,10 +136,25 @@ public class GestionUsuariosEmpresaController {
             return "redirect:/empresas/usuarios";
         }
 
-        // Update user role
         UsuarioEmpresa usuarioEmpresa = usuarioEmpresaService.findById(id).orElse(null);
         if (usuarioEmpresa == null || !usuarioEmpresa.getIdEmpresa().equals(empresaActiva)) {
             redirectAttributes.addFlashAttribute("error", "Usuario no encontrado en esta empresa");
+            return "redirect:/empresas/usuarios";
+        }
+
+        // Bloquear cambio de rol del fundador (primer admin)
+        UsuarioEmpresa fundador = usuarioEmpresaService.findPrimerAdministrador(empresaActiva);
+        if (fundador != null && fundador.getIdUsuarioEmpresa().equals(usuarioEmpresa.getIdUsuarioEmpresa())) {
+            redirectAttributes.addFlashAttribute("error", "No se puede cambiar el rol del administrador creador de la empresa en OneDi");
+            return "redirect:/empresas/usuarios";
+        }
+
+        // Si se intenta quitar rol de admin y es el único admin restante, bloquear
+        long admins = usuarioEmpresaService.contarAdministradores(empresaActiva);
+        boolean destinoEsAdmin = usuarioEmpresa.getPermiso() == Permiso.Administrador;
+        boolean nuevoRolNoAdmin = !Permiso.valueOfValor(nuevoPermiso).equals(Permiso.Administrador);
+        if (destinoEsAdmin && nuevoRolNoAdmin && admins <= 1) {
+            redirectAttributes.addFlashAttribute("error", "Debe existir al menos un administrador en la empresa");
             return "redirect:/empresas/usuarios";
         }
 
@@ -163,7 +177,6 @@ public class GestionUsuariosEmpresaController {
             return "redirect:/empresas/mis-empresas";
         }
 
-        // Validate current user is admin
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         Usuario usuarioActual = usuarioService.findByUsuario(username);
@@ -176,10 +189,16 @@ public class GestionUsuariosEmpresaController {
             return "redirect:/empresas/usuarios";
         }
 
-        // Validate user to delete
         UsuarioEmpresa usuarioEmpresa = usuarioEmpresaService.findById(id).orElse(null);
         if (usuarioEmpresa == null || !usuarioEmpresa.getIdEmpresa().equals(empresaActiva)) {
             redirectAttributes.addFlashAttribute("error", "Usuario no encontrado en esta empresa");
+            return "redirect:/empresas/usuarios";
+        }
+
+        // Evitar eliminar al fundador
+        UsuarioEmpresa fundador = usuarioEmpresaService.findPrimerAdministrador(empresaActiva);
+        if (fundador != null && fundador.getIdUsuarioEmpresa().equals(usuarioEmpresa.getIdUsuarioEmpresa())) {
+            redirectAttributes.addFlashAttribute("error", "No se puede eliminar al administrador fundador de la empresa");
             return "redirect:/empresas/usuarios";
         }
 
@@ -189,8 +208,14 @@ public class GestionUsuariosEmpresaController {
             return "redirect:/empresas/usuarios";
         }
 
-        usuarioEmpresaService.delete(id);
+        // Si es admin y es el único admin restante, bloquear
+        long admins = usuarioEmpresaService.contarAdministradores(empresaActiva);
+        if (usuarioEmpresa.getPermiso() == Permiso.Administrador && admins <= 1) {
+            redirectAttributes.addFlashAttribute("error", "No puede eliminar al único administrador restante");
+            return "redirect:/empresas/usuarios";
+        }
 
+        usuarioEmpresaService.delete(id);
         redirectAttributes.addFlashAttribute("success", "Usuario eliminado de la empresa");
         return "redirect:/empresas/usuarios";
     }

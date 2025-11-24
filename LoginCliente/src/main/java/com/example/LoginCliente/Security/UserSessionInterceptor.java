@@ -27,20 +27,14 @@ public class UserSessionInterceptor implements HandlerInterceptor {
 
             HttpSession session = request.getSession();
 
-            // Solo consultar la DB si no existe en sesión
+            // Cargar siempre datos básicos del usuario si no están; permisos se manejan por empresa en otro interceptor
             if (session.getAttribute("usuarioId") == null) {
                 String username = authentication.getName();
                 Usuario usuario = usuarioService.findByUsuario(username);
-
                 if (usuario != null) {
-                    // Guardar datos del usuario en la sesión
                     session.setAttribute("usuarioId", usuario.getIdUsuario());
                     session.setAttribute("usuarioNombre", usuario.getUsuario());
                     session.setAttribute("usuarioCorreo", usuario.getCorreo());
-                    //no se guardan permisos ya que se manejan a nivel de empresa
-                    //session.setAttribute("usuarioRol", usuario.getPermiso().texto);
-                    //session.setAttribute("usuarioRolValor", usuario.getPermiso().valor);
-                    //session.setAttribute("esAdmin", usuario.getPermiso().valor == 0);
                 }
             }
         }
