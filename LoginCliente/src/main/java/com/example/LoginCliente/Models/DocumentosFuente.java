@@ -30,7 +30,7 @@ public class DocumentosFuente {
     private String ruta;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "anadido_por") // columna en la base de datos (sin caracteres no-ASCII)
+    @JoinColumn(name = "añadido_por") // columna en la base de datos (sin caracteres no-ASCII)
     private Usuario anadidoPor; // Usuario que añadió el documento (renombrado)
 
     @OneToMany(mappedBy = "documento", cascade = CascadeType.ALL, orphanRemoval = true)

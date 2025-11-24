@@ -22,4 +22,8 @@ public class DocumentosPartida {
     @ManyToOne
     @JoinColumn(name = "id_partida", nullable = false)
     private Partida partida;
+
+    @ManyToOne
+    @JoinColumn(name="id_empresa", nullable = false)
+    private Empresa empresa;
 }

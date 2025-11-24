@@ -9,7 +9,6 @@ CREATE TABLE tbl_usuarios
     pwd        VARCHAR(255) NOT NULL
 );
 
-
 CREATE TABLE tbl_empresas
 (
     id_empresa     SERIAL PRIMARY KEY,
@@ -35,17 +34,6 @@ CREATE TABLE tbl_usuarios_empresas
         REFERENCES tbl_empresas (id_empresa)
         ON DELETE CASCADE,
     CONSTRAINT uq_usuemp UNIQUE (id_usuario, id_empresa)
-);
-
-
-CREATE TABLE tbl_tipo_documento
-(
-    id_tipo    SERIAL PRIMARY KEY,
-    nombre     TEXT NOT NULL,
-    id_empresa INTEGER,
-    CONSTRAINT fk_tipo_empresa FOREIGN KEY (id_empresa)
-        REFERENCES tbl_empresas (id_empresa)
-        ON DELETE CASCADE
 );
 
 CREATE TABLE tbl_partidas
@@ -86,24 +74,11 @@ CREATE TABLE tbl_documentos_fuente
 (
     id_documento       SERIAL PRIMARY KEY,
     fecha_subida       TIMESTAMP,
-    hash               TEXT,
     ruta               TEXT,
     monto              DECIMAL(12, 2),
-    aniadido_por       INTEGER,
-    id_tipo            INTEGER,
-    id_empresa         INTEGER,
-    id_usuario_empresa INTEGER,
-    CONSTRAINT fk_doc_fuente_usuario FOREIGN KEY (aniadido_por)
+    añadido_por       INTEGER,
+    CONSTRAINT fk_doc_fuente_usuario FOREIGN KEY (añadido_por)
         REFERENCES tbl_usuarios (id_usuario)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_doc_fuente_tipo FOREIGN KEY (id_tipo)
-        REFERENCES tbl_tipo_documento (id_tipo)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_doc_fuente_empresa FOREIGN KEY (id_empresa)
-        REFERENCES tbl_empresas (id_empresa)
-        ON DELETE CASCADE,
-    CONSTRAINT fk_doc_fuente_usuemp FOREIGN KEY (id_usuario_empresa)
-        REFERENCES tbl_usuarios_empresas (id_usuario_empresa)
         ON DELETE SET NULL
 );
 
@@ -148,41 +123,19 @@ CREATE TABLE tbl_movimientos
         ON DELETE SET NULL
 );
 
-
-CREATE TABLE tbl_periodos
-(
-    id_periodo   SERIAL PRIMARY KEY,
-    fecha_inicio TIMESTAMP,
-    fecha_final  TIMESTAMP,
-    cerrado      BOOLEAN,
-    id_empresa   INTEGER,
-    CONSTRAINT fk_periodo_empresa FOREIGN KEY (id_empresa)
-        REFERENCES tbl_empresas (id_empresa)
-        ON DELETE CASCADE
-);
-
-
 CREATE TABLE tbl_reportes
 (
     id_reporte         SERIAL PRIMARY KEY,
-    id_periodo         INTEGER,
     generado           TIMESTAMP,
-    ruta_archivo       TEXT,
+    data               TEXT,
     autor              INTEGER,
     id_empresa         INTEGER,
-    id_usuario_empresa INTEGER,
-    CONSTRAINT fk_rep_periodo FOREIGN KEY (id_periodo)
-        REFERENCES tbl_periodos (id_periodo)
-        ON DELETE CASCADE,
     CONSTRAINT fk_rep_usuario FOREIGN KEY (autor)
         REFERENCES tbl_usuarios (id_usuario)
         ON DELETE SET NULL,
     CONSTRAINT fk_rep_empresa FOREIGN KEY (id_empresa)
         REFERENCES tbl_empresas (id_empresa)
         ON DELETE CASCADE,
-    CONSTRAINT fk_rep_usuemp FOREIGN KEY (id_usuario_empresa)
-        REFERENCES tbl_usuarios_empresas (id_usuario_empresa)
-        ON DELETE SET NULL
 );
 
 INSERT INTO tbl_empresas (nombre, nit, direccion, descripcion, telefono)
