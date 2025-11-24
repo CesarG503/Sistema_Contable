@@ -135,7 +135,7 @@ CREATE TABLE tbl_reportes
         ON DELETE SET NULL,
     CONSTRAINT fk_rep_empresa FOREIGN KEY (id_empresa)
         REFERENCES tbl_empresas (id_empresa)
-        ON DELETE CASCADE,
+        ON DELETE CASCADE
 );
 
 INSERT INTO tbl_empresas (nombre, nit, direccion, descripcion, telefono)
