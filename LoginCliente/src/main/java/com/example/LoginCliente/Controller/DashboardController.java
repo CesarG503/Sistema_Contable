@@ -141,7 +141,7 @@ public class DashboardController {
         List<DocumentosFuente> documentos = documentosPartidaService.findDocumentosByEmpresaId(empresaActiva);
         model.addAttribute("partidas", partidaRepository.findAll());
         model.addAttribute("documentos", documentos);
-        model.addAttribute("page", "documentos");
+        model.addAttribute("page", "ver-documentos");
         return "lista-documentos";
     }
 }

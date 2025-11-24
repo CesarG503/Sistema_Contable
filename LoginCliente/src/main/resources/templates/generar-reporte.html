@@ -38,14 +38,19 @@
 
         <!-- Tabs y Botones de Exportación -->
         <div class="tabs-section">
-            <div class="export-buttons" style="padding: 15px 30px; background: white; display: flex; justify-content: flex-end; gap: 10px;">
-                <!-- Simplified buttons to call export functions directly, removing modal logic -->
-                <button class="btn-export btn-export-pdf" onclick="exportarPDF()">
-                    <i class="fas fa-file-pdf"></i> Exportar PDF
-                </button>
-                <button class="btn-export btn-export-excel" onclick="exportarExcel()">
-                    <i class="fas fa-file-excel"></i> Exportar Excel
-                </button>
+            <div style="display: flex; justify-content: space-around;">
+                <div class="export-buttons" style="display: flex; justify-content: flex-start;">
+                    <button id="btn-guardar" class="btn-export btn-export-pdf" onclick="guardarReporte()" disabled><i class="fa fa-floppy-disk"></i> Guardar</button>
+                </div>
+                <div class="export-buttons" style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <!-- Simplified buttons to call export functions directly, removing modal logic -->
+                    <button id="btn-exportar-pdf" class="btn-export btn-export-pdf" onclick="exportarPDF()" disabled>
+                        <i class="fas fa-file-pdf"></i> Exportar PDF
+                    </button>
+                    <button id="btn-exportar-excel" class="btn-export btn-export-excel" onclick="exportarExcel()" disabled>
+                        <i class="fas fa-file-excel"></i> Exportar Excel
+                    </button>
+                </div>
             </div>
 
             <div class="tabs-header">

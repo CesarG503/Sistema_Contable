@@ -1,6 +1,75 @@
-var reporteData = null
-const tipoExportacionActual = null
-const Swal = window.Swal // Declare the Swal variable
+var reporteData = null;
+
+function eliminarReporte(idReporte) {
+    Swal.fire({
+        title: '¿Está seguro de que desea eliminar este reporte?',
+        text: "Esta acción no se puede deshacer.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.value) {
+            fetch('eliminar/'+idReporte, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    Swal.fire(
+                        'Eliminado',
+                        'El reporte ha sido eliminado exitosamente.',
+                        'success'
+                    ).then(() => {
+                        // Recargar la página o actualizar la lista de reportes
+                        window.location.reload();
+                    });
+                }
+            });
+        }
+    });
+}
+
+function verReporte(idReporte) {
+    document.getElementById("reporteModal").style.display = "block";
+    cargarReporte(idReporte);
+}
+
+function cerrarModalReporte() {
+    document.getElementById("reporteModal").style.display = "none";
+}
+
+async function cargarReporte(idReporte) {
+    fetch(`/reportes/${idReporte}`)
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Error al cargar el reporte");
+            }
+            return response.text();
+        })
+        .then((data) => {
+            if(data){
+                let jsonData = JSON.parse(data);
+                reporteData = jsonData;
+                renderizarTodoReporte(jsonData)
+                renderizarLibroDiario(jsonData)
+                renderizarLibroMayor(jsonData)
+                renderizarBalanceComprobacion(jsonData)
+                renderizarEstadoResultados(jsonData)
+                renderizarEstadoCapital(jsonData)
+                renderizarBalanceGeneral(jsonData)
+
+                console.log(jsonData)
+            }
+        })
+        .catch((error) => {
+            console.error("Error fetching report data:", error);
+            alert("No se pudo cargar el reporte. Por favor, intente nuevamente más tarde.");
+        });
+}
 
 function cambiarTab(tabName, evt) {
     // Remover clase active de todos los botones
@@ -34,141 +103,6 @@ function cambiarTab(tabName, evt) {
     // Renderizar datos si ya existen
     if (reporteData && tabName === "all") {
         renderizarTodoReporte()
-    }
-}
-
-function generarReporte() {
-    const fechaInicio = document.getElementById("fechaInicio").value
-    const fechaFin = document.getElementById("fechaFin").value
-
-    console.log("[v0] Generando reporte desde:", fechaInicio, "hasta:", fechaFin)
-
-    if (!fechaInicio || !fechaFin) {
-        Swal.fire({
-            icon: "warning",
-            title: "Campos incompletos",
-            text: "Por favor completa ambas fechas",
-        })
-        return
-    }
-
-    if (new Date(fechaInicio) > new Date(fechaFin)) {
-        Swal.fire({
-            icon: "error",
-            title: "Fecha inválida",
-            text: "La fecha inicial no puede ser mayor a la fecha final",
-        })
-        return
-    }
-
-    document.getElementById("loading").classList.add("show")
-
-    fetch("/reportes/obtener-datos", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-            fechaInicio: fechaInicio,
-            fechaFin: fechaFin,
-        }),
-    })
-        .then((response) => {
-            console.log("[v0] Response status:", response.status)
-            return response.json()
-        })
-        .then((data) => {
-            console.log("[v0] Datos recibidos:", data)
-            document.getElementById("loading").classList.remove("show")
-
-            if (data.error) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Error",
-                    text: data.error,
-                })
-                console.error("[v0] Error en datos:", data.error)
-                return
-            }
-
-            reporteData = data
-            console.log("[v0] Reporte data asignado:", reporteData)
-
-            renderizarLibroDiario(data)
-            renderizarLibroMayor(data)
-            renderizarBalanceComprobacion(data)
-            renderizarEstadoResultados(data)
-            renderizarEstadoCapital(data)
-            renderizarBalanceGeneral(data)
-            renderizarFlujoEfectivo(data) // Added from updates
-
-            Swal.fire({
-                icon: "success",
-                title: "Éxito",
-                text: "Reporte generado correctamente",
-            })
-
-            cambiarTab("partida-doble")
-            document.getElementById('btn-exportar-pdf').removeAttribute('disabled');
-            document.getElementById('btn-exportar-excel').removeAttribute('disabled');
-            document.getElementById('btn-guardar').removeAttribute('disabled');
-        })
-        .catch((error) => {
-            document.getElementById("loading").classList.remove("show")
-            console.error("[v0] Error de fetch:", error)
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "Error al generar el reporte: " + error.message,
-            })
-        })
-}
-
-async function guardarReporte() {
-    if (!reporteData) {
-        await Swal.fire({
-            icon: "warning",
-            title: "Sin datos",
-            text: "Por favor genera un reporte primero",
-        })
-        return;
-    }
-
-    await Swal.fire({
-        icon: "warning",
-        title: "Estas seguro de guardar este reporte?",
-        text: "Esto almacenará una copia del reporte en el sistema.\nFecha de Inicio: " + document.getElementById("fechaInicio").value + "\nFecha de Fin: " + document.getElementById("fechaFin").value,
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Guardar",
-        cancelButtonText: "Cancelar",
-    }).then((result) => {
-        if (!result.value) {
-            console.log("El usuario canceló el guardado del reporte.");
-            return;
-        }
-    });
-
-    const response = await fetch('/reportes/guardar', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(reporteData)
-    });
-
-    const result = await response.json();
-    if (result.success) {
-        await Swal.fire({
-            icon: 'success',
-            title: 'Reporte guardado',
-            text: 'El reporte ha sido guardado exitosamente con ID: ' + result.idReporte
-        });
-        console.log('Reporte guardado con ID:', result.idReporte);
-    }
-    else {
-        console.error('Error al guardar el reporte:', result.error);
     }
 }
 
@@ -425,7 +359,7 @@ function renderizarEstadoResultados(data) {
             <div class="fin-header">
                 
                 <h3>Estado de Resultados</h3>
-                <div class="period">Del ${document.getElementById("fechaInicio").value} al ${document.getElementById("fechaFin").value}</div>
+                <div class="period">Del ${data.fechaInicio} al ${data.fechaFin}</div>
             </div>
 
             <table class="fin-table">
@@ -492,7 +426,7 @@ function renderizarEstadoCapital(data) {
         <div class="financial-paper">
             <div class="fin-header">
                 <h3>Estado de Capital</h3>
-                <div class="period">Del ${document.getElementById("fechaInicio").value} al ${document.getElementById("fechaFin").value}</div>
+                <div class="period">Del ${data.fechaInicio} al ${data.fechaFin}</div>
             </div>
 
             <table class="fin-table">
@@ -703,94 +637,6 @@ function renderizarBalanceGeneral(data) {
         </div>
     `
 
-    container.innerHTML = html
-}
-
-function renderizarFlujoEfectivo(data) {
-    const container = document.getElementById("flujo-efectivo-container")
-    const fe = data.flujoEfectivo
-
-    if (!fe) {
-        container.innerHTML = '<div class="empty-state">No hay datos de flujo de efectivo</div>'
-        return
-    }
-
-    const renderRows = (items) => {
-        if (!items || items.length === 0)
-            return '<tr><td colspan="2" style="color: #999; font-style: italic; padding-left: 20px;">Sin movimientos</td></tr>'
-        return items
-            .map(
-                (item) => `
-            <tr>
-                <td class="fin-indent-1">${item.concepto || "Movimiento vario"}</td>
-                <td class="fin-amount">$${Number.parseFloat(item.monto).toFixed(2)}</td>
-            </tr>
-        `,
-            )
-            .join("")
-    }
-
-    const html = `
-        <div class="financial-paper">
-            <div class="fin-header">
-                <h3>Estado de Flujo de Efectivo</h3>
-                <div class="period">Del ${document.getElementById("fechaInicio").value} al ${document.getElementById("fechaFin").value}</div>
-            </div>
-
-            <table class="fin-table">
-                <!-- Operación -->
-                <tr>
-                    <td class="fin-row-header">ACTIVIDADES DE OPERACIÓN</td>
-                    <td></td>
-                </tr>
-                ${renderRows(fe.actividadesOperacion)}
-                <tr>
-                    <td class="fin-indent-1" style="font-weight:bold;">Flujo neto de actividades de operación</td>
-                    <td class="fin-amount fin-total-line">$${Number.parseFloat(fe.totalOperacion).toFixed(2)}</td>
-                </tr>
-                <tr style="height: 10px;"><td></td><td></td></tr>
-
-                <!-- Inversión -->
-                <tr>
-                    <td class="fin-row-header">ACTIVIDADES DE INVERSIÓN</td>
-                    <td></td>
-                </tr>
-                ${renderRows(fe.actividadesInversion)}
-                <tr>
-                    <td class="fin-indent-1" style="font-weight:bold;">Flujo neto de actividades de inversión</td>
-                    <td class="fin-amount fin-total-line">$${Number.parseFloat(fe.totalInversion).toFixed(2)}</td>
-                </tr>
-                <tr style="height: 10px;"><td></td><td></td></tr>
-
-                <!-- Financiamiento -->
-                <tr>
-                    <td class="fin-row-header">ACTIVIDADES DE FINANCIAMIENTO</td>
-                    <td></td>
-                </tr>
-                ${renderRows(fe.actividadesFinanciamiento)}
-                <tr>
-                    <td class="fin-indent-1" style="font-weight:bold;">Flujo neto de actividades de financiamiento</td>
-                    <td class="fin-amount fin-total-line">$${Number.parseFloat(fe.totalFinanciamiento).toFixed(2)}</td>
-                </tr>
-                
-                <tr style="height: 20px;"><td></td><td></td></tr>
-
-                <!-- Resumen -->
-                <tr>
-                    <td class="fin-row-header">INCREMENTO/DISMINUCIÓN NETO DE EFECTIVO</td>
-                    <td class="fin-amount">$${Number.parseFloat(fe.flujoNetoTotal).toFixed(2)}</td>
-                </tr>
-                <tr>
-                    <td class="fin-indent-1">MÁS: Efectivo y equivalentes al inicio del periodo</td>
-                    <td class="fin-amount">$${Number.parseFloat(fe.saldoInicial).toFixed(2)}</td>
-                </tr>
-                <tr>
-                    <td class="fin-row-header">EFECTIVO Y EQUIVALENTES AL FINAL DEL PERIODO</td>
-                    <td class="fin-amount fin-grand-total">$${Number.parseFloat(fe.saldoFinal).toFixed(2)}</td>
-                </tr>
-            </table>
-        </div>
-    `
     container.innerHTML = html
 }
 
@@ -1322,121 +1168,6 @@ function exportarPDF() {
                 })
             }
 
-            if (reporteData.flujoEfectivo) {
-                if (yPosition > pageHeight - 50) {
-                    doc.addPage()
-                    yPosition = 20
-                }
-
-                doc.setFontSize(14)
-                doc.setFont(undefined, "bold")
-                doc.text("Estado de Flujo de Efectivo", margin, yPosition)
-                yPosition += 10
-
-                const fe = reporteData.flujoEfectivo
-                const dataFE = []
-
-                // Operación
-                dataFE.push([
-                    {
-                        content: "ACTIVIDADES DE OPERACIÓN",
-                        colSpan: 2,
-                        styles: { fontStyle: "bold", fillColor: [240, 240, 240] },
-                    },
-                ])
-                if (fe.actividadesOperacion && fe.actividadesOperacion.length > 0) {
-                    fe.actividadesOperacion.forEach((item) => {
-                        dataFE.push([item.concepto || "Varios", "$" + Number.parseFloat(item.monto).toFixed(2)])
-                    })
-                } else {
-                    dataFE.push(["(Sin movimientos)", "$0.00"])
-                }
-                dataFE.push([
-                    {
-                        content: "Flujo neto operación: $" + Number.parseFloat(fe.totalOperacion).toFixed(2),
-                        colSpan: 2,
-                        styles: { fontStyle: "bold", halign: "right" },
-                    },
-                ])
-
-                // Inversión
-                dataFE.push([
-                    {
-                        content: "ACTIVIDADES DE INVERSIÓN",
-                        colSpan: 2,
-                        styles: { fontStyle: "bold", fillColor: [240, 240, 240] },
-                    },
-                ])
-                if (fe.actividadesInversion && fe.actividadesInversion.length > 0) {
-                    fe.actividadesInversion.forEach((item) => {
-                        dataFE.push([item.concepto || "Varios", "$" + Number.parseFloat(item.monto).toFixed(2)])
-                    })
-                } else {
-                    dataFE.push(["(Sin movimientos)", "$0.00"])
-                }
-                dataFE.push([
-                    {
-                        content: "Flujo neto inversión: $" + Number.parseFloat(fe.totalInversion).toFixed(2),
-                        colSpan: 2,
-                        styles: { fontStyle: "bold", halign: "right" },
-                    },
-                ])
-
-                // Financiamiento
-                dataFE.push([
-                    {
-                        content: "ACTIVIDADES DE FINANCIAMIENTO",
-                        colSpan: 2,
-                        styles: { fontStyle: "bold", fillColor: [240, 240, 240] },
-                    },
-                ])
-                if (fe.actividadesFinanciamiento && fe.actividadesFinanciamiento.length > 0) {
-                    fe.actividadesFinanciamiento.forEach((item) => {
-                        dataFE.push([item.concepto || "Varios", "$" + Number.parseFloat(item.monto).toFixed(2)])
-                    })
-                } else {
-                    dataFE.push(["(Sin movimientos)", "$0.00"])
-                }
-                dataFE.push([
-                    {
-                        content: "Flujo neto financiamiento: $" + Number.parseFloat(fe.totalFinanciamiento).toFixed(2),
-                        colSpan: 2,
-                        styles: { fontStyle: "bold", halign: "right" },
-                    },
-                ])
-
-                // Totales
-                dataFE.push(["", ""])
-                dataFE.push(["Incremento/Disminución Neto", "$" + Number.parseFloat(fe.flujoNetoTotal).toFixed(2)])
-                dataFE.push(["Saldo Inicial Efectivo", "$" + Number.parseFloat(fe.saldoInicial).toFixed(2)])
-
-                dataFE.push([
-                    {
-                        content: "SALDO FINAL EFECTIVO: $" + Number.parseFloat(fe.saldoFinal).toFixed(2),
-                        colSpan: 2,
-                        styles: { fontStyle: "bold", halign: "center", fillColor: [255, 243, 205], fontSize: 11 },
-                    },
-                ])
-
-                doc.autoTable({
-                    body: dataFE,
-                    startY: yPosition,
-                    margin: { left: margin, right: margin },
-                    columnStyles: {
-                        0: { cellWidth: 120 },
-                        1: { cellWidth: 50, halign: "right" },
-                    },
-                    styles: {
-                        fontSize: 9,
-                        cellPadding: 3,
-                    },
-                    didDrawPage: (data) => {
-                        yPosition = data.cursor.y + 5
-                    },
-                })
-                yPosition = doc.lastAutoTable.finalY + 15
-            }
-
             // Guardar PDF
             const filename = "reporte_" + new Date().toISOString().split("T")[0] + ".pdf"
             doc.save(filename)
@@ -1458,14 +1189,3 @@ function exportarPDF() {
         }
     }, 500)
 }
-
-window.addEventListener("load", () => {
-    console.log("[v0] Página cargada, inicializando fechas")
-    const today = new Date()
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1)
-
-    document.getElementById("fechaInicio").valueAsDate = firstDay
-    document.getElementById("fechaFin").valueAsDate = today
-    console.log("[v0] Inicialización completada")
-})
-console.log("[v0] Inicialización completada")

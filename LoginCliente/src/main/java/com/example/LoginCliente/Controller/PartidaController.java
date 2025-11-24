@@ -234,7 +234,7 @@ public class PartidaController {
                 }
             }
 
-            Partida savedPartida = partidaService.save(partida, movimientos, documentosFuentes);
+            Partida savedPartida = partidaService.save(partida, movimientos, documentosFuentes, empresaActiva);
             response.put("success", true);
             response.put("partidaId", savedPartida.getIdPartida());
 

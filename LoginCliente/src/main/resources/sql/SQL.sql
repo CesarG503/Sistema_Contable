@@ -126,11 +126,17 @@ CREATE TABLE tbl_movimientos
 CREATE TABLE tbl_reportes
 (
     id_reporte         SERIAL PRIMARY KEY,
-    generado           TIMESTAMP,
-    data               TEXT,
-    autor              INTEGER,
+    fecha_generacion   TIMESTAMP,
+    fecha_inicio       TIMESTAMP,
+    fecha_fin          TIMESTAMP,
+    total_pasivos    DECIMAL(12, 2),
+    total_activos    DECIMAL(12, 2),
+    total_capital    DECIMAL(12, 2),
+    utilidad_neta    DECIMAL(12, 2),
+    datos_json       TEXT,
+    generado_por     INTEGER,
     id_empresa         INTEGER,
-    CONSTRAINT fk_rep_usuario FOREIGN KEY (autor)
+    CONSTRAINT fk_rep_usuario FOREIGN KEY (generado_por)
         REFERENCES tbl_usuarios (id_usuario)
         ON DELETE SET NULL,
     CONSTRAINT fk_rep_empresa FOREIGN KEY (id_empresa)

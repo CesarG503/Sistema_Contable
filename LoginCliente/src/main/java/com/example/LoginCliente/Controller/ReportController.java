@@ -1,10 +1,7 @@
 package com.example.LoginCliente.Controller;
 
 import com.example.LoginCliente.Models.*;
-import com.example.LoginCliente.Service.CuentaService;
-import com.example.LoginCliente.Service.PartidaService;
-import com.example.LoginCliente.Service.UsuarioService;
-import com.example.LoginCliente.Service.DocumentosPartidaService;
+import com.example.LoginCliente.Service.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpSession;
@@ -38,6 +35,12 @@ public class ReportController {
 
     @Autowired
     private DocumentosPartidaService documentosPartidaService;
+
+    @Autowired
+    private ReporteService reporteService;
+
+    @Autowired
+    private EmpresaService empresaService;
 
     @GetMapping("/generar")
     public String generarReporte(Model model, HttpSession session) {
@@ -344,6 +347,8 @@ public class ReportController {
             response.put("capitalFinal", capitalFinal);
 
             response.put("ecuacionContable", ecuacionContable);
+            response.put("fechaInicio", fechaInicio);
+            response.put("fechaFin", fechaFin);
 
             // ===== ESTADO DE FLUJO DE EFECTIVO (MÉTODO DIRECTO) =====
             Map<String, Object> flujoEfectivo = new HashMap<>();
@@ -499,6 +504,236 @@ public class ReportController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("error", "Error al obtener datos del reporte: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @PostMapping("/guardar")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> guardarReporte(
+            @RequestBody Map<String, Object> datosReporte,
+            HttpSession session) {
+
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
+            if (empresaActiva == null) {
+                response.put("error", "No hay empresa seleccionada");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // Obtener usuario actual
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            Usuario usuario = usuarioService.findByUsuario(username);
+
+            // Crear el reporte
+            Reporte reporte = new Reporte();
+            Empresa empresa = empresaService.findById(empresaActiva).get();
+            reporte.setEmpresa(empresa);
+
+            // Parsear fechas
+            String fechaInicio = (String) datosReporte.get("fechaInicio");
+            String fechaFin = (String) datosReporte.get("fechaFin");
+            LocalDate inicio = LocalDate.parse(fechaInicio);
+            LocalDate fin = LocalDate.parse(fechaFin);
+
+            reporte.setFechaInicio(Timestamp.valueOf(inicio.atStartOfDay()));
+            reporte.setFechaFin(Timestamp.valueOf(fin.atTime(23, 59, 59)));
+            reporte.setFechaGeneracion(Timestamp.valueOf(LocalDateTime.now()));
+            reporte.setGeneradoPor(usuario);
+
+            // Calcular totales de activos y pasivos desde los datos
+            List<Map<String, Object>> activos = (List<Map<String, Object>>) datosReporte.get("activos");
+            List<Map<String, Object>> pasivos = (List<Map<String, Object>>) datosReporte.get("pasivos");
+
+            BigDecimal totalActivos = activos != null ?
+                    activos.stream()
+                            .map(a -> new BigDecimal(a.get("saldo").toString()))
+                            .reduce(BigDecimal.ZERO, BigDecimal::add) : BigDecimal.ZERO;
+
+            BigDecimal totalPasivos = pasivos != null ?
+                    pasivos.stream()
+                            .map(p -> new BigDecimal(p.get("saldo").toString()))
+                            .reduce(BigDecimal.ZERO, BigDecimal::add) : BigDecimal.ZERO;
+
+            reporte.setTotalActivos(totalActivos);
+            reporte.setTotalPasivos(totalPasivos);
+            reporte.setTotalCapital(new BigDecimal(datosReporte.get("capitalFinal").toString()));
+            reporte.setUtilidadNeta(new BigDecimal(datosReporte.get("utilidadNeta").toString()));
+
+            // Guardar solo los campos seleccionados en JSON
+            Map<String, Object> datosCompletos = new HashMap<>();
+            datosCompletos.put("balanceComprobacion", datosReporte.get("balanceComprobacion"));
+            datosCompletos.put("totalesBalanceComprobacion", datosReporte.get("totalesBalanceComprobacion"));
+            datosCompletos.put("libroDiario", datosReporte.get("libroDiario"));
+            datosCompletos.put("documentosPorPartida", datosReporte.get("documentosPorPartida"));
+            datosCompletos.put("libroMayor", datosReporte.get("libroMayor"));
+            datosCompletos.put("activos", datosReporte.get("activos"));
+            datosCompletos.put("pasivos", datosReporte.get("pasivos"));
+            datosCompletos.put("capital", datosReporte.get("capital"));
+            datosCompletos.put("ingresos", datosReporte.get("ingresos"));
+            datosCompletos.put("gastos", datosReporte.get("gastos"));
+            datosCompletos.put("totalIngresos", datosReporte.get("totalIngresos"));
+            datosCompletos.put("totalGastos", datosReporte.get("totalGastos"));
+            datosCompletos.put("utilidadNeta", datosReporte.get("utilidadNeta"));
+            datosCompletos.put("capitalAccounts", datosReporte.get("capitalAccounts"));
+            datosCompletos.put("retiros", datosReporte.get("retiros"));
+            datosCompletos.put("totalRetiros", datosReporte.get("totalRetiros"));
+            datosCompletos.put("totalCapitalInicial", datosReporte.get("totalCapitalInicial"));
+            datosCompletos.put("capitalFinal", datosReporte.get("capitalFinal"));
+            datosCompletos.put("ecuacionContable", datosReporte.get("ecuacionContable"));
+            datosCompletos.put("fechaInicio", datosReporte.get("fechaInicio"));
+            datosCompletos.put("fechaFin", datosReporte.get("fechaFin"));
+
+            String jsonData = objectMapper.writeValueAsString(datosCompletos);
+            reporte.setDatosJson(jsonData);
+
+            // Guardar en la base de datos
+            Reporte reporteGuardado = reporteService.save(reporte);
+
+            response.put("success", true);
+            response.put("idReporte", reporteGuardado.getIdReporte());
+            response.put("mensaje", "Reporte guardado exitosamente");
+
+            return ResponseEntity.ok(response);
+
+        } catch (JsonProcessingException e) {
+            response.put("error", "Error al procesar JSON: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(response);
+        } catch (Exception e) {
+            response.put("error", "Error al guardar el reporte: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @GetMapping("/reportes")
+    public String verReportes(Model model, HttpSession session) {
+        Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
+        if (empresaActiva == null) {
+            return "redirect:/empresas/mis-empresas";
+        }
+
+        List<Reporte> reportes = reporteService.findByIdEmpresa(empresaActiva);
+        model.addAttribute("reportes", reportes);
+        model.addAttribute("page", "ver-reportes");
+
+        return "lista-reportes";
+    }
+
+    @GetMapping("/{idReporte}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> obtenerReportePorId(
+            @PathVariable Integer idReporte,
+            HttpSession session) {
+
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
+            if (empresaActiva == null) {
+                response.put("error", "No hay empresa seleccionada");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // Buscar el reporte
+            Optional<Reporte> reporteOpt = reporteService.findById(idReporte);
+            if (!reporteOpt.isPresent()) {
+                response.put("error", "Reporte no encontrado");
+                return ResponseEntity.notFound().build();
+            }
+
+            Reporte reporte = reporteOpt.get();
+
+            // Verificar que el reporte pertenece a la empresa activa
+            if (!reporte.getEmpresa().getIdEmpresa().equals(empresaActiva)) {
+                response.put("error", "No tiene permisos para acceder a este reporte");
+                return ResponseEntity.status(403).body(response);
+            }
+
+            // Parsear el JSON almacenado
+            Map<String, Object> datosReporte = objectMapper.readValue(
+                    reporte.getDatosJson(),
+                    new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {
+                    }
+            );
+
+            // Agregar los datos parseados a la respuesta
+            response.put("libroDiario", datosReporte.get("libroDiario"));
+            response.put("documentosPorPartida", datosReporte.get("documentosPorPartida"));
+            response.put("libroMayor", datosReporte.get("libroMayor"));
+            response.put("balanceComprobacion", datosReporte.get("balanceComprobacion"));
+            response.put("totalesBalanceComprobacion", datosReporte.get("totalesBalanceComprobacion"));
+            response.put("activos", datosReporte.get("activos"));
+            response.put("pasivos", datosReporte.get("pasivos"));
+            response.put("capital", datosReporte.get("capital"));
+            response.put("ingresos", datosReporte.get("ingresos"));
+            response.put("gastos", datosReporte.get("gastos"));
+            response.put("totalIngresos", datosReporte.get("totalIngresos"));
+            response.put("totalGastos", datosReporte.get("totalGastos"));
+            response.put("utilidadNeta", datosReporte.get("utilidadNeta"));
+            response.put("capitalAccounts", datosReporte.get("capitalAccounts"));
+            response.put("retiros", datosReporte.get("retiros"));
+            response.put("totalRetiros", datosReporte.get("totalRetiros"));
+            response.put("totalCapitalInicial", datosReporte.get("totalCapitalInicial"));
+            response.put("capitalFinal", datosReporte.get("capitalFinal"));
+            response.put("ecuacionContable", datosReporte.get("ecuacionContable"));
+            response.put("fechaInicio", datosReporte.get("fechaInicio"));
+            response.put("fechaFin", datosReporte.get("fechaFin"));
+            response.put("success", true);
+
+            return ResponseEntity.ok(response);
+
+        } catch (JsonProcessingException e) {
+            response.put("error", "Error al procesar los datos del reporte: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(response);
+        } catch (Exception e) {
+            response.put("error", "Error al obtener el reporte: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @DeleteMapping("/eliminar/{idReporte}")
+    public ResponseEntity<Map<String, Object>> eliminarReporte(
+            @PathVariable Integer idReporte,
+            HttpSession session) {
+
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
+            if (empresaActiva == null) {
+                response.put("error", "No hay empresa seleccionada");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            Optional<Reporte> reporteOpt = reporteService.findById(idReporte);
+            if (!reporteOpt.isPresent()) {
+                response.put("error", "Reporte no encontrado");
+                return ResponseEntity.notFound().build();
+            }
+
+            Reporte reporte = reporteOpt.get();
+
+            if (!reporte.getEmpresa().getIdEmpresa().equals(empresaActiva)) {
+                response.put("error", "No tiene permisos para eliminar este reporte");
+                return ResponseEntity.status(403).body(response);
+            }
+
+            reporteService.deleteById(reporte.getIdReporte());
+            response.put("success", true);
+            response.put("mensaje", "Reporte eliminado exitosamente");
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("error", "Error al eliminar el reporte: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.badRequest().body(response);
         }

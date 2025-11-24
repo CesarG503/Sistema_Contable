@@ -1,13 +1,7 @@
 package com.example.LoginCliente.Service;
 
-import com.example.LoginCliente.Models.DocumentosFuente;
-import com.example.LoginCliente.Models.DocumentosPartida;
-import com.example.LoginCliente.Models.Partida;
-import com.example.LoginCliente.Models.Movimiento;
-import com.example.LoginCliente.Repository.DocumentosFuenteRepository;
-import com.example.LoginCliente.Repository.DocumentosPartidaRepository;
-import com.example.LoginCliente.Repository.PartidaRepository;
-import com.example.LoginCliente.Repository.MovimientoRepository;
+import com.example.LoginCliente.Models.*;
+import com.example.LoginCliente.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +25,9 @@ public class PartidaService {
     @Autowired
     private DocumentosPartidaRepository documentosPartidaRepository;
 
+    @Autowired
+    private EmpresaRepository empresaRepository;
+
     public List<Partida> findAll() {
         return partidaRepository.findAllByOrderByIdPartidaAsc();
     }
@@ -44,8 +41,9 @@ public class PartidaService {
     }
 
     @Transactional
-    public Partida save(Partida partida, List<Movimiento> movimientos, List<DocumentosFuente> documentosFuentes) {
+    public Partida save(Partida partida, List<Movimiento> movimientos, List<DocumentosFuente> documentosFuentes, Integer idEmpresa) {
         Partida savedPartida = partidaRepository.save(partida);
+        Empresa empresaActiva = empresaRepository.findById(idEmpresa).orElse(null);
 
         for (Movimiento movimiento : movimientos) {
             movimiento.setIdPartida(savedPartida.getIdPartida());
@@ -59,6 +57,7 @@ public class PartidaService {
             DocumentosPartida documentosPartida = new DocumentosPartida();
             documentosPartida.setDocumento(documento);
             documentosPartida.setPartida(savedPartida);
+            documentosPartida.setEmpresa(empresaActiva);
             documentosPartidaRepository.save(documentosPartida);
         }
 
