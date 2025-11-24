@@ -1,4 +1,37 @@
-let reporteData = null;
+var reporteData = null;
+
+function eliminarReporte(idReporte) {
+    Swal.fire({
+        title: '¿Está seguro de que desea eliminar este reporte?',
+        text: "Esta acción no se puede deshacer.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.value) {
+            fetch('eliminar/'+idReporte, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    Swal.fire(
+                        'Eliminado',
+                        'El reporte ha sido eliminado exitosamente.',
+                        'success'
+                    ).then(() => {
+                        // Recargar la página o actualizar la lista de reportes
+                        window.location.reload();
+                    });
+                }
+            });
+        }
+    });
+}
 
 function verReporte(idReporte) {
     document.getElementById("reporteModal").style.display = "block";
@@ -30,7 +63,6 @@ async function cargarReporte(idReporte) {
                 renderizarBalanceGeneral(jsonData)
 
                 console.log(jsonData)
-                console.log("lol")
             }
         })
         .catch((error) => {
@@ -628,4 +660,532 @@ function renderizarTodoReporte() {
             </div>
         `
     tabAll.innerHTML = html
+}
+
+function exportarPDF() {
+    console.log("[v0] Iniciando exportación PDF directa")
+
+    if (!reporteData) {
+        Swal.fire({
+            icon: "warning",
+            title: "Sin datos",
+            text: "Por favor genera un reporte primero",
+        })
+        return
+    }
+
+    // Show loading state
+    Swal.fire({
+        title: "Generando PDF...",
+        html: "Por favor espera",
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading()
+        },
+    })
+
+    // Use setTimeout to allow the UI to update before heavy processing
+    setTimeout(() => {
+        try {
+            const { jsPDF } = window.jspdf
+            const doc = new jsPDF("p", "mm", "a4")
+            let yPosition = 20
+            const pageHeight = doc.internal.pageSize.getHeight()
+            const margin = 15
+
+            // Título
+            doc.setFontSize(16)
+            doc.setFont(undefined, "bold")
+            doc.text("Reporte Contable", margin, yPosition)
+            yPosition += 10
+
+            // Fecha de generación
+            doc.setFontSize(10)
+            doc.setFont(undefined, "normal")
+            doc.text("Fecha de generación: " + new Date().toLocaleString("es-ES"), margin, yPosition)
+            yPosition += 15
+
+            // --- Partida Doble ---
+            if (reporteData.libroDiario && reporteData.libroDiario.length > 0) {
+                if (yPosition > pageHeight - 50) doc.addPage()
+
+                doc.setFontSize(14)
+                doc.setFont(undefined, "bold")
+                doc.text("Libro Diario (Partida Doble)", margin, yPosition)
+                yPosition += 10
+
+                const dataDiario = []
+
+                reporteData.libroDiario.forEach((partida) => {
+                    // Agregar cada movimiento de la partida
+                    partida.movimientos.forEach((mov, index) => {
+                        if (index === 0) {
+                            // Primera fila incluye número de asiento, fecha y concepto
+                            dataDiario.push([
+                                partida.idPartida,
+                                partida.fecha,
+                                mov.nombreCuenta,
+                                partida.concepto || "---",
+                                mov.tipo === "D" ? "$" + mov.monto.toFixed(2) : "",
+                                mov.tipo === "H" ? "$" + mov.monto.toFixed(2) : "",
+                            ])
+                        } else {
+                            // Filas siguientes solo muestran la cuenta y montos
+                            dataDiario.push([
+                                "",
+                                "",
+                                mov.nombreCuenta,
+                                "",
+                                mov.tipo === "D" ? "$" + mov.monto.toFixed(2) : "",
+                                mov.tipo === "H" ? "$" + mov.monto.toFixed(2) : "",
+                            ])
+                        }
+                    })
+
+                    // Agregar línea separadora entre partidas
+                    dataDiario.push(["", "", "", "", "", ""])
+                })
+
+                doc.autoTable({
+                    head: [["# Asiento", "Fecha", "Cuenta", "Descripción", "Debe", "Haber"]],
+                    body: dataDiario,
+                    startY: yPosition,
+                    margin: { left: margin, right: margin },
+                    columnStyles: {
+                        0: { halign: "center", cellWidth: 20 },
+                        1: { halign: "center", cellWidth: 25 },
+                        2: { halign: "left", cellWidth: 50 },
+                        3: { halign: "left", cellWidth: 40 },
+                        4: { halign: "right", cellWidth: 25 },
+                        5: { halign: "right", cellWidth: 25 },
+                    },
+                    styles: {
+                        fontSize: 9,
+                        cellPadding: 3,
+                    },
+                    didDrawPage: (data) => {
+                        yPosition = data.cursor.y + 5
+                    },
+                })
+                yPosition = doc.lastAutoTable.finalY + 15
+            }
+
+            // --- Libro Mayor ---
+            if (reporteData.libroMayor) {
+                if (yPosition > pageHeight - 50) {
+                    doc.addPage()
+                    yPosition = 20
+                }
+
+                doc.setFontSize(14)
+                doc.setFont(undefined, "bold")
+                doc.text("Libro Mayor (Cuentas T)", margin, yPosition)
+                yPosition += 10
+
+                // Separar cuentas con y sin movimientos
+                const cuentasConMovimiento = []
+                const cuentasSinMovimiento = []
+
+                Object.values(reporteData.libroMayor).forEach((cuenta) => {
+                    if (cuenta.detalles && cuenta.detalles.length > 0) {
+                        cuentasConMovimiento.push(cuenta)
+                    } else {
+                        cuentasSinMovimiento.push(cuenta)
+                    }
+                })
+
+                // Mostrar cuentas CON movimiento con detalles
+                cuentasConMovimiento.forEach((cuenta) => {
+                    // Verificar espacio disponible
+                    if (yPosition > pageHeight - 80) {
+                        doc.addPage()
+                        yPosition = 20
+                    }
+
+                    // Título de la cuenta
+                    doc.setFontSize(12)
+                    doc.setFont(undefined, "bold")
+                    doc.text(
+                        `${cuenta.nombre} - ${cuenta.tipo} (${cuenta.naturaleza === "D" ? "Deudora" : "Acreedora"})`,
+                        margin,
+                        yPosition,
+                    )
+                    yPosition += 8
+
+                    // Preparar datos de movimientos
+                    const movimientosDebe = cuenta.detalles.filter((d) => d.tipo === "D")
+                    const movimientosHaber = cuenta.detalles.filter((d) => d.tipo === "H")
+                    const maxFilas = Math.max(movimientosDebe.length, movimientosHaber.length)
+
+                    const dataMovimientos = []
+
+                    for (let i = 0; i < maxFilas; i++) {
+                        const debe = movimientosDebe[i]
+                        const haber = movimientosHaber[i]
+
+                        dataMovimientos.push([
+                            debe ? `Asiento #${debe.idPartida}` : "",
+                            debe ? "$" + debe.monto.toFixed(2) : "",
+                            haber ? `Asiento #${haber.idPartida}` : "",
+                            haber ? "$" + haber.monto.toFixed(2) : "",
+                        ])
+                    }
+
+                    // Agregar totales
+                    dataMovimientos.push([
+                        "TOTAL DEBE",
+                        "$" + cuenta.totalDebe.toFixed(2),
+                        "TOTAL HABER",
+                        "$" + cuenta.totalHaber.toFixed(2),
+                    ])
+
+                    // Agregar saldo final
+                    const saldoFinal = Math.abs(cuenta.totalDebe - cuenta.totalHaber)
+                    const ladoSaldo = cuenta.totalDebe > cuenta.totalHaber ? "DEUDOR" : "ACREEDOR"
+                    dataMovimientos.push([
+                        {
+                            content: `SALDO FINAL: $${saldoFinal.toFixed(2)} (${ladoSaldo})`,
+                            colSpan: 4,
+                            styles: { halign: "center", fontStyle: "bold", fillColor: [255, 243, 205] },
+                        },
+                    ])
+
+                    doc.autoTable({
+                        head: [["DEBE", "Monto", "HABER", "Monto"]],
+                        body: dataMovimientos,
+                        startY: yPosition,
+                        margin: { left: margin, right: margin },
+                        columnStyles: {
+                            0: { halign: "left", cellWidth: 45 },
+                            1: { halign: "right", cellWidth: 35 },
+                            2: { halign: "left", cellWidth: 45 },
+                            3: { halign: "right", cellWidth: 35 },
+                        },
+                        headStyles: {
+                            fillColor: [236, 240, 241],
+                            textColor: [0, 0, 0],
+                            fontStyle: "bold",
+                        },
+                        styles: {
+                            fontSize: 9,
+                            cellPadding: 3,
+                        },
+                        didDrawPage: (data) => {
+                            yPosition = data.cursor.y + 5
+                        },
+                    })
+
+                    yPosition = doc.lastAutoTable.finalY + 12
+                })
+
+                // Mostrar cuentas SIN movimiento en tabla simple
+                if (cuentasSinMovimiento.length > 0) {
+                    if (yPosition > pageHeight - 50) {
+                        doc.addPage()
+                        yPosition = 20
+                    }
+
+                    doc.setFontSize(12)
+                    doc.setFont(undefined, "bold")
+                    doc.text("Cuentas sin Movimiento", margin, yPosition)
+                    yPosition += 8
+
+                    const dataSinMovimiento = cuentasSinMovimiento.map((cuenta) => [
+                        cuenta.nombre,
+                        cuenta.tipo,
+                        cuenta.naturaleza === "D" ? "Deudora" : "Acreedora",
+                        "$" + cuenta.totalDebe.toFixed(2),
+                        "$" + cuenta.totalHaber.toFixed(2),
+                        "$" + cuenta.saldo.toFixed(2),
+                    ])
+
+                    doc.autoTable({
+                        head: [["Cuenta", "Tipo", "Naturaleza", "Total Debe", "Total Haber", "Saldo"]],
+                        body: dataSinMovimiento,
+                        startY: yPosition,
+                        margin: { left: margin, right: margin },
+                        columnStyles: {
+                            3: { halign: "right" },
+                            4: { halign: "right" },
+                            5: { halign: "right" },
+                        },
+                        styles: {
+                            fontSize: 9,
+                            cellPadding: 3,
+                        },
+                        didDrawPage: (data) => {
+                            yPosition = data.cursor.y + 5
+                        },
+                    })
+                    yPosition = doc.lastAutoTable.finalY + 15
+                }
+            }
+
+            // --- Balance de Comprobación ---
+            if (reporteData.balanceComprobacion && reporteData.balanceComprobacion.length > 0) {
+                if (yPosition > pageHeight - 50) {
+                    doc.addPage()
+                    yPosition = 20
+                }
+
+                doc.setFontSize(14)
+                doc.setFont(undefined, "bold")
+                doc.text("Balance de Comprobación", margin, yPosition)
+                yPosition += 10
+
+                const dataBC = reporteData.balanceComprobacion.map((cuenta) => [
+                    cuenta.nombre,
+                    cuenta.tipo,
+                    "$" + (cuenta.debe ? Number.parseFloat(cuenta.debe).toFixed(2) : "0.00"),
+                    "$" + (cuenta.haber ? Number.parseFloat(cuenta.haber).toFixed(2) : "0.00"),
+                ])
+
+                // Totales
+                if (reporteData.totalesBalanceComprobacion) {
+                    dataBC.push([
+                        "TOTALES",
+                        "",
+                        "$" +
+                        (reporteData.totalesBalanceComprobacion.debe
+                            ? reporteData.totalesBalanceComprobacion.debe.toFixed(2)
+                            : "0.00"),
+                        "$" +
+                        (reporteData.totalesBalanceComprobacion.haber
+                            ? reporteData.totalesBalanceComprobacion.haber.toFixed(2)
+                            : "0.00"),
+                    ])
+                }
+
+                doc.autoTable({
+                    head: [["Cuenta", "Tipo", "Debe", "Haber"]],
+                    body: dataBC,
+                    startY: yPosition,
+                    margin: { left: margin, right: margin },
+                    columnStyles: {
+                        2: { halign: "right" },
+                        3: { halign: "right" },
+                    },
+                    didDrawPage: (data) => {
+                        yPosition = data.cursor.y + 5
+                    },
+                })
+                yPosition = doc.lastAutoTable.finalY + 20 // Increased spacing
+            }
+
+            // --- Estado de Resultados ---
+            if (reporteData.ingresos || reporteData.gastos) {
+                if (yPosition > pageHeight - 60) {
+                    // Increased page break threshold
+                    doc.addPage()
+                    yPosition = 20
+                }
+
+                doc.setFontSize(14)
+                doc.setFont(undefined, "bold")
+                doc.text("Estado de Resultados", margin, yPosition)
+                yPosition += 15 // Increased spacing
+
+                const dataER = []
+
+                if (reporteData.ingresos && reporteData.ingresos.length > 0) {
+                    dataER.push([{ content: "INGRESOS", colSpan: 2, styles: { fontStyle: "bold", fillColor: [240, 240, 240] } }])
+
+                    let totalIngresosSection = 0
+                    reporteData.ingresos.forEach((ingreso) => {
+                        const val = Number.parseFloat(ingreso.saldo)
+                        totalIngresosSection += val
+                        dataER.push([ingreso.nombre, "$" + val.toFixed(2)])
+                    })
+                    dataER.push([
+                        { content: "Total Ingresos", styles: { fontStyle: "bold" } },
+                        { content: "$" + totalIngresosSection.toFixed(2), styles: { fontStyle: "bold", halign: "right" } },
+                    ])
+                }
+
+                if (reporteData.gastos && reporteData.gastos.length > 0) {
+                    dataER.push([{ content: "GASTOS", colSpan: 2, styles: { fontStyle: "bold", fillColor: [240, 240, 240] } }])
+
+                    let totalGastosSection = 0
+                    reporteData.gastos.forEach((gasto) => {
+                        const val = Number.parseFloat(gasto.saldo)
+                        totalGastosSection += val
+                        dataER.push([gasto.nombre, "$" + val.toFixed(2)])
+                    })
+                    dataER.push([
+                        { content: "Total Gastos", styles: { fontStyle: "bold" } },
+                        { content: "$" + totalGastosSection.toFixed(2), styles: { fontStyle: "bold", halign: "right" } },
+                    ])
+                }
+
+                const utilidadNeta = Number.parseFloat(reporteData.utilidadNeta) || 0
+                const labelUtilidad = utilidadNeta >= 0 ? "UTILIDAD NETA" : "PÉRDIDA NETA"
+
+                dataER.push([
+                    { content: labelUtilidad, styles: { fontStyle: "bold", fontSize: 11 } },
+                    { content: "$" + utilidadNeta.toFixed(2), styles: { fontStyle: "bold", fontSize: 11, halign: "right" } },
+                ])
+
+                doc.autoTable({
+                    body: dataER,
+                    startY: yPosition,
+                    margin: { left: margin, right: margin },
+                    columnStyles: {
+                        1: { halign: "right", cellWidth: 50 },
+                    },
+                    theme: "grid", // Use grid theme for better readability
+                    didDrawPage: (data) => {
+                        yPosition = data.cursor.y + 5
+                    },
+                })
+                yPosition = doc.lastAutoTable.finalY + 20 // Increased spacing
+            }
+
+            // --- Estado de Capital ---
+            if (reporteData.capitalAccounts || reporteData.retiros) {
+                if (yPosition > pageHeight - 60) {
+                    // Increased page break threshold
+                    doc.addPage()
+                    yPosition = 20
+                }
+
+                doc.setFontSize(14)
+                doc.setFont(undefined, "bold")
+                doc.text("Estado de Capital", margin, yPosition)
+                yPosition += 15 // Increased spacing
+
+                const dataEC = []
+                const capitalInicial = Number.parseFloat(reporteData.totalCapitalInicial) || 0
+                const utilidadNeta = Number.parseFloat(reporteData.utilidadNeta) || 0
+                const retiros = Number.parseFloat(reporteData.totalRetiros) || 0
+                const capitalFinal = Number.parseFloat(reporteData.capitalFinal) || 0
+
+                dataEC.push(["Capital Inicial", "$" + capitalInicial.toFixed(2)])
+                dataEC.push(["Más: Utilidad Neta", "$" + utilidadNeta.toFixed(2)])
+                if (retiros > 0) {
+                    dataEC.push(["Menos: Retiros", "$" + retiros.toFixed(2)])
+                }
+
+                dataEC.push([
+                    { content: "CAPITAL CONTABLE FINAL", styles: { fontStyle: "bold", fontSize: 11 } },
+                    { content: "$" + capitalFinal.toFixed(2), styles: { fontStyle: "bold", fontSize: 11, halign: "right" } },
+                ])
+
+                doc.autoTable({
+                    body: dataEC,
+                    startY: yPosition,
+                    margin: { left: margin, right: margin },
+                    columnStyles: {
+                        1: { halign: "right", cellWidth: 50 },
+                    },
+                    theme: "grid",
+                    didDrawPage: (data) => {
+                        yPosition = data.cursor.y + 5
+                    },
+                })
+                yPosition = doc.lastAutoTable.finalY + 20 // Increased spacing
+            }
+
+            // --- Balance General ---
+            if (reporteData.activos || reporteData.pasivos || reporteData.capital) {
+                if (yPosition > pageHeight - 60) {
+                    doc.addPage()
+                    yPosition = 20
+                }
+
+                doc.setFontSize(14)
+                doc.setFont(undefined, "bold")
+                doc.text("Balance General", margin, yPosition)
+                yPosition += 15 // Increased spacing
+
+                const dataBalanceGeneral = []
+
+                const addSection = (items, sectionName) => {
+                    if (items && items.length > 0) {
+                        dataBalanceGeneral.push([
+                            { content: sectionName, colSpan: 2, styles: { fontStyle: "bold", fillColor: [220, 220, 220] } },
+                        ])
+                        let total = 0
+                        items.forEach((item) => {
+                            const val = Number.parseFloat(item.saldo) || 0
+                            total += val
+                            dataBalanceGeneral.push([item.nombre, "$" + val.toFixed(2)])
+                        })
+                        dataBalanceGeneral.push([
+                            { content: "TOTAL " + sectionName, styles: { fontStyle: "bold" } },
+                            { content: "$" + total.toFixed(2), styles: { fontStyle: "bold", halign: "right" } },
+                        ])
+                    }
+                }
+
+                addSection(reporteData.activos, "ACTIVOS")
+                addSection(reporteData.pasivos, "PASIVOS")
+
+                dataBalanceGeneral.push([
+                    { content: "CAPITAL", colSpan: 2, styles: { fontStyle: "bold", fillColor: [220, 220, 220] } },
+                ])
+                const capitalFinal = Number.parseFloat(reporteData.capitalFinal) || 0
+                dataBalanceGeneral.push(["Capital Contable del Propietario", "$" + capitalFinal.toFixed(2)])
+                dataBalanceGeneral.push([
+                    { content: "TOTAL CAPITAL", styles: { fontStyle: "bold" } },
+                    { content: "$" + capitalFinal.toFixed(2), styles: { fontStyle: "bold", halign: "right" } },
+                ])
+
+                let totalActivos = 0
+                if (reporteData.activos) reporteData.activos.forEach((a) => (totalActivos += Number.parseFloat(a.saldo)))
+
+                let totalPasivos = 0
+                if (reporteData.pasivos) reporteData.pasivos.forEach((p) => (totalPasivos += Number.parseFloat(p.saldo)))
+
+                const totalPasivoCapital = totalPasivos + capitalFinal
+
+                dataBalanceGeneral.push([{ content: "", colSpan: 2, styles: { fillColor: [255, 255, 255] } }]) // Spacer
+                dataBalanceGeneral.push([
+                    { content: "TOTAL ACTIVOS", styles: { fontStyle: "bold", fontSize: 10, fillColor: [230, 240, 255] } },
+                    {
+                        content: "$" + totalActivos.toFixed(2),
+                        styles: { fontStyle: "bold", fontSize: 10, halign: "right", fillColor: [230, 240, 255] },
+                    },
+                ])
+                dataBalanceGeneral.push([
+                    {
+                        content: "TOTAL PASIVO + CAPITAL",
+                        styles: { fontStyle: "bold", fontSize: 10, fillColor: [230, 240, 255] },
+                    },
+                    {
+                        content: "$" + totalPasivoCapital.toFixed(2),
+                        styles: { fontStyle: "bold", fontSize: 10, halign: "right", fillColor: [230, 240, 255] },
+                    },
+                ])
+
+                doc.autoTable({
+                    body: dataBalanceGeneral,
+                    startY: yPosition,
+                    margin: { left: margin, right: margin },
+                    columnStyles: {
+                        1: { halign: "right" },
+                    },
+                    theme: "grid",
+                })
+            }
+
+            // Guardar PDF
+            const filename = "reporte_" + new Date().toISOString().split("T")[0] + ".pdf"
+            doc.save(filename)
+
+            Swal.close()
+            Swal.fire({
+                icon: "success",
+                title: "Éxito",
+                text: "PDF descargado correctamente",
+            })
+        } catch (error) {
+            console.error("[v0] Error en exportarPDF:", error)
+            Swal.close()
+            Swal.fire({
+                icon: "error",
+                title: "Error al generar PDF",
+                text: error.message || "Ocurrió un error inesperado",
+            })
+        }
+    }, 500)
 }

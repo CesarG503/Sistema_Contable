@@ -508,8 +508,9 @@ public class ReportController {
 
             // Parsear el JSON almacenado
             Map<String, Object> datosReporte = objectMapper.readValue(
-                reporte.getDatosJson(),
-                new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {}
+                    reporte.getDatosJson(),
+                    new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {
+                    }
             );
 
             // Agregar los datos parseados a la respuesta
@@ -544,6 +545,45 @@ public class ReportController {
             return ResponseEntity.badRequest().body(response);
         } catch (Exception e) {
             response.put("error", "Error al obtener el reporte: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @DeleteMapping("/eliminar/{idReporte}")
+    public ResponseEntity<Map<String, Object>> eliminarReporte(
+            @PathVariable Integer idReporte,
+            HttpSession session) {
+
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Integer empresaActiva = (Integer) session.getAttribute("empresaActiva");
+            if (empresaActiva == null) {
+                response.put("error", "No hay empresa seleccionada");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            Optional<Reporte> reporteOpt = reporteService.findById(idReporte);
+            if (!reporteOpt.isPresent()) {
+                response.put("error", "Reporte no encontrado");
+                return ResponseEntity.notFound().build();
+            }
+
+            Reporte reporte = reporteOpt.get();
+
+            if (!reporte.getEmpresa().getIdEmpresa().equals(empresaActiva)) {
+                response.put("error", "No tiene permisos para eliminar este reporte");
+                return ResponseEntity.status(403).body(response);
+            }
+
+            reporteService.deleteById(reporte.getIdReporte());
+            response.put("success", true);
+            response.put("mensaje", "Reporte eliminado exitosamente");
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("error", "Error al eliminar el reporte: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.badRequest().body(response);
         }

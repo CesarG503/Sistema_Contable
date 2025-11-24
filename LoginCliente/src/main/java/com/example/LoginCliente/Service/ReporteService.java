@@ -25,4 +25,8 @@ public class ReporteService {
     public Optional<Reporte> findById(Integer id) {
         return reporteRepository.findById(id);
     }
+
+    public void deleteById(Integer id) {
+        reporteRepository.deleteById(id);
+    }
 }

@@ -69,6 +69,17 @@
             <div class="report-container">
                 <!-- Tabs y Botones de Exportación -->
                 <div class="tabs-section">
+                    <div style="display: flex; justify-content: end;">
+                        <div class="export-buttons" style="display: flex; justify-content: flex-end; gap: 10px;">
+                            <!-- Simplified buttons to call export functions directly, removing modal logic -->
+                            <button id="btn-exportar-pdf" class="btn-export btn-export-pdf" onclick="exportarPDF()">
+                                <i class="fas fa-file-pdf"></i> Exportar PDF
+                            </button>
+                            <button id="btn-exportar-excel" class="btn-export btn-export-excel" onclick="exportarExcel()">
+                                <i class="fas fa-file-excel"></i> Exportar Excel
+                            </button>
+                        </div>
+                    </div>
                     <div class="tabs-header">
                         <button class="tab-button active" onclick="cambiarTab('all', event)" data-tab="all">Resumen</button>
                         <button class="tab-button" onclick="cambiarTab('partida-doble', event)" data-tab="partida-doble">Partida doble</button>
@@ -162,7 +173,14 @@
     </div>
 
 </div>
+<!-- Replaced html2pdf with jsPDF and autoTable for better performance -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<!-- Ensure XLSX is loaded and add the new reporte-excel.js script -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script th:src="@{/js/visualizar-reporte.js}"></script>
+<script th:src="@{/js/reporte-excel.js}"></script>
 <script th:src="@{/js/Sidebar.js}"></script>
 </body>
 </html>

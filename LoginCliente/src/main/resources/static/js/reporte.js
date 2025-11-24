@@ -133,6 +133,22 @@ async function guardarReporte() {
         return;
     }
 
+    await Swal.fire({
+        icon: "warning",
+        title: "Estas seguro de guardar este reporte?",
+        text: "Esto almacenará una copia del reporte en el sistema.\nFecha de Inicio: " + document.getElementById("fechaInicio").value + "\nFecha de Fin: " + document.getElementById("fechaFin").value,
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Guardar",
+        cancelButtonText: "Cancelar",
+    }).then((result) => {
+        if (!result.value) {
+            console.log("El usuario canceló el guardado del reporte.");
+            return;
+        }
+    });
+
     const response = await fetch('/reportes/guardar', {
         method: 'POST',
         headers: {
@@ -143,6 +159,11 @@ async function guardarReporte() {
 
     const result = await response.json();
     if (result.success) {
+        await Swal.fire({
+            icon: 'success',
+            title: 'Reporte guardado',
+            text: 'El reporte ha sido guardado exitosamente con ID: ' + result.idReporte
+        });
         console.log('Reporte guardado con ID:', result.idReporte);
     }
     else {
