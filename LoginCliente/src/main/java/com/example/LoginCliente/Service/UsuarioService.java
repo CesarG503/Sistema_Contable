@@ -10,8 +10,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -124,7 +126,7 @@ public class UsuarioService implements UserDetailsService {
         // Devolvemos un UserDetails con authorities vacías.
         return org.springframework.security.core.userdetails.User.withUsername(user.getUsuario())
                 .password(user.getPwd())
-                .authorities(new String[0])
+                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_User")))
                 .build();
     }
 }

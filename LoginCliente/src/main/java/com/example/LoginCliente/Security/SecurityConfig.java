@@ -44,6 +44,7 @@ public class SecurityConfig {
                                 "/css/**",
                                 "/js/**"
                         ).permitAll()
+                        .requestMatchers("/reportes/**").hasAnyRole("Administrador", "Auditor")
                         // Permission checks should be done at the controller level based on UsuarioEmpresa.permiso
                         .anyRequest().authenticated()
                 )
