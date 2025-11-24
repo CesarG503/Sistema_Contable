@@ -132,13 +132,13 @@ function addEditMovimiento() {
     attachEditCalculateListeners();
 }
 
-function removeEditMovimiento(btn) {
+async function removeEditMovimiento(btn) {
     const container = document.getElementById('editMovimientos');
     if (container.querySelectorAll('.movimiento-row').length > 1) {
         btn.closest('.movimiento-row').remove();
         calculateEditTotals();
     } else {
-        alerta('Debe haber al menos un movimiento', 'warning');
+        await alerta('Debe haber al menos un movimiento', 'warning');
     }
 }
 
@@ -171,13 +171,13 @@ function loadEditDocumentos(documentos) {
     });
 }
 
-function marcarDocumentoParaEliminar(docId, button) {
+async function marcarDocumentoParaEliminar(docId, button) {
     if (confirm('¿Estás seguro de eliminar este documento?')) {
         editDocumentosAEliminar.push(docId);
         button.closest('.documento-existente').style.opacity = '0.5';
         button.closest('.documento-existente').style.textDecoration = 'line-through';
         button.disabled = true;
-        alerta('Documento marcado para eliminar. Se eliminará al guardar.', 'info');
+        await alerta('Documento marcado para eliminar. Se eliminará al guardar.', 'info');
     }
 }
 
@@ -283,25 +283,30 @@ function attachEditCalculateListeners() {
 }
 
 // Submit del formulario de edición
-document.getElementById('editarPartidaForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
+const editForm = document.getElementById('editarPartidaForm');
+if (!editForm) {
+    console.error('No se encontró el formulario editarPartidaForm');
+} else {
+    console.log('Formulario de edición encontrado, agregando listener');
+    editForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-    const partidaId = document.getElementById('editPartidaId').value;
-    const concepto = document.getElementById('editConcepto').value;
-    const fechaPartida = document.getElementById('editFechaPartida').value;
+        const partidaId = document.getElementById('editPartidaId').value;
+        const concepto = document.getElementById('editConcepto').value;
+        const fechaPartida = document.getElementById('editFechaPartida').value;
 
-    // Validar que los totales coincidan
-    const totalDebeText = document.getElementById('editTotalDebe').textContent.replace('$', '');
-    const totalHaberText = document.getElementById('editTotalHaber').textContent.replace('$', '');
-    const totalDebe = parseFloat(totalDebeText);
-    const totalHaber = parseFloat(totalHaberText);
+        // Validar que los totales coincidan
+        const totalDebeText = document.getElementById('editTotalDebe').textContent.replace('$', '');
+        const totalHaberText = document.getElementById('editTotalHaber').textContent.replace('$', '');
+        const totalDebe = parseFloat(totalDebeText);
+        const totalHaber = parseFloat(totalHaberText);
 
-    if (Math.abs(totalDebe - totalHaber) > 0.01) {
-        await alerta('El total del Debe debe ser igual al total del Haber', 'error');
-        return;
-    }
+        if (Math.abs(totalDebe - totalHaber) > 0.01) {
+            await alerta('El total del Debe debe ser igual al total del Haber', 'error');
+            return;
+        }
 
-    // Recopilar movimientos
+        // Recopilar movimientos
     const movimientos = [];
     document.querySelectorAll('#editMovimientos .movimiento-row').forEach((row) => {
         const cuentaInput = row.querySelector('.cuenta-select');
@@ -438,9 +443,47 @@ document.getElementById('editarPartidaForm').addEventListener('submit', async (e
             await alerta('Error al actualizar la partida: ' + (data.error || 'Error desconocido'), 'error');
         }
     } catch (error) {
+        console.error('Error en catch:', error);
         await alerta('Error al actualizar la partida: ' + error.message, 'error');
     }
-});
+    });
+}
+async function alerta(message, type = 'info', title = 'OneDi system') {
+    console.log('Alerta llamada:', message, type, title);
+
+    if (typeof Swal === 'undefined') {
+        console.error('SweetAlert2 no está cargado - NO se mostrará ninguna alerta');
+        return Promise.resolve(); // No mostrar nada si SweetAlert no está cargado
+    }
+
+    // Temporalmente ocultar el modal de edición si está visible
+    const editModal = document.getElementById('editarPartidaModal');
+    const wasVisible = editModal && editModal.style.display === 'block';
+
+    if (wasVisible) {
+        console.log('Ocultando modal temporalmente para mostrar alerta');
+        editModal.style.display = 'none';
+    }
+
+    const result = await Swal.fire({
+        icon: type,
+        title: title,
+        text: message,
+        confirmButtonText: 'Aceptar'
+    });
+
+    // Restaurar visibilidad del modal
+    if (wasVisible) {
+        console.log('Restaurando modal');
+        editModal.style.display = 'block';
+    }
+
+    return result;
+}
+
+// Hacer la función global
+window.alerta = alerta;
+console.log('EditarPartida.js: función alerta definida');
 
 // Cerrar modal al hacer clic fuera
 window.addEventListener('click', (event) => {

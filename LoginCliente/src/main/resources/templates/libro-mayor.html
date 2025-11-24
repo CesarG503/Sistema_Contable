@@ -88,9 +88,16 @@
                     <a th:href="@{/cuentas/editar/{id}(id=${entry.key.idCuenta})}" class="btn btn-edit" onclick="event.stopPropagation();">
                         <i class="fa-solid fa-pen-to-square"></i>
                     </a>
-                    <form method="post" style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar esta cuenta?');"
-                          onclick="event.stopPropagation();" th:action="@{/cuentas/eliminar/{id}(id=${entry.key.idCuenta})}">
-                        <button type="submit" class="btn btn-delete">
+                    <form method="post" style="display: inline;"
+                          th:id="'formEliminarCuenta' + ${entry.key.idCuenta}"
+                          onclick="event.stopPropagation();"
+                          onsubmit="return false;"
+                          th:action="@{/cuentas/eliminar/{id}(id=${entry.key.idCuenta})}">
+                        <button type="button"
+                                class="btn btn-delete"
+                                th:data-id="${entry.key.idCuenta}"
+                                th:data-nombre="${entry.key.nombre}"
+                                onclick="confirmarEliminarCuenta(this.getAttribute('data-id'), this.getAttribute('data-nombre'))">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </form>
@@ -164,6 +171,30 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // Función para confirmar eliminación de cuenta con SweetAlert
+    async function confirmarEliminarCuenta(idCuenta, nombreCuenta) {
+        const result = await Swal.fire({
+            title: '¿Eliminar cuenta?',
+            html: `Esta acción eliminará permanentemente la cuenta:<br><strong>${nombreCuenta}</strong>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true
+        });
+
+        if (result.isConfirmed) {
+            // Usuario confirmó, enviar formulario
+            document.getElementById('formEliminarCuenta' + idCuenta).submit();
+        }
+    }
+</script>
 
 <script th:src="@{/js/Sidebar.js}"></script>
 

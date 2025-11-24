@@ -19,4 +19,6 @@ public interface UsuarioEmpresaRepository extends JpaRepository<UsuarioEmpresa, 
     List<UsuarioEmpresa> findEmpresasByUsuario(@Param("idUsuario") Integer idUsuario);
 
     List<UsuarioEmpresa> findByIdEmpresa(Integer idEmpresa);
+
+    UsuarioEmpresa findFirstByIdEmpresaAndPermisoOrderByFechaAfiliacionAsc(Integer idEmpresa, Integer permiso);
 }

@@ -38,11 +38,21 @@ public class UsuarioEmpresa {
     @JoinColumn(name = "id_empresa", insertable = false, updatable = false)
     private Empresa empresa;
 
+    // Devuelve el enum Permiso asociado al entero almacenado
     public Permiso getPermiso() {
         return Permiso.valueOfValor(permiso);
     }
 
     public void setPermiso(Permiso permiso) {
         this.permiso = permiso.valor;
+    }
+
+    public Integer getPermisoValor() {
+        return permiso;
+    }
+
+    public String getPermisoTexto() {
+        Permiso p = getPermiso();
+        return p != null ? p.texto : "";
     }
 }

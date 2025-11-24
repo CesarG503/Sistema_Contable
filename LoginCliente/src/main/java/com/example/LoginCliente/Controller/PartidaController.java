@@ -57,6 +57,7 @@ public class PartidaController {
         }
 
         List<Partida> partidas = partidaService.findByIdEmpresa(empresaActiva);
+        Collections.reverse(partidas);
         List<Cuenta> cuentas = cuentaService.findByIdEmpresa(empresaActiva);
 
         Map<PartidaDTO, List<Movimiento>> partidasConMovimientos = new LinkedHashMap<>();
@@ -187,6 +188,11 @@ public class PartidaController {
 
             if (totalDebe.compareTo(totalHaber) != 0) {
                 response.put("error", "El total del Debe debe ser igual al total del Haber");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            if(totalDebe.compareTo(BigDecimal.ZERO) == 0){
+                response.put("error", "El saldo no puede ser igual a 0");
                 return ResponseEntity.badRequest().body(response);
             }
 
@@ -421,6 +427,11 @@ public class PartidaController {
                 return ResponseEntity.badRequest().body(response);
             }
 
+            if(totalDebe.compareTo(BigDecimal.ZERO) == 0){
+                response.put("error", "El saldo no puede ser igual a 0");
+                return ResponseEntity.badRequest().body(response);
+            }
+
             // Validar saldos de las cuentas solo si no se está forzando
             if (!forzar) {
                 // Crear lista de movimientos temporal para validación
@@ -494,7 +505,16 @@ public class PartidaController {
     @PostMapping("/eliminar/{id}")
     public String eliminarPartida(@PathVariable Integer id,
                                   @RequestHeader(value = "Referer", required = false) String referer,
-                                  RedirectAttributes redirectAttributes) {
+                                  RedirectAttributes redirectAttributes,
+                                  HttpSession session) {
+        Integer permiso = (Integer) session.getAttribute("usuarioPermiso");
+        if (permiso == null || (permiso != 0 && permiso != 2)) {
+            redirectAttributes.addFlashAttribute("error", "No tiene permiso para eliminar partidas");
+            if (referer != null && !referer.isEmpty()) {
+                return "redirect:" + referer;
+            }
+            return "redirect:/partidas/libro-diario";
+        }
         try {
             partidaService.deleteById(id);
             redirectAttributes.addFlashAttribute("success", "Partida eliminada exitosamente");
@@ -502,11 +522,9 @@ public class PartidaController {
             redirectAttributes.addFlashAttribute("error", "Error al eliminar: " + e.getMessage());
         }
 
-        // Si hay referer, redirige ahí, sino a una página por defecto
         if (referer != null && !referer.isEmpty()) {
             return "redirect:" + referer;
         }
-        // Sino encuentra la referencia, redirige al dashboard o a otra página predeterminada
         return "redirect:/dashboard";
     }
 

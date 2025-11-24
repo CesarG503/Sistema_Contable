@@ -1,5 +1,6 @@
 package com.example.LoginCliente.Service;
 
+import com.example.LoginCliente.Models.Permiso;
 import com.example.LoginCliente.Models.UsuarioEmpresa;
 import com.example.LoginCliente.Repository.UsuarioEmpresaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,5 +49,15 @@ public class UsuarioEmpresaService {
 
     public void delete(Integer id) {
         usuarioEmpresaRepository.deleteById(id);
+    }
+
+    public UsuarioEmpresa findPrimerAdministrador(Integer idEmpresa) {
+        return usuarioEmpresaRepository.findFirstByIdEmpresaAndPermisoOrderByFechaAfiliacionAsc(idEmpresa, Permiso.Administrador.valor);
+    }
+
+    public long contarAdministradores(Integer idEmpresa) {
+        return usuarioEmpresaRepository.findByIdEmpresa(idEmpresa).stream()
+                .filter(ue -> ue.getPermiso() == Permiso.Administrador)
+                .count();
     }
 }

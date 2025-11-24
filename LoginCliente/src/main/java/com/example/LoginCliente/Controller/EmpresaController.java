@@ -15,6 +15,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -104,6 +107,18 @@ public class EmpresaController {
             session.setAttribute("usuarioEmpresaId", usuarioEmpresa.getIdUsuarioEmpresa());
             session.setAttribute("usuarioRol", usuarioEmpresa.getPermiso().texto);
             session.setAttribute("usuarioPermiso", usuarioEmpresa.getPermiso().valor);
+
+            // Construir authorities dinámicas para la empresa seleccionada
+            var authorities = new java.util.ArrayList<SimpleGrantedAuthority>();
+            authorities.add(new SimpleGrantedAuthority("ROLE_User"));
+            switch (usuarioEmpresa.getPermiso()) {
+                case Administrador -> authorities.add(new SimpleGrantedAuthority("ROLE_Administrador"));
+                case Auditor -> authorities.add(new SimpleGrantedAuthority("ROLE_Auditor"));
+                case Contador -> authorities.add(new SimpleGrantedAuthority("ROLE_Contador"));
+            }
+            // Reemplazar Authentication en el contexto de seguridad
+            var newAuth = new UsernamePasswordAuthenticationToken(authentication.getPrincipal(), authentication.getCredentials(), authorities);
+            SecurityContextHolder.getContext().setAuthentication(newAuth);
         }
 
         return "redirect:/dashboard";

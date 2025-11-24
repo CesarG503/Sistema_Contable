@@ -27,21 +27,21 @@
 
         <div class="menu-section">
             <div class="menu-title">Atajos Rápidos</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 15px; margin-bottom: 15px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 15px; margin-bottom: 15px">
                 <!-- Botón Crear Cuenta -->
                 <a href="/cuentas/crear" class="btn btn-success"
-                   style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px 8px"
+                   style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px 8px; box-shadow:0 4px 12px rgba(102, 126, 234, 0.3)"
                    onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.5)';"
-                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.3)';">
+                   onmouseout="this.style.transform='translateY(0)';">
                     <i class="fa-solid fa-file-invoice-dollar"></i>
                     <span style="font-size: 11px; font-weight: 600; text-align: center; line-height: 1.2; padding: 10px 0 ">Crear Cuenta</span>
                 </a>
 
                 <!-- Botón Nueva Partida -->
                 <a href="/partidas/libro-diario?openModal=true" class="btn btn-success"
-                   style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px 8px;"
+                   style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px 8px; box-shadow:0 4px 12px rgba(245, 87, 108, 0.3)"
                    onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 6px 20px rgba(245, 87, 108, 0.5)';"
-                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(245, 87, 108, 0.3)';">
+                   onmouseout="this.style.transform='translateY(0)';">
                     <i class="fa-solid fa-plus-circle"></i>
                     <span style="font-size: 11px; font-weight: 600; text-align: center; line-height: 1.2; padding: 10px 0">Nueva Partida</span>
                 </a>
@@ -67,7 +67,7 @@
                 <div class="menu-icon"><i class="fa-solid fa-file-contract"></i></div>
                 <span>Ver Reportes</span>
             </a>
-            <a href="/reportes/generar" class="menu-item" th:classappend="${page} == 'generar-reporte' ? ' active' : ''">
+            <a th:if="${session.usuarioPermiso != null and (session.usuarioPermiso == 0 or session.usuarioPermiso == 2)}" href="/reportes/generar" class="menu-item" th:classappend="${page} == 'generar-reporte' ? ' active' : ''">
                 <div class="menu-icon"><i class="fa-solid fa-file-export"></i></div>
                 <span>Generar Reportes</span>
             </a>
@@ -90,14 +90,6 @@
             </a>
         </div>
 
-        <!-- Menú solo visible para Administradores -->
-        <div th:if="${#authorization.expression('hasRole(''ROLE_Administrador'')')}">
-            <div class="menu-title">ADMINISTRADOR</div>
-            <a href="/admin/usuario" class="menu-item" th:classappend="${page} == 'admin-usuarios' ? ' active' : ''">
-                <div class="menu-icon"><i class="fa-solid fa-users-gear"></i></div>
-                <span>Admin - Usuarios</span>
-            </a>
-        </div>
         <!--
                 <div class="menu-section">
                     <div class="menu-title">PREFERENCIAS</div>
