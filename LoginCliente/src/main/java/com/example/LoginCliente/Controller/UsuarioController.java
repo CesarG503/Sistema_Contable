@@ -232,9 +232,6 @@ public class UsuarioController {
         return "auth/recuperar";
     }
 
-    /**
-     * Endpoint que recibe el token y muestra el formulario para cambiar contraseña
-     */
     @GetMapping("/restablecer-pwd")
     public String restablecerPassword(@RequestParam("token") String token, Model model) {
         Usuario usuario = usuarioService.validarToken(token);
@@ -249,9 +246,6 @@ public class UsuarioController {
         return "auth/restablecer-pwd";
     }
 
-    /**
-     * Endpoint para procesar el cambio de contraseña
-     */
     @PostMapping("/restablecer-pwd")
     public String procesarRestablecerPassword(@RequestParam("token") String token,
                                               @RequestParam("password") String password,

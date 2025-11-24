@@ -494,7 +494,16 @@ public class PartidaController {
     @PostMapping("/eliminar/{id}")
     public String eliminarPartida(@PathVariable Integer id,
                                   @RequestHeader(value = "Referer", required = false) String referer,
-                                  RedirectAttributes redirectAttributes) {
+                                  RedirectAttributes redirectAttributes,
+                                  HttpSession session) {
+        Integer permiso = (Integer) session.getAttribute("usuarioPermiso");
+        if (permiso == null || (permiso != 0 && permiso != 2)) {
+            redirectAttributes.addFlashAttribute("error", "No tiene permiso para eliminar partidas");
+            if (referer != null && !referer.isEmpty()) {
+                return "redirect:" + referer;
+            }
+            return "redirect:/partidas/libro-diario";
+        }
         try {
             partidaService.deleteById(id);
             redirectAttributes.addFlashAttribute("success", "Partida eliminada exitosamente");
@@ -502,11 +511,9 @@ public class PartidaController {
             redirectAttributes.addFlashAttribute("error", "Error al eliminar: " + e.getMessage());
         }
 
-        // Si hay referer, redirige ahí, sino a una página por defecto
         if (referer != null && !referer.isEmpty()) {
             return "redirect:" + referer;
         }
-        // Sino encuentra la referencia, redirige al dashboard o a otra página predeterminada
         return "redirect:/dashboard";
     }
 

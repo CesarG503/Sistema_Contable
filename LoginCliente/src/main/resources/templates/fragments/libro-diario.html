@@ -12,7 +12,7 @@
             <th>Debe</th>
             <th>Haber</th>
             <th>Detalles</th>
-            <th>Acciones</th>
+            <th th:if="(${session.usuarioPermiso} == 0 or ${session.usuarioPermiso} == 2)">Acciones</th>
         </tr>
         </thead>
         <tbody>
@@ -33,17 +33,19 @@
                                             data-concepto=${entry.key.concepto}"
                             onclick="openDetailsModal(this)">Ver detalles →</button>
                 </td >
-                <td th:if="${iterStat.first}" th:rowspan="${entry.value.size()}">
+                <!-- Acciones restringidas a Administrador (0) y Auditor (2) -->
+                <td th:if="${iterStat.first} and (${session.usuarioPermiso} == 0 or ${session.usuarioPermiso} == 2)"
+                    th:rowspan="${entry.value.size()}">
                     <button class="btn btn-edit"
                             th:attr="data-partida-id=${entry.key.idPartida}"
-                            onclick="openEditModal(this)">
+                            onclick="openEditModal(this)" title="Editar partida">
                         <i class="fa-solid fa-pen-to-square"></i>
                     </button>
                     <form th:action="@{/partidas/eliminar/{id}(id=${entry.key.idPartida})}"
                           method="post"
                           style="display: inline;"
                           onsubmit="return confirm('¿Estás seguro de eliminar esta partida?');">
-                        <button type="submit" class="btn btn-delete">
+                        <button type="submit" class="btn btn-delete" title="Eliminar partida">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </form>

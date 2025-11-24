@@ -198,7 +198,7 @@
                 <label for="permiso">Rol</label>
                 <select id="permiso" name="permiso" required>
                     <option value="0">Administrador</option>
-                    <option value="1" selected>Contador</option>
+                    <option value="1">Contador</option>
                     <option value="2">Auditor</option>
                 </select>
             </div>
@@ -212,29 +212,27 @@
         <table>
             <thead>
             <tr>
-                <th>Usuario</th>
-                <th>Nombre Completo</th>
-                <th>Email</th>
                 <th>Rol</th>
+                <th>Usuario</th>
+                <th>Email</th>
                 <th>Fecha de Afiliación</th>
                 <th>Acciones</th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="ue : ${usuariosEmpresa}">
-                <td th:text="${ue.usuario.usuario}">username</td>
-                <td th:text="${ue.usuario.usuario}">Nombre</td>
-                <td th:text="${ue.usuario.correo}">email@example.com</td>
                 <td>
-                    <span th:if="${ue.permiso == 0}" class="badge badge-admin">Administrador</span>
-                    <span th:if="${ue.permiso == 1}" class="badge badge-contador">Contador</span>
-                    <span th:if="${ue.permiso == 2}" class="badge badge-auditor">Auditor</span>
+                    <span th:if="${ue.permisoValor == 0}" class="badge badge-admin">Administrador</span>
+                    <span th:if="${ue.permisoValor == 1}" class="badge badge-contador">Contador</span>
+                    <span th:if="${ue.permisoValor == 2}" class="badge badge-auditor">Auditor</span>
                 </td>
+                <td th:text="${ue.usuario.usuario}">username</td>
+                <td th:text="${ue.usuario.correo}">email@example.com</td>
                 <td th:text="${#dates.format(ue.fechaAfiliacion, 'dd/MM/yyyy')}">01/01/2024</td>
                 <td>
                     <div class="action-buttons">
                         <button class="btn-action btn-edit"
-                                th:attr="data-id=${ue.idUsuarioEmpresa}, data-permiso=${ue.permiso}"
+                                th:attr="data-id=${ue.idUsuarioEmpresa}, data-permiso=${ue.permisoValor}"
                                 onclick="openEditModal(this)">
                             <i class="fa-solid fa-edit"></i> Cambiar Rol
                         </button>

@@ -1,6 +1,8 @@
 package com.example.LoginCliente.Service;
 
+import com.example.LoginCliente.Models.Permiso;
 import com.example.LoginCliente.Models.Usuario;
+import com.example.LoginCliente.Models.UsuarioEmpresa;
 import com.example.LoginCliente.Repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
