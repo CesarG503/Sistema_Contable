@@ -240,6 +240,47 @@ function exportarExcel() {
                 window.XLSX.utils.book_append_sheet(workbook, ws4, "Balance General")
             }
 
+            // --- Flujo de Efectivo ---
+            if (data.flujoEfectivo) {
+                const fe = data.flujoEfectivo
+                const dataFE = []
+
+                dataFE.push({ Concepto: "ACTIVIDADES DE OPERACIÓN", Monto: "" })
+                if (fe.actividadesOperacion && fe.actividadesOperacion.length > 0) {
+                    fe.actividadesOperacion.forEach((item) => {
+                        dataFE.push({ Concepto: "  " + (item.concepto || "Varios"), Monto: item.monto })
+                    })
+                }
+                dataFE.push({ Concepto: "Total Operación", Monto: fe.totalOperacion })
+                dataFE.push({ Concepto: "", Monto: "" })
+
+                dataFE.push({ Concepto: "ACTIVIDADES DE INVERSIÓN", Monto: "" })
+                if (fe.actividadesInversion && fe.actividadesInversion.length > 0) {
+                    fe.actividadesInversion.forEach((item) => {
+                        dataFE.push({ Concepto: "  " + (item.concepto || "Varios"), Monto: item.monto })
+                    })
+                }
+                dataFE.push({ Concepto: "Total Inversión", Monto: fe.totalInversion })
+                dataFE.push({ Concepto: "", Monto: "" })
+
+                dataFE.push({ Concepto: "ACTIVIDADES DE FINANCIAMIENTO", Monto: "" })
+                if (fe.actividadesFinanciamiento && fe.actividadesFinanciamiento.length > 0) {
+                    fe.actividadesFinanciamiento.forEach((item) => {
+                        dataFE.push({ Concepto: "  " + (item.concepto || "Varios"), Monto: item.monto })
+                    })
+                }
+                dataFE.push({ Concepto: "Total Financiamiento", Monto: fe.totalFinanciamiento })
+                dataFE.push({ Concepto: "", Monto: "" })
+
+                dataFE.push({ Concepto: "INCREMENTO/DISMINUCIÓN NETO", Monto: fe.flujoNetoTotal })
+                dataFE.push({ Concepto: "Saldo Inicial", Monto: fe.saldoInicial })
+                dataFE.push({ Concepto: "SALDO FINAL EFECTIVO", Monto: fe.saldoFinal })
+
+                const wsFE = window.XLSX.utils.json_to_sheet(dataFE)
+                wsFE["!cols"] = [{ wch: 50 }, { wch: 15 }]
+                window.XLSX.utils.book_append_sheet(workbook, wsFE, "Flujo de Efectivo")
+            }
+
             const filename = "reporte_contable_" + new Date().toISOString().split("T")[0] + ".xlsx"
             window.XLSX.writeFile(workbook, filename)
 

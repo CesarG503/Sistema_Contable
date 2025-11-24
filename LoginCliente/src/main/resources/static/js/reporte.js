@@ -100,6 +100,7 @@ function generarReporte() {
             renderizarEstadoResultados(data)
             renderizarEstadoCapital(data)
             renderizarBalanceGeneral(data)
+            renderizarFlujoEfectivo(data) // Added from updates
 
             Swal.fire({
                 icon: "success",
@@ -705,6 +706,94 @@ function renderizarBalanceGeneral(data) {
     container.innerHTML = html
 }
 
+function renderizarFlujoEfectivo(data) {
+    const container = document.getElementById("flujo-efectivo-container")
+    const fe = data.flujoEfectivo
+
+    if (!fe) {
+        container.innerHTML = '<div class="empty-state">No hay datos de flujo de efectivo</div>'
+        return
+    }
+
+    const renderRows = (items) => {
+        if (!items || items.length === 0)
+            return '<tr><td colspan="2" style="color: #999; font-style: italic; padding-left: 20px;">Sin movimientos</td></tr>'
+        return items
+            .map(
+                (item) => `
+            <tr>
+                <td class="fin-indent-1">${item.concepto || "Movimiento vario"}</td>
+                <td class="fin-amount">$${Number.parseFloat(item.monto).toFixed(2)}</td>
+            </tr>
+        `,
+            )
+            .join("")
+    }
+
+    const html = `
+        <div class="financial-paper">
+            <div class="fin-header">
+                <h3>Estado de Flujo de Efectivo</h3>
+                <div class="period">Del ${document.getElementById("fechaInicio").value} al ${document.getElementById("fechaFin").value}</div>
+            </div>
+
+            <table class="fin-table">
+                <!-- Operación -->
+                <tr>
+                    <td class="fin-row-header">ACTIVIDADES DE OPERACIÓN</td>
+                    <td></td>
+                </tr>
+                ${renderRows(fe.actividadesOperacion)}
+                <tr>
+                    <td class="fin-indent-1" style="font-weight:bold;">Flujo neto de actividades de operación</td>
+                    <td class="fin-amount fin-total-line">$${Number.parseFloat(fe.totalOperacion).toFixed(2)}</td>
+                </tr>
+                <tr style="height: 10px;"><td></td><td></td></tr>
+
+                <!-- Inversión -->
+                <tr>
+                    <td class="fin-row-header">ACTIVIDADES DE INVERSIÓN</td>
+                    <td></td>
+                </tr>
+                ${renderRows(fe.actividadesInversion)}
+                <tr>
+                    <td class="fin-indent-1" style="font-weight:bold;">Flujo neto de actividades de inversión</td>
+                    <td class="fin-amount fin-total-line">$${Number.parseFloat(fe.totalInversion).toFixed(2)}</td>
+                </tr>
+                <tr style="height: 10px;"><td></td><td></td></tr>
+
+                <!-- Financiamiento -->
+                <tr>
+                    <td class="fin-row-header">ACTIVIDADES DE FINANCIAMIENTO</td>
+                    <td></td>
+                </tr>
+                ${renderRows(fe.actividadesFinanciamiento)}
+                <tr>
+                    <td class="fin-indent-1" style="font-weight:bold;">Flujo neto de actividades de financiamiento</td>
+                    <td class="fin-amount fin-total-line">$${Number.parseFloat(fe.totalFinanciamiento).toFixed(2)}</td>
+                </tr>
+                
+                <tr style="height: 20px;"><td></td><td></td></tr>
+
+                <!-- Resumen -->
+                <tr>
+                    <td class="fin-row-header">INCREMENTO/DISMINUCIÓN NETO DE EFECTIVO</td>
+                    <td class="fin-amount">$${Number.parseFloat(fe.flujoNetoTotal).toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td class="fin-indent-1">MÁS: Efectivo y equivalentes al inicio del periodo</td>
+                    <td class="fin-amount">$${Number.parseFloat(fe.saldoInicial).toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td class="fin-row-header">EFECTIVO Y EQUIVALENTES AL FINAL DEL PERIODO</td>
+                    <td class="fin-amount fin-grand-total">$${Number.parseFloat(fe.saldoFinal).toFixed(2)}</td>
+                </tr>
+            </table>
+        </div>
+    `
+    container.innerHTML = html
+}
+
 function renderizarTodoReporte() {
     const tabAll = document.getElementById("tab-all")
     const html = `
@@ -1231,6 +1320,121 @@ function exportarPDF() {
                     },
                     theme: "grid",
                 })
+            }
+
+            if (reporteData.flujoEfectivo) {
+                if (yPosition > pageHeight - 50) {
+                    doc.addPage()
+                    yPosition = 20
+                }
+
+                doc.setFontSize(14)
+                doc.setFont(undefined, "bold")
+                doc.text("Estado de Flujo de Efectivo", margin, yPosition)
+                yPosition += 10
+
+                const fe = reporteData.flujoEfectivo
+                const dataFE = []
+
+                // Operación
+                dataFE.push([
+                    {
+                        content: "ACTIVIDADES DE OPERACIÓN",
+                        colSpan: 2,
+                        styles: { fontStyle: "bold", fillColor: [240, 240, 240] },
+                    },
+                ])
+                if (fe.actividadesOperacion && fe.actividadesOperacion.length > 0) {
+                    fe.actividadesOperacion.forEach((item) => {
+                        dataFE.push([item.concepto || "Varios", "$" + Number.parseFloat(item.monto).toFixed(2)])
+                    })
+                } else {
+                    dataFE.push(["(Sin movimientos)", "$0.00"])
+                }
+                dataFE.push([
+                    {
+                        content: "Flujo neto operación: $" + Number.parseFloat(fe.totalOperacion).toFixed(2),
+                        colSpan: 2,
+                        styles: { fontStyle: "bold", halign: "right" },
+                    },
+                ])
+
+                // Inversión
+                dataFE.push([
+                    {
+                        content: "ACTIVIDADES DE INVERSIÓN",
+                        colSpan: 2,
+                        styles: { fontStyle: "bold", fillColor: [240, 240, 240] },
+                    },
+                ])
+                if (fe.actividadesInversion && fe.actividadesInversion.length > 0) {
+                    fe.actividadesInversion.forEach((item) => {
+                        dataFE.push([item.concepto || "Varios", "$" + Number.parseFloat(item.monto).toFixed(2)])
+                    })
+                } else {
+                    dataFE.push(["(Sin movimientos)", "$0.00"])
+                }
+                dataFE.push([
+                    {
+                        content: "Flujo neto inversión: $" + Number.parseFloat(fe.totalInversion).toFixed(2),
+                        colSpan: 2,
+                        styles: { fontStyle: "bold", halign: "right" },
+                    },
+                ])
+
+                // Financiamiento
+                dataFE.push([
+                    {
+                        content: "ACTIVIDADES DE FINANCIAMIENTO",
+                        colSpan: 2,
+                        styles: { fontStyle: "bold", fillColor: [240, 240, 240] },
+                    },
+                ])
+                if (fe.actividadesFinanciamiento && fe.actividadesFinanciamiento.length > 0) {
+                    fe.actividadesFinanciamiento.forEach((item) => {
+                        dataFE.push([item.concepto || "Varios", "$" + Number.parseFloat(item.monto).toFixed(2)])
+                    })
+                } else {
+                    dataFE.push(["(Sin movimientos)", "$0.00"])
+                }
+                dataFE.push([
+                    {
+                        content: "Flujo neto financiamiento: $" + Number.parseFloat(fe.totalFinanciamiento).toFixed(2),
+                        colSpan: 2,
+                        styles: { fontStyle: "bold", halign: "right" },
+                    },
+                ])
+
+                // Totales
+                dataFE.push(["", ""])
+                dataFE.push(["Incremento/Disminución Neto", "$" + Number.parseFloat(fe.flujoNetoTotal).toFixed(2)])
+                dataFE.push(["Saldo Inicial Efectivo", "$" + Number.parseFloat(fe.saldoInicial).toFixed(2)])
+
+                dataFE.push([
+                    {
+                        content: "SALDO FINAL EFECTIVO: $" + Number.parseFloat(fe.saldoFinal).toFixed(2),
+                        colSpan: 2,
+                        styles: { fontStyle: "bold", halign: "center", fillColor: [255, 243, 205], fontSize: 11 },
+                    },
+                ])
+
+                doc.autoTable({
+                    body: dataFE,
+                    startY: yPosition,
+                    margin: { left: margin, right: margin },
+                    columnStyles: {
+                        0: { cellWidth: 120 },
+                        1: { cellWidth: 50, halign: "right" },
+                    },
+                    styles: {
+                        fontSize: 9,
+                        cellPadding: 3,
+                    },
+                    didDrawPage: (data) => {
+                        yPosition = data.cursor.y + 5
+                    },
+                })
+                yPosition = doc.lastAutoTable.finalY + 15
             }
 
             // Guardar PDF
