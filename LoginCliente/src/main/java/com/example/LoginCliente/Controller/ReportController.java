@@ -589,6 +589,7 @@ public class ReportController {
             datosCompletos.put("ecuacionContable", datosReporte.get("ecuacionContable"));
             datosCompletos.put("fechaInicio", datosReporte.get("fechaInicio"));
             datosCompletos.put("fechaFin", datosReporte.get("fechaFin"));
+            datosCompletos.put("flujoEfectivo", datosReporte.get("flujoEfectivo"));
 
             String jsonData = objectMapper.writeValueAsString(datosCompletos);
             reporte.setDatosJson(jsonData);
@@ -685,6 +686,7 @@ public class ReportController {
             response.put("ecuacionContable", datosReporte.get("ecuacionContable"));
             response.put("fechaInicio", datosReporte.get("fechaInicio"));
             response.put("fechaFin", datosReporte.get("fechaFin"));
+            response.put("flujoEfectivo", datosReporte.get("flujoEfectivo"));
             response.put("success", true);
 
             return ResponseEntity.ok(response);

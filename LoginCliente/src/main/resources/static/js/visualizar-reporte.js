@@ -61,6 +61,7 @@ async function cargarReporte(idReporte) {
                 renderizarEstadoResultados(jsonData)
                 renderizarEstadoCapital(jsonData)
                 renderizarBalanceGeneral(jsonData)
+                renderizarFlujoEfectivo(jsonData)
 
                 console.log(jsonData)
             }
@@ -637,6 +638,94 @@ function renderizarBalanceGeneral(data) {
         </div>
     `
 
+    container.innerHTML = html
+}
+
+function renderizarFlujoEfectivo(data) {
+    const container = document.getElementById("flujo-efectivo-container")
+    const fe = data.flujoEfectivo
+
+    if (!fe) {
+        container.innerHTML = '<div class="empty-state">No hay datos de flujo de efectivo</div>'
+        return
+    }
+
+    const renderRows = (items) => {
+        if (!items || items.length === 0)
+            return '<tr><td colspan="2" style="color: #999; font-style: italic; padding-left: 20px;">Sin movimientos</td></tr>'
+        return items
+            .map(
+                (item) => `
+            <tr>
+                <td class="fin-indent-1">${item.concepto || "Movimiento vario"}</td>
+                <td class="fin-amount">$${Number.parseFloat(item.monto).toFixed(2)}</td>
+            </tr>
+        `,
+            )
+            .join("")
+    }
+
+    const html = `
+        <div class="financial-paper">
+            <div class="fin-header">
+                <h3>Estado de Flujo de Efectivo</h3>
+                <div class="period">Del ${data.fechaInicio} al ${data.fechaFin}</div>
+            </div>
+
+            <table class="fin-table">
+                <!-- Operación -->
+                <tr>
+                    <td class="fin-row-header">ACTIVIDADES DE OPERACIÓN</td>
+                    <td></td>
+                </tr>
+                ${renderRows(fe.actividadesOperacion)}
+                <tr>
+                    <td class="fin-indent-1" style="font-weight:bold;">Flujo neto de actividades de operación</td>
+                    <td class="fin-amount fin-total-line">$${Number.parseFloat(fe.totalOperacion).toFixed(2)}</td>
+                </tr>
+                <tr style="height: 10px;"><td></td><td></td></tr>
+
+                <!-- Inversión -->
+                <tr>
+                    <td class="fin-row-header">ACTIVIDADES DE INVERSIÓN</td>
+                    <td></td>
+                </tr>
+                ${renderRows(fe.actividadesInversion)}
+                <tr>
+                    <td class="fin-indent-1" style="font-weight:bold;">Flujo neto de actividades de inversión</td>
+                    <td class="fin-amount fin-total-line">$${Number.parseFloat(fe.totalInversion).toFixed(2)}</td>
+                </tr>
+                <tr style="height: 10px;"><td></td><td></td></tr>
+
+                <!-- Financiamiento -->
+                <tr>
+                    <td class="fin-row-header">ACTIVIDADES DE FINANCIAMIENTO</td>
+                    <td></td>
+                </tr>
+                ${renderRows(fe.actividadesFinanciamiento)}
+                <tr>
+                    <td class="fin-indent-1" style="font-weight:bold;">Flujo neto de actividades de financiamiento</td>
+                    <td class="fin-amount fin-total-line">$${Number.parseFloat(fe.totalFinanciamiento).toFixed(2)}</td>
+                </tr>
+                
+                <tr style="height: 20px;"><td></td><td></td></tr>
+
+                <!-- Resumen -->
+                <tr>
+                    <td class="fin-row-header">INCREMENTO/DISMINUCIÓN NETO DE EFECTIVO</td>
+                    <td class="fin-amount">$${Number.parseFloat(fe.flujoNetoTotal).toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td class="fin-indent-1">MÁS: Efectivo y equivalentes al inicio del periodo</td>
+                    <td class="fin-amount">$${Number.parseFloat(fe.saldoInicial).toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td class="fin-row-header">EFECTIVO Y EQUIVALENTES AL FINAL DEL PERIODO</td>
+                    <td class="fin-amount fin-grand-total">$${Number.parseFloat(fe.saldoFinal).toFixed(2)}</td>
+                </tr>
+            </table>
+        </div>
+    `
     container.innerHTML = html
 }
 
