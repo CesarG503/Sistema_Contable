@@ -108,6 +108,9 @@ function generarReporte() {
             })
 
             cambiarTab("partida-doble")
+            document.getElementById('btn-exportar-pdf').removeAttribute('disabled');
+            document.getElementById('btn-exportar-excel').removeAttribute('disabled');
+            document.getElementById('btn-guardar').removeAttribute('disabled');
         })
         .catch((error) => {
             document.getElementById("loading").classList.remove("show")
@@ -118,6 +121,33 @@ function generarReporte() {
                 text: "Error al generar el reporte: " + error.message,
             })
         })
+}
+
+async function guardarReporte() {
+    if (!reporteData) {
+        await Swal.fire({
+            icon: "warning",
+            title: "Sin datos",
+            text: "Por favor genera un reporte primero",
+        })
+        return;
+    }
+
+    const response = await fetch('/reportes/guardar', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(reporteData)
+    });
+
+    const result = await response.json();
+    if (result.success) {
+        console.log('Reporte guardado con ID:', result.idReporte);
+    }
+    else {
+        console.error('Error al guardar el reporte:', result.error);
+    }
 }
 
 function renderizarLibroDiario(data) {

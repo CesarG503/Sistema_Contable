@@ -63,6 +63,10 @@
                 <div class="menu-icon"><i class="fa-solid fa-folder-open"></i></div>
                 <span>Ver Documentos</span>
             </a>
+            <a href="/reportes/reportes" class="menu-item" th:classappend="${page} == 'ver-reportes' ? ' active' : ''">
+                <div class="menu-icon"><i class="fa-solid fa-file-contract"></i></div>
+                <span>Ver Reportes</span>
+            </a>
             <a href="/reportes/generar" class="menu-item" th:classappend="${page} == 'generar-reporte' ? ' active' : ''">
                 <div class="menu-icon"><i class="fa-solid fa-file-export"></i></div>
                 <span>Generar Reportes</span>
