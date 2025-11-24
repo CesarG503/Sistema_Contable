@@ -57,6 +57,7 @@ public class PartidaController {
         }
 
         List<Partida> partidas = partidaService.findByIdEmpresa(empresaActiva);
+        Collections.reverse(partidas);
         List<Cuenta> cuentas = cuentaService.findByIdEmpresa(empresaActiva);
 
         Map<PartidaDTO, List<Movimiento>> partidasConMovimientos = new LinkedHashMap<>();
@@ -187,6 +188,11 @@ public class PartidaController {
 
             if (totalDebe.compareTo(totalHaber) != 0) {
                 response.put("error", "El total del Debe debe ser igual al total del Haber");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            if(totalDebe.compareTo(BigDecimal.ZERO) == 0){
+                response.put("error", "El saldo no puede ser igual a 0");
                 return ResponseEntity.badRequest().body(response);
             }
 
@@ -418,6 +424,11 @@ public class PartidaController {
             // Validar balance
             if (totalDebe.compareTo(totalHaber) != 0) {
                 response.put("error", "El total del Debe debe ser igual al total del Haber");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            if(totalDebe.compareTo(BigDecimal.ZERO) == 0){
+                response.put("error", "El saldo no puede ser igual a 0");
                 return ResponseEntity.badRequest().body(response);
             }
 

@@ -245,6 +245,26 @@
 <script th:inline="javascript">
     /*<![CDATA[*/
     const documentosPorPartida = JSON.parse(/*[[${documentosPorPartida}]]*/ '{}');
+
+    // Función para confirmar eliminación con SweetAlert
+    async function confirmarEliminar(idPartida) {
+        const result = await Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción eliminará la partida permanentemente",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true
+        });
+
+        if (result.isConfirmed) {
+            // Usuario confirmó, enviar formulario
+            document.getElementById('formEliminar' + idPartida).submit();
+        }
+    }
     /*]]>*/
 </script>
 

@@ -44,8 +44,12 @@
                     <form th:action="@{/partidas/eliminar/{id}(id=${entry.key.idPartida})}"
                           method="post"
                           style="display: inline;"
-                          onsubmit="return confirm('¿Estás seguro de eliminar esta partida?');">
-                        <button type="submit" class="btn btn-delete" title="Eliminar partida">
+                          th:id="'formEliminar' + ${entry.key.idPartida}"
+                          onsubmit="return false;">
+                        <button type="button"
+                                class="btn btn-delete"
+                                title="Eliminar partida"
+                                th:onclick="'confirmarEliminar(' + ${entry.key.idPartida} + ')'">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </form>
